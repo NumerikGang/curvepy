@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import threading as th
+import numpy.linalg as npl
+
 
 lockMe = th.Lock()
 
@@ -45,42 +47,89 @@ class CasteljauThread(th.Thread):
             self.deCaes(t,n)
 
 
+class Bezier_Curve():
 
-#Bisher nur für 2D
-#TODO: Auf 3D oder besser upgraden
-def plot(coords):
-    xs = [x for x,_ in coords]
-    ys = [y for _,y in coords]
-    plt.plot(xs,ys,'o')
-    plt.show()
+    def __init__(self, m, cnt_ts = 1000):
+        self._bezier_points = m
+        self._cnt_ts = cnt_ts
+        self._curve = []
+        self._box = []
+        self._edge_points = []
 
-def deCasteljau_threading(m,cnt = 4, n = 1):
-    ts = t_holder(n)
-    threads = []
-    res = []
+    def get_box(self):
+        return self._box
 
-    for _ in range(cnt): threads.append(CasteljauThread(ts, m))
+    def get_edge_points(self):
+        return self._edge_points
 
-    for t in threads: t.start()
+    # Bisher nur für 2D
+    # TODO: Auf 3D oder besser upgraden
+    def plot_curve(self):
+        xs = [x for x, _ in self._curve]
+        ys = [y for _, y in self._curve]
+        plt.plot(xs, ys, 'o')
+        plt.show()
 
-    for t in threads:
-        t.join()
-        tmp = t.get_res()
-        res = res + tmp
-    return res
+    def deCasteljau_threading(self, cnt_threads=4):
+        ts = t_holder(self._cnt_ts)
+        threads = []
 
+        for _ in range(cnt_threads): threads.append(CasteljauThread(ts, self._bezier_points))
 
-def init(xs,ys):
-    m = np.array([xs, ys], dtype=float)
-    res = deCasteljau_threading(m, 4, 100)
-    print('fertig')
-    #print(res)
-    plot(res)
+        for t in threads: t.start()
+
+        for t in threads:
+            t.join()
+            tmp = t.get_res()
+            self._curve = self._curve + tmp
+
+        self.min_max_box()
+
+    def create_edge_points(self):
+        xs = [x for x in self._bezier_points[0, :]]
+        ys = [y for y in self._bezier_points[1, :]]
+        xs.sort(); ys.sort()
+        down_left = np.array([xs[0], ys[0]])
+        down_right = np.array([xs[-1], ys[0]])
+        up_left = np.array([xs[0], ys[-1]])
+        up_right = np.array([xs[-1], ys[-1]])
+        self._edge_points = [down_left, down_right, up_left, up_right]
+
+    def min_max_box(self):
+        self.create_edge_points()
+        d_vector_x = self._edge_points[1] - self._edge_points[0]
+        d_vector_y = self._edge_points[2] - self._edge_points[0]
+        self._box = np.array([self._edge_points[0],d_vector_x,d_vector_y])
+
+    def collision_check(self, other_curve):
+        o_edge_points = other_curve.get_edge_points()
+        box = self._box
+        A = np.array([box[1,:],box[2,:]])
+        for p in o_edge_points:
+            b = p - box[0,:]
+            u,v = npl.solve(A,b)
+            if 0 <= u <= 1 or 0 <= v <= 1: return True
+        return False
+
+def init():
+    xs_1 = np.array([0, 4, 8])
+    ys_1 = np.array([0, 5, 0])
+    xs_2 = np.array([7, 11, 15])
+    ys_2 = np.array([4, 9, 4])
+    m1 = np.array([xs_1, ys_1], dtype=float)
+    m2 = np.array([xs_2, ys_2], dtype=float)
+    b1 = Bezier_Curve(m1)
+    b1.deCasteljau_threading()
+    b2 = Bezier_Curve(m2)
+    b2.deCasteljau_threading()
+    print(b1.collision_check(b2))
+    #b2.plot_curve()
+    #b1.plot_curve()
+    #print('fertig')
 
 #TODO Input Reader (CSV)
-xs = np.array([0,4,8,12,16,20])
-ys = np.array([0,5,3,0,4,2])
-init(xs,ys)
+
+init()
 
 
 
@@ -91,6 +140,31 @@ init(xs,ys)
 
 
 ######################################################################################################################
+
+
+#def plot(coords):
+#    xs = [x for x, _ in coords]
+#    ys = [y for _, y in coords]
+#    plt.plot(xs, ys, 'o')
+#    plt.show()
+
+#def deCasteljau_threading(m,cnt_threads = 4, n = 1):
+#    ts = t_holder(n)
+#    threads = []
+#    res = []
+#
+#    for _ in range(cnt_threads): threads.append(CasteljauThread(ts, m))
+#
+#    for t in threads: t.start()
+#
+#    for t in threads:
+#        t.join()
+#        tmp = t.get_res()
+#        res = res + tmp
+#    return res
+
+
+
 
 #def deCastellp(m, t = 0.5):
 #    _, n = m.shape
