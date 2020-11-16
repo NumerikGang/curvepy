@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import threading as th
 import numpy.linalg as npl
+import shapely.geometry as sg
 
 
 lockMe = th.Lock()
@@ -64,7 +65,7 @@ class Bezier_Curve():
 
     # Bisher nur für 2D
     # TODO: Auf 3D oder besser upgraden
-    def plot_curve(self):
+    def get_curve(self):
         xs = [x for x, _ in self._curve]
         ys = [y for _, y in self._curve]
         return xs,ys
@@ -107,28 +108,40 @@ class Bezier_Curve():
         for p in o_edge_points:
             b = p - box[0,:]
             u,v = npl.solve(A,b)
-            if 0 <= u <= 1 or 0 <= v <= 1: return True
+            if 0 <= u <= 1 or 0 <= v <= 1:
+                return self.curve_collision_check(other_curve)
         return False
+
+    def curve_collision_check(self,other_curve):
+        xs,ys = self.get_curve()
+        f1 = sg.LineString(np.column_stack((xs,ys)))
+        xs, ys = other_curve.get_curve()
+        f2 = sg.LineString(np.column_stack((xs, ys)))
+        inter = f1.intersection(f2)
+        print(inter.geom_type)
+        if inter.geom_type == 'LineString': return False
+        return True
+
 
 def init():
     xs_1 = np.array([0, 4, 8])
     ys_1 = np.array([0, 5, 0])
     xs_2 = np.array([7, 11, 15])
-    ys_2 = np.array([0, 5, 0])
+    ys_2 = np.array([2, 6, 2])
     m1 = np.array([xs_1, ys_1], dtype=float)
     m2 = np.array([xs_2, ys_2], dtype=float)
     b1 = Bezier_Curve(m1)
     b1.deCasteljau_threading()
     b2 = Bezier_Curve(m2)
     b2.deCasteljau_threading()
-    #print(b1.collision_check(b2))
-    xs_2, ys_2 = b2.plot_curve()
-    xs_1, ys_1 = b1.plot_curve()
+    print(b1.collision_check(b2))
+    xs_2, ys_2 = b2.get_curve()
+    xs_1, ys_1 = b1.get_curve()
     fig, ax = plt.subplots()
     ax.plot(xs_1,ys_1, 'o')
     ax.plot(xs_2,ys_2, 'o')
     plt.show()
-    #print('fertig')
+    print('fertig')
 
 #TODO Input Reader (CSV)
 
