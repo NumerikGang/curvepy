@@ -86,8 +86,8 @@ class Bezier_Curve():
         self.min_max_box()
 
     def create_edge_points(self):
-        xs = [x for x in self._bezier_points[0, :]]
-        ys = [y for y in self._bezier_points[1, :]]
+        xs = [*self._bezier_points[0, :]]
+        ys = [*self._bezier_points[1, :]]
         xs.sort(); ys.sort()
         down_left = np.array([xs[0], ys[0]])
         down_right = np.array([xs[-1], ys[0]])
@@ -118,7 +118,6 @@ class Bezier_Curve():
         xs, ys = other_curve.get_curve()
         f2 = sg.LineString(np.column_stack((xs, ys)))
         inter = f1.intersection(f2)
-        print(inter.geom_type)
         if inter.geom_type == 'LineString': return False
         return True
 
@@ -126,8 +125,8 @@ class Bezier_Curve():
 def init():
     xs_1 = np.array([0, 4, 8])
     ys_1 = np.array([0, 5, 0])
-    xs_2 = np.array([7, 11, 15])
-    ys_2 = np.array([2, 6, 2])
+    xs_2 = np.array([8, 12, 16])
+    ys_2 = np.array([0, 5, 0])
     m1 = np.array([xs_1, ys_1], dtype=float)
     m2 = np.array([xs_2, ys_2], dtype=float)
     b1 = Bezier_Curve(m1)
