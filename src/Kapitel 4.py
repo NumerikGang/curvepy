@@ -67,8 +67,7 @@ class Bezier_Curve():
     def plot_curve(self):
         xs = [x for x, _ in self._curve]
         ys = [y for _, y in self._curve]
-        plt.plot(xs, ys, 'o')
-        plt.show()
+        return xs,ys
 
     def deCasteljau_threading(self, cnt_threads=4):
         ts = t_holder(self._cnt_ts)
@@ -115,16 +114,20 @@ def init():
     xs_1 = np.array([0, 4, 8])
     ys_1 = np.array([0, 5, 0])
     xs_2 = np.array([7, 11, 15])
-    ys_2 = np.array([4, 9, 4])
+    ys_2 = np.array([0, 5, 0])
     m1 = np.array([xs_1, ys_1], dtype=float)
     m2 = np.array([xs_2, ys_2], dtype=float)
     b1 = Bezier_Curve(m1)
     b1.deCasteljau_threading()
     b2 = Bezier_Curve(m2)
     b2.deCasteljau_threading()
-    print(b1.collision_check(b2))
-    #b2.plot_curve()
-    #b1.plot_curve()
+    #print(b1.collision_check(b2))
+    xs_2, ys_2 = b2.plot_curve()
+    xs_1, ys_1 = b1.plot_curve()
+    fig, ax = plt.subplots()
+    ax.plot(xs_1,ys_1, 'o')
+    ax.plot(xs_2,ys_2, 'o')
+    plt.show()
     #print('fertig')
 
 #TODO Input Reader (CSV)
