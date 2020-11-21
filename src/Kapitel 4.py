@@ -55,13 +55,9 @@ class Bezier_Curve():
         self._cnt_ts = cnt_ts
         self._curve = []
         self._box = []
-        self._edge_points = []
 
     def get_box(self):
         return self._box
-
-    def get_edge_points(self):
-        return self._edge_points
 
     # Bisher nur für 2D
     # TODO: Auf 3D oder besser upgraden
@@ -85,32 +81,25 @@ class Bezier_Curve():
 
         self.min_max_box()
 
-    def create_edge_points(self):
-        xs = [*self._bezier_points[0, :]]
-        ys = [*self._bezier_points[1, :]]
-        xs.sort(); ys.sort()
-        down_left = np.array([xs[0], ys[0]])
-        down_right = np.array([xs[-1], ys[0]])
-        up_left = np.array([xs[0], ys[-1]])
-        up_right = np.array([xs[-1], ys[-1]])
-        self._edge_points = [down_left, down_right, up_left, up_right]
+    def intersect(self,t1,t2):
+        return t2[0] <= t1[0] <= t2[1] \
+            or t2[0] <= t1[1] <= t2[1] \
+            or t1[0] <= t2[0] <= t1[1] \
+            or t1[0] <= t2[1] <= t1[1]
 
     def min_max_box(self):
-        self.create_edge_points()
-        d_vector_x = self._edge_points[1] - self._edge_points[0]
-        d_vector_y = self._edge_points[2] - self._edge_points[0]
-        self._box = np.array([self._edge_points[0],d_vector_x,d_vector_y])
+        xs = [*self._bezier_points[0, :]]
+        ys = [*self._bezier_points[1, :]]
+        xs.sort();
+        ys.sort()
+        self._box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
 
     def collision_check(self, other_curve):
-        o_edge_points = other_curve.get_edge_points()
+        o_box = other_curve.get_box()
         box = self._box
-        A = np.array([box[1,:],box[2,:]])
-        for p in o_edge_points:
-            b = p - box[0,:]
-            u,v = npl.solve(A,b)
-            if 0 <= u <= 1 or 0 <= v <= 1:
-                return self.curve_collision_check(other_curve)
-        return False
+        for t1,t2 in zip(box,o_box):
+            if not self.intersect(t1,t2): return False
+        return self.curve_collision_check(other_curve)
 
     def curve_collision_check(self,other_curve):
         xs,ys = self.get_curve()
@@ -126,7 +115,7 @@ def init():
     xs_1 = np.array([0, 4, 8])
     ys_1 = np.array([0, 5, 0])
     xs_2 = np.array([8, 12, 16])
-    ys_2 = np.array([0, 5, 0])
+    ys_2 = np.array([2, 7, 2])
     m1 = np.array([xs_1, ys_1], dtype=float)
     m2 = np.array([xs_2, ys_2], dtype=float)
     b1 = Bezier_Curve(m1)
