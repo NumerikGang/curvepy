@@ -1,77 +1,224 @@
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import threading as th
-import numpy.linalg as npl
 import shapely.geometry as sg
-from mpl_toolkits.mplot3d import Axes3D
+from typing import Tuple, Callable
+
+lockMe = th.Lock()  # variable used to control access of threads
 
 
-lockMe = th.Lock()
+class Tholder:
 
-class t_holder():
+    """
+    class holds Array with equidistant ts in [0,1] of length n
 
-    def __init__(self, n=1):
+    Parameters
+    ----------
+    n: int
+        Numbers of ts to calculate
+
+    Attributes
+    -------
+    _tArray : np.ndArray
+        array in which all ts are stored
+    _pointer : int
+        pointer pointing on next t to get
+    """
+    def __init__(self, n: int = 1) -> None:
         self._tArray = np.linspace(0, 1, n)
         self._pointer = 0
 
-    def get_next_t(self):
-        if self._pointer == len(self._tArray): return -1
+    """
+    method for threads to get next t 
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    float:
+        t to calculate next De Casteljau step
+    """
+    def get_next_t(self) -> float:
+        if self._pointer == len(self._tArray):
+            return -1
         res = self._tArray[self._pointer]
         self._pointer += 1
         return res
 
+
 class CasteljauThread(th.Thread):
 
-    def __init__(self, ts_holder, c, f=lambda x: x):
+    """
+    Init belonging to class CasteljauThread
+
+    Parameters
+    ----------
+    ts_holder: Tholder
+        Class which yields all ts
+    c: np.ndArray
+        Array with control Points
+    f: Function
+         Function to transform t if necessary
+
+    Attributes
+    -------
+    _ts_holder : Tholder
+        instance of class Tholder so thread can get ts for calculating de Casteljau
+    _coords: np.ndArray
+        original control points
+    _res: list
+        actual points on curve
+    _func: Function
+        function for transforming t
+    """
+    def __init__(self, ts_holder: Tholder, c: np.ndarray, f: Callable[[float], float] = lambda x: x) -> None:
         th.Thread.__init__(self)
         self._ts_holder = ts_holder
         self._coords = c
         self._res = []
         self._func = f
 
-    def get_res(self):
+    """
+    method to get List with calculated points
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    List containing all points calculated by the thread instance
+    """
+    def get_res(self) -> list:
         return self._res
 
-    def deCaes(self, t, n):
+    """
+    method implementing de Casteljau algorithm
+
+    Parameters
+    ----------
+    t: float
+         t used in the calculation
+     n: int
+        number of iterations
+            
+    Returns
+    -------
+    None
+    """
+    def de_caes(self, t: float, n: int) -> None:
         m = self._coords.copy()
         t = self._func(t)
         for r in range(n):
             m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
         self._res.append(m[:, 0])
 
-    def run(self):
+    """
+    run method calculates points until depot is Empty
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+    def run(self) -> None:
         _, n = self._coords.shape
         while True:
             lockMe.acquire()
             t = self._ts_holder.get_next_t()
             lockMe.release()
-            if t == -1: break
-            self.deCaes(t, n)
+            if t == -1:
+                break
+            self.de_caes(t, n)
 
 
-class Bezier_Curve_2D():
+class BezierCurve2D:
 
-    def __init__(self, m, cnt_ts=1000):
+    """
+    Init belonging to BezierCurve2D
+
+    Parameters
+    ----------
+    m: np.ndArray
+        Array containing control points
+    cnt_ts: int
+        number of ts to create
+
+    Attributes
+    -------
+    _bezier_points: np.ndArray
+        array containing original bezier points
+    _cnt_ts: int
+        numbers of equidistant ts to calculate
+    _curve: list
+        list containing points belonging to actual curve
+    _box: list
+        points describing minmax box of curve
+    """
+    def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
         self._bezier_points = m
         self._cnt_ts = cnt_ts
         self._curve = []
         self._box = []
 
-    def get_box(self):
+    """
+    method returns minmax box of calculated curve
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    list:
+        contains points describing the box
+    """
+    def get_box(self) -> list:
         return self._box
 
-    def get_curve(self):
+    """
+    method return x and y coordinates of all calculated points
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    lists:
+        one list for x coords, one for y coords
+    """
+    def get_curve(self) -> Tuple[list, list]:
         xs = [x for x, _ in self._curve]
         ys = [y for _, y in self._curve]
         return xs, ys
 
-    def deCasteljau_threading(self, cnt_threads=4):
-        ts = t_holder(self._cnt_ts)
+    """
+    method implementing the threading for de Casteljau algorithm
+
+    Parameters
+    ----------
+    cnt_threads: int
+        number of threads to use
+
+    Returns
+    -------
+    None
+    """
+    def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
+        ts = Tholder(self._cnt_ts)
         threads = []
 
-        for _ in range(cnt_threads): threads.append(CasteljauThread(ts, self._bezier_points))
+        for _ in range(cnt_threads):
+            threads.append(CasteljauThread(ts, self._bezier_points))
 
-        for t in threads: t.start()
+        for t in threads:
+            t.start()
 
         for t in threads:
             t.join()
@@ -80,30 +227,101 @@ class Bezier_Curve_2D():
 
         self.min_max_box()
 
-    def intersect(self, t1, t2):
-        return t2[0] <= t1[0] <= t2[1] \
-            or t2[0] <= t1[1] <= t2[1] \
-            or t1[0] <= t2[0] <= t1[1] \
-            or t1[0] <= t2[1] <= t1[1]
+    """
+    Method checking intersection of two given tuples
 
-    def min_max_box(self):
+    Parameters
+    ----------
+    t1: tuple
+        tuple 1 
+    t2: tuple
+        tuple 2
+
+    Returns
+    -------
+    bool:
+        true if intersect otherwise false
+    """
+    def intersect(self, t1: tuple, t2: tuple) -> bool:
+        return t2[0] <= t1[0] <= t2[1] \
+               or t2[0] <= t1[1] <= t2[1] \
+               or t1[0] <= t2[0] <= t1[1] \
+               or t1[0] <= t2[1] <= t1[1]
+
+    """
+    method creates minmax box for the corresponding curve
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+    def min_max_box(self) -> None:
         xs = [*self._bezier_points[0, :]]
         ys = [*self._bezier_points[1, :]]
-        xs.sort(); ys.sort()
+        xs.sort()
+        ys.sort()
         self._box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
 
-    def collision_check(self,other_curve):
-        if not self.box_collision_check(other_curve): return False
+    """
+    method checking collision with given curve.
+    first box check, if false return otherwise checking actual curves
+
+    Parameters
+    ----------
+    other_curve: BezierCurve2D
+        curve to check
+
+    Returns
+    -------
+    bool:
+        true if curves collide otherwise false
+    """
+    def collision_check(self, other_curve) -> bool:
+        if not self.box_collision_check(other_curve):
+            return False
+
         return self.curve_collision_check(other_curve)
 
-    def box_collision_check(self, other_curve):
+    """
+    method checking box collision with given curve.
+
+    Parameters
+    ----------
+    other_curve: BezierCurve2D
+        curve to check
+
+    Returns
+    -------
+    bool:
+        true if boxes collide otherwise false
+    """
+    def box_collision_check(self, other_curve) -> bool:
         o_box = other_curve.get_box()
         box = self._box
         for t1, t2 in zip(box, o_box):
-            if not self.intersect(t1, t2): return False
+            if not self.intersect(t1, t2):
+                return False
+
         return True
 
-    def curve_collision_check(self, other_curve):
+    """
+    method checking curve collision with given curve.
+
+    Parameters
+    ----------
+    other_curve: BezierCurve2D
+        curve to check
+
+    Returns
+    -------
+    bool:
+        true if curves collide otherwise false
+    """
+    def curve_collision_check(self, other_curve) -> bool:
         xs, ys = self.get_curve()
         f1 = sg.LineString(np.column_stack((xs, ys)))
         xs, ys = other_curve.get_curve()
@@ -111,27 +329,94 @@ class Bezier_Curve_2D():
         inter = f1.intersection(f2)
         return not inter.geom_type == 'LineString'
 
-class Bezier_Curve_3D(Bezier_Curve_2D):
-    def __init__(self, m, cnt_ts=1000):
-       super().__init__(m, cnt_ts)
 
-    def get_curve(self):
+class BezierCurve3D(BezierCurve2D):
+    """
+    Init belonging to BezierCurve3D
+
+    Parameters
+    ----------
+    m: np.ndArray
+        Array containing control points
+    cnt_ts: int
+        number of ts to create
+
+    Attributes
+    -------
+    see BezierCurve2D
+    """
+    def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
+        super().__init__(m, cnt_ts)
+
+    """
+    method return x, y and z coords of all calculated points
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    lists:
+        one list for x coords, one for y coords and one for z coords
+    """
+    def get_curve(self) -> Tuple[list, list, list]:
         xs = [x for x, _, _ in self._curve]
         ys = [y for _, y, _ in self._curve]
         zs = [z for _, _, z in self._curve]
         return xs, ys, zs
 
-    def min_max_box(self):
+    """
+    method creates minmax box for the corresponding curve
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+    def min_max_box(self) -> None:
         super().min_max_box()
         zs = [*self._bezier_points[2, :]]
         zs.sort()
         self._box.append((zs[0], zs[-1]))
 
-    def collision_check(self, other_curve):
-        if not self.box_collision_check(other_curve): return False
+    """
+    method checking collision with given curve.
+    first box check, if false return otherwise checking actual curves
+
+    Parameters
+    ----------
+    other_curve: BezierCurve2D
+        curve to check
+
+    Returns
+    -------
+    bool:
+        true if curves collide otherwise false
+    """
+    def collision_check(self, other_curve: BezierCurve2D) -> bool:
+        if not self.box_collision_check(other_curve):
+            return False
+
         return self.curve_collision_check(other_curve)
 
-    def curve_collision_check(self, other_curve):
+    """
+    method checking curve collision with given curve.
+
+    Parameters
+    ----------
+    other_curve: BezierCurve2D
+        curve to check
+
+    Returns
+    -------
+    bool:
+        true if curves collide otherwise false
+    """
+    def curve_collision_check(self, other_curve) -> bool:
         xs, ys, zs = self.get_curve()
         f1 = sg.LineString(np.column_stack((xs, ys, zs)))
         xs, ys, zs = other_curve.get_curve()
@@ -151,103 +436,34 @@ def init():
     m2 = np.array([xs_2, ys_2], dtype=float)
     m3 = np.array([xs_1, ys_1, zs_1], dtype=float)
     m4 = np.array([xs_2, ys_2, zs_2], dtype=float)
-    b3 = Bezier_Curve_3D(m3)
-    b3.deCasteljau_threading()
-    b4 = Bezier_Curve_3D(m4)
-    b4.deCasteljau_threading()
-    print(b4.get_box())
-    xs, ys, zs = b3.get_curve()
-    print(b3.collision_check(b4))
-    fig = plt.figure()
-    ax = plt.axes(projection="3d")
-    ax.scatter3D(xs, ys, zs);
-    xs, ys, zs = b4.get_curve()
-    ax.scatter3D(xs, ys, zs);
-    plt.show()
-    #b1 = Bezier_Curve_2D(m1)
-    #b1.deCasteljau_threading()
-    #b2 = Bezier_Curve_2D(m2)
-    #b2.deCasteljau_threading()
-    #print(b1.collision_check(b2))
-    #xs_2, ys_2 = b2.get_curve()
-    #xs_1, ys_1 = b1.get_curve()
-    #fig, ax = plt.subplots()
-    #ax.plot(xs_1,ys_1, 'o')
-    #ax.plot(xs_2,ys_2, 'o')
-    #plt.show()
-    #print('fertig')
+    b3 = BezierCurve3D(m3)
+    b3.de_casteljau_threading()
+    b4 = BezierCurve3D(m4)
+    b4.de_casteljau_threading()
+    print(type(b4))
+    # xs, ys, zs = b3.get_curve()
+    # print(b3.collision_check(b4))
+    # fig = plt.figure()
+    # ax = plt.axes(projection="3d")
+    # ax.scatter3D(xs, ys, zs)
+    # xs, ys, zs = b4.get_curve()
+    # ax.scatter3D(xs, ys, zs)
+    # plt.show()
+    # b1 = BezierCurve2D(m1)
+    # b1.de_casteljau_threading()
+    # b2 = BezierCurve2D(m2)
+    # b2.de_casteljau_threading()
+    # print(b1.collision_check(b2))
+    # xs_2, ys_2 = b2.get_curve()
+    # xs_1, ys_1 = b1.get_curve()
+    # fig, ax = plt.subplots()
+    # ax.plot(xs_1,ys_1, 'o')
+    # ax.plot(xs_2,ys_2, 'o')
+    # plt.show()
+    # print('ready')
 
-#TODO Input Reader (CSV)
+
+# TODO Input Reader (CSV)
 
 init()
-
-
-
-
-
-
-
-
-
-######################################################################################################################
-
-
-#def plot(coords):
-#    xs = [x for x, _ in coords]
-#    ys = [y for _, y in coords]
-#    plt.plot(xs, ys, 'o')
-#    plt.show()
-
-#def deCasteljau_threading(m,cnt_threads = 4, n = 1):
-#    ts = t_holder(n)
-#    threads = []
-#    res = []
-#
-#    for _ in range(cnt_threads): threads.append(CasteljauThread(ts, m))
-#
-#    for t in threads: t.start()
-#
-#    for t in threads:
-#        t.join()
-#        tmp = t.get_res()
-#        res = res + tmp
-#    return res
-
-
-
-
-#def deCastellp(m, t = 0.5):
-#    _, n = m.shape
-#    for r in range(n):
-#        m[:,:(n - r - 1)] = (1 - t) * m[:,:(n - r - 1)] + t * m[:,1:(n - r)]
-#    return m[:,0]
-
-
-#def deCastell(xs, ys, n=1):
-#    ts = np.linspace(0, 1, n)
-#    m = np.array([xs,ys], dtype=float)
-#    res = []
-#    for t in ts:
-#        tmp = m.copy()
-#        res.append(deCastellp(tmp,t))
-#    return res
-
-#t1 = CasteljauThread(ts,m)
-#t2 = CasteljauThread(ts,m)
-#t3 = CasteljauThread(ts,m)
-#t4 = CasteljauThread(ts,m)
-#t1.start()
-#t2.start()
-#t3.start()
-#t4.start()
-#t1.join()
-#t2.join()
-#t3.join()
-#t4.join()
-
-#res1 = t1.get_res()
-#res2 = t2.get_res()
-#res3 = t3.get_res()
-#res4 = t4.get_res()
-#res = res1 + res2 + res3 + res4
 
