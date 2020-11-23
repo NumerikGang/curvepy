@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
 from typing import Tuple, Callable
-import csv
 
 lockMe = th.Lock()  # variable used to control access of threads
 
@@ -444,19 +443,37 @@ class BezierCurve3D(BezierCurve2D):
 
 
 def csv_read(file_path: str) -> np.ndarray:
-    with open(file_path) as csv_data:
-        csv_object = csv.reader(csv_data)
-        xs, ys = [], []
-        for x, y in csv_object:
-            xs.append(float(x))
-            ys.append(float(y))
-    return np.array([xs, ys], dtype=float)
+    try:
+        with open(file_path, 'r') as csv_file:
+            xs, ys, zs = [], [], []
+            for line in csv_file:
+                try:
+                    x, y, z = line.split(',')
+                    zs.append(float(z))
+                except ValueError:
+                    try:
+                        x, y = line.split(',')
+                    except ValueError:
+                        print('Expected two or three values per line')
+                        return np.array([])
+                xs.append(float(x))
+                ys.append(float(y))
+        return np.array([xs, ys], dtype=float) if not zs else np.array([xs, ys, zs], dtype=float)
+    except FileNotFoundError:
+        print(f'File: {file_path} does not exist.')
+        return np.array([])
 
 
-if __name__ == "__main__":
-    m = csv_read('test.csv')  # reads csv file with bezier points
+def init(m: np.ndarray) -> None:
+    if m.size == 0:
+        return
     b1 = BezierCurve2D(m)
     b1.de_casteljau_threading()
     xs, ys = b1.get_curve()
     plt.plot(xs, ys, 'o')
     plt.show()
+
+
+if __name__ == "__main__":
+    m = csv_read('test.csv')  # reads csv file with bezier points
+    init(m)
