@@ -1,14 +1,14 @@
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
 from typing import Tuple, Callable
+import csv
 
 lockMe = th.Lock()  # variable used to control access of threads
 
 
 class Tholder:
-
     """
     class holds Array with equidistant ts in [0,1] of length n
 
@@ -24,6 +24,7 @@ class Tholder:
     _pointer : int
         pointer pointing on next t to get
     """
+
     def __init__(self, n: int = 1) -> None:
         self._tArray = np.linspace(0, 1, n)
         self._pointer = 0
@@ -40,6 +41,7 @@ class Tholder:
     float:
         t to calculate next De Casteljau step
     """
+
     def get_next_t(self) -> float:
         if self._pointer == len(self._tArray):
             return -1
@@ -49,7 +51,6 @@ class Tholder:
 
 
 class CasteljauThread(th.Thread):
-
     """
     Init belonging to class CasteljauThread
 
@@ -73,6 +74,7 @@ class CasteljauThread(th.Thread):
     _func: Function
         function for transforming t
     """
+
     def __init__(self, ts_holder: Tholder, c: np.ndarray, f: Callable[[float], float] = lambda x: x) -> None:
         th.Thread.__init__(self)
         self._ts_holder = ts_holder
@@ -91,6 +93,7 @@ class CasteljauThread(th.Thread):
     -------
     List containing all points calculated by the thread instance
     """
+
     def get_res(self) -> list:
         return self._res
 
@@ -108,6 +111,7 @@ class CasteljauThread(th.Thread):
     -------
     None
     """
+
     def de_caes(self, t: float, n: int) -> None:
         m = self._coords.copy()
         t = self._func(t)
@@ -126,6 +130,7 @@ class CasteljauThread(th.Thread):
     -------
     None
     """
+
     def run(self) -> None:
         _, n = self._coords.shape
         while True:
@@ -138,7 +143,6 @@ class CasteljauThread(th.Thread):
 
 
 class BezierCurve2D:
-
     """
     Init belonging to BezierCurve2D
 
@@ -160,6 +164,7 @@ class BezierCurve2D:
     _box: list
         points describing minmax box of curve
     """
+
     def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
         self._bezier_points = m
         self._cnt_ts = cnt_ts
@@ -178,6 +183,7 @@ class BezierCurve2D:
     list:
         contains points describing the box
     """
+
     def get_box(self) -> list:
         return self._box
 
@@ -193,6 +199,7 @@ class BezierCurve2D:
     lists:
         one list for x coords, one for y coords
     """
+
     def get_curve(self) -> Tuple[list, list]:
         xs = [x for x, _ in self._curve]
         ys = [y for _, y in self._curve]
@@ -210,6 +217,7 @@ class BezierCurve2D:
     -------
     None
     """
+
     def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
         ts = Tholder(self._cnt_ts)
         threads = []
@@ -242,6 +250,7 @@ class BezierCurve2D:
     bool:
         true if intersect otherwise false
     """
+
     def intersect(self, t1: tuple, t2: tuple) -> bool:
         return t2[0] <= t1[0] <= t2[1] \
                or t2[0] <= t1[1] <= t2[1] \
@@ -259,6 +268,7 @@ class BezierCurve2D:
     -------
     None
     """
+
     def min_max_box(self) -> None:
         xs = [*self._bezier_points[0, :]]
         ys = [*self._bezier_points[1, :]]
@@ -280,6 +290,7 @@ class BezierCurve2D:
     bool:
         true if curves collide otherwise false
     """
+
     def collision_check(self, other_curve) -> bool:
         if not self.box_collision_check(other_curve):
             return False
@@ -299,6 +310,7 @@ class BezierCurve2D:
     bool:
         true if boxes collide otherwise false
     """
+
     def box_collision_check(self, other_curve) -> bool:
         o_box = other_curve.get_box()
         box = self._box
@@ -321,6 +333,7 @@ class BezierCurve2D:
     bool:
         true if curves collide otherwise false
     """
+
     def curve_collision_check(self, other_curve) -> bool:
         xs, ys = self.get_curve()
         f1 = sg.LineString(np.column_stack((xs, ys)))
@@ -345,6 +358,7 @@ class BezierCurve3D(BezierCurve2D):
     -------
     see BezierCurve2D
     """
+
     def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
         super().__init__(m, cnt_ts)
 
@@ -360,6 +374,7 @@ class BezierCurve3D(BezierCurve2D):
     lists:
         one list for x coords, one for y coords and one for z coords
     """
+
     def get_curve(self) -> Tuple[list, list, list]:
         xs = [x for x, _, _ in self._curve]
         ys = [y for _, y, _ in self._curve]
@@ -377,6 +392,7 @@ class BezierCurve3D(BezierCurve2D):
     -------
     None
     """
+
     def min_max_box(self) -> None:
         super().min_max_box()
         zs = [*self._bezier_points[2, :]]
@@ -397,6 +413,7 @@ class BezierCurve3D(BezierCurve2D):
     bool:
         true if curves collide otherwise false
     """
+
     def collision_check(self, other_curve: BezierCurve2D) -> bool:
         if not self.box_collision_check(other_curve):
             return False
@@ -416,6 +433,7 @@ class BezierCurve3D(BezierCurve2D):
     bool:
         true if curves collide otherwise false
     """
+
     def curve_collision_check(self, other_curve) -> bool:
         xs, ys, zs = self.get_curve()
         f1 = sg.LineString(np.column_stack((xs, ys, zs)))
@@ -425,45 +443,20 @@ class BezierCurve3D(BezierCurve2D):
         return not inter.geom_type == 'LineString'
 
 
-def init():
-    xs_1 = np.array([0, 4, 8])
-    ys_1 = np.array([0, 5, 0])
-    zs_1 = np.array([0, 5, 0])
-    xs_2 = np.array([8, 12, 16])
-    ys_2 = np.array([1, 6, 1])
-    zs_2 = np.array([0, 5, 0])
-    m1 = np.array([xs_1, ys_1], dtype=float)
-    m2 = np.array([xs_2, ys_2], dtype=float)
-    m3 = np.array([xs_1, ys_1, zs_1], dtype=float)
-    m4 = np.array([xs_2, ys_2, zs_2], dtype=float)
-    b3 = BezierCurve3D(m3)
-    b3.de_casteljau_threading()
-    b4 = BezierCurve3D(m4)
-    b4.de_casteljau_threading()
-    print(type(b4))
-    # xs, ys, zs = b3.get_curve()
-    # print(b3.collision_check(b4))
-    # fig = plt.figure()
-    # ax = plt.axes(projection="3d")
-    # ax.scatter3D(xs, ys, zs)
-    # xs, ys, zs = b4.get_curve()
-    # ax.scatter3D(xs, ys, zs)
-    # plt.show()
-    # b1 = BezierCurve2D(m1)
-    # b1.de_casteljau_threading()
-    # b2 = BezierCurve2D(m2)
-    # b2.de_casteljau_threading()
-    # print(b1.collision_check(b2))
-    # xs_2, ys_2 = b2.get_curve()
-    # xs_1, ys_1 = b1.get_curve()
-    # fig, ax = plt.subplots()
-    # ax.plot(xs_1,ys_1, 'o')
-    # ax.plot(xs_2,ys_2, 'o')
-    # plt.show()
-    # print('ready')
+def csv_read(file_path: str) -> np.ndarray:
+    with open(file_path) as csv_data:
+        csv_object = csv.reader(csv_data)
+        xs, ys = [], []
+        for x, y in csv_object:
+            xs.append(float(x))
+            ys.append(float(y))
+    return np.array([xs, ys], dtype=float)
 
 
-# TODO Input Reader (CSV)
-
-init()
-
+if __name__ == "__main__":
+    m = csv_read('test.csv')  # reads csv file with bezier points
+    b1 = BezierCurve2D(m)
+    b1.de_casteljau_threading()
+    xs, ys = b1.get_curve()
+    plt.plot(xs, ys, 'o')
+    plt.show()
