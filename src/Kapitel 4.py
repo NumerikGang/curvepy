@@ -196,13 +196,12 @@ class BezierCurve2D:
     Returns
     -------
     lists:
-        one list for x coords, one for y coords
+        first list for x coords, second for y coords
     """
 
     def get_curve(self) -> Tuple[list, list]:
-        xs = [x for x, _ in self._curve]
-        ys = [y for _, y in self._curve]
-        return xs, ys
+        tmp = np.ravel(self._curve)
+        return tmp[0::2], tmp[1::2]
 
     """
     method implementing the threading for de Casteljau algorithm
@@ -371,14 +370,12 @@ class BezierCurve3D(BezierCurve2D):
     Returns
     -------
     lists:
-        one list for x coords, one for y coords and one for z coords
+        first list for x coords, second for y coords and third for z coords
     """
 
     def get_curve(self) -> Tuple[list, list, list]:
-        xs = [x for x, _, _ in self._curve]
-        ys = [y for _, y, _ in self._curve]
-        zs = [z for _, _, z in self._curve]
-        return xs, ys, zs
+        tmp = np.ravel(self._curve)
+        return tmp[0::3], tmp[1::3], tmp[2::3]
 
     """
     method creates minmax box for the corresponding curve
@@ -467,11 +464,14 @@ def csv_read(file_path: str) -> np.ndarray:
 def init(m: np.ndarray) -> None:
     if m.size == 0:
         return
-    b1 = BezierCurve2D(m)
+    b1 = BezierCurve3D(m)
     b1.de_casteljau_threading()
-    xs, ys = b1.get_curve()
-    plt.plot(xs, ys, 'o')
+    xs, ys, zs = b1.get_curve()
+    ax = plt.axes(projection='3d')
+    ax.scatter3D(xs, ys, zs)
     plt.show()
+    #plt.plot(xs, ys, zs, 'o')
+    #plt.show()
 
 
 if __name__ == "__main__":
