@@ -340,6 +340,23 @@ class BezierCurve2D:
         inter = f1.intersection(f2)
         return not inter.geom_type == 'LineString'
 
+    """
+    method plotting th curve
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+
+    def plot(self) -> None:
+        xs, ys = self.get_curve()
+        plt.plot(xs, ys, 'o')
+        plt.show()
+
 
 class BezierCurve3D(BezierCurve2D):
     """
@@ -438,6 +455,25 @@ class BezierCurve3D(BezierCurve2D):
         inter = f1.intersection(f2)
         return not inter.geom_type == 'LineString'
 
+    """
+    method plotting th curve
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+
+    def plot(self) -> None:
+        xs, ys, zs = self.get_curve()
+        ax = plt.axes(projection='3d')
+        ax.scatter3D(xs, ys, zs)
+        plt.show()
+
+
 
 def csv_read(file_path: str) -> np.ndarray:
     try:
@@ -466,12 +502,7 @@ def init(m: np.ndarray) -> None:
         return
     b1 = BezierCurve3D(m)
     b1.de_casteljau_threading()
-    xs, ys, zs = b1.get_curve()
-    ax = plt.axes(projection='3d')
-    ax.scatter3D(xs, ys, zs)
-    plt.show()
-    #plt.plot(xs, ys, zs, 'o')
-    #plt.show()
+    b1.plot()
 
 
 if __name__ == "__main__":
