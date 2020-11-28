@@ -413,7 +413,7 @@ class BezierCurve3D(BezierCurve2D):
         true if curves collide otherwise false
     """
 
-    def collision_check(self, other_curve: BezierCurve2D) -> bool:
+    def collision_check(self, other_curve) -> bool:
         if not self.box_collision_check(other_curve):
             return False
 
