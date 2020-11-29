@@ -1,8 +1,10 @@
 import numpy as np
+import sympy as sy
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
 from typing import Tuple, Callable
+import itertools as it
 
 lockMe = th.Lock()  # variable used to control access of threads
 
@@ -474,7 +476,6 @@ class BezierCurve3D(BezierCurve2D):
         plt.show()
 
 
-
 def csv_read(file_path: str) -> np.ndarray:
     try:
         with open(file_path, 'r') as csv_file:
@@ -497,12 +498,43 @@ def csv_read(file_path: str) -> np.ndarray:
         return np.array([])
 
 
+def de_caese(mi, n: int):
+    t = sy.symbols('t')
+    for r in range(n):
+        mi[:, :(n - r - 1)] = (1 - t) * mi[:, :(n - r - 1)] + t * mi[:, 1:(n - r)]
+    return mi[:, 0]
+
+
 def init(m: np.ndarray) -> None:
     if m.size == 0:
         return
-    b1 = BezierCurve3D(m)
-    b1.de_casteljau_threading()
-    b1.plot()
+    x = [0,4,8]
+    y = [0,5,0]
+    m = sy.Matrix(m)
+    t = sy.symbols('t')
+    _, n = m.shape
+    #print(m.shape)
+    for r in range(n):
+        m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
+    f = sy.lambdify(t, m[:, 0])
+    coords = np.linspace(0, 1, 100)
+    #coords =
+    print('fertig')
+    tmp = f(coords)
+    print('fertig2')
+    #print(tmp)
+    tmp = np.ravel(tmp)
+    #print(tmp)
+
+    xs, ys = tmp[0::2], tmp[1::2]
+
+    plt.plot(xs, ys, 'o')
+    plt.show()
+    #m = de_caese(m, n)
+    #b1 = BezierCurve2D(m)
+    #b1.de_casteljau_threading()
+    #b1.plot()
+    #b1.min_max_box()
 
 
 if __name__ == "__main__":
