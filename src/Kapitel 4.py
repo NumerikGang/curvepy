@@ -520,7 +520,7 @@ def init(m: np.ndarray) -> None:
     coords = np.linspace(0, 1, 100)
     #coords =
     print('fertig')
-    tmp = f(coords)
+    tmp = np.array([f(t) for t in coords])
     print('fertig2')
     #print(tmp)
     tmp = np.ravel(tmp)
