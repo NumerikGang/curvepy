@@ -13,19 +13,18 @@ def straight_line(a: np.ndarray, b: np.ndarray, t: float = 0.5, phi: Callable[[n
 def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     d1 = (col_point - left).reshape(-1, 1)
     d2 = (right - col_point).reshape(-1, 1)
-    return (d2/d1)[0][0]
+    print(d1)
+    print(d2)
+    return (d2 / d1)[0][0]
 
 
 def ratio_test() -> None:
     p1 = np.array([0, 0, 0])
     p2 = np.array([1, 1, 1])
-    p3 = np.array([0.5, 0.5, 0.5])
-    print(ratio(p1, p2, p3))
-    print(type(ratio(p1, p2, p3)))
-
-
-def vol_1(a: np.ndarray, b: np.ndarray) -> float:
-    pass
+    p3 = np.array([.4, .4, .4])
+    test = ratio(p1, p3, p2)
+    print(test)
+    print(type(test))
 
 
 def straight_line_test() -> None:
@@ -40,7 +39,7 @@ def straight_line_test() -> None:
 
 
 def init() -> None:
-    #straight_line_test()
+    # straight_line_test()
     ratio_test()
     # print(ratio((0, 0), (1, 1), (10, 10)))
 
