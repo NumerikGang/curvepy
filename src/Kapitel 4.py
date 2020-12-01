@@ -169,8 +169,10 @@ class BezierCurve2D:
     def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
         self._bezier_points = m
         self._cnt_ts = cnt_ts
-        self._curve = []
+        self._func = self.init_func(m)
+        self._curve = self.init_curve()
         self._box = []
+        self.min_max_box()
 
     """
     method returns minmax box of calculated curve
@@ -188,6 +190,17 @@ class BezierCurve2D:
     def get_box(self) -> list:
         return self._box
 
+    def init_func(self, m: np.ndarray) -> Callable:
+        _, n = m.shape
+        m = sy.Matrix(m)
+        t = sy.symbols('t')
+        for r in range(n):
+            m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
+        return sy.lambdify(t, m[:, 0])
+
+    def init_curve(self) -> np.ndarray:
+        ts = np.linspace(0, 1, self._cnt_ts)
+        return np.array([self._func(t) for t in ts])
     """
     method return x and y coordinates of all calculated points
 
@@ -498,45 +511,12 @@ def csv_read(file_path: str) -> np.ndarray:
         return np.array([])
 
 
-def de_caese(mi, n: int):
-    t = sy.symbols('t')
-    for r in range(n):
-        mi[:, :(n - r - 1)] = (1 - t) * mi[:, :(n - r - 1)] + t * mi[:, 1:(n - r)]
-    return mi[:, 0]
-
-
-def init(m: np.ndarray) -> None:
-    if m.size == 0:
-        return
-    x = [0,4,8]
-    y = [0,5,0]
-    m = sy.Matrix(m)
-    t = sy.symbols('t')
-    _, n = m.shape
-    #print(m.shape)
-    for r in range(n):
-        m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
-    f = sy.lambdify(t, m[:, 0])
-    coords = np.linspace(0, 1, 100)
-    #coords =
-    print('fertig')
-    tmp = np.array([f(t) for t in coords])
-    print('fertig2')
-    #print(tmp)
-    tmp = np.ravel(tmp)
-    #print(tmp)
-
-    xs, ys = tmp[0::2], tmp[1::2]
-
-    plt.plot(xs, ys, 'o')
-    plt.show()
-    #m = de_caese(m, n)
-    #b1 = BezierCurve2D(m)
-    #b1.de_casteljau_threading()
-    #b1.plot()
+def init(m: list) -> None:
+    m = csv_read('test.csv')  # reads csv file with bezier points
+    b1 = BezierCurve2D(m, 10000)
+    b1.plot()
     #b1.min_max_box()
 
 
 if __name__ == "__main__":
-    m = csv_read('test.csv')  # reads csv file with bezier points
-    init(m)
+    init()
