@@ -3,8 +3,8 @@ import sympy as sy
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
+import scipy as sc
 from typing import Tuple, Callable
-import itertools as it
 
 lockMe = th.Lock()  # variable used to control access of threads
 
@@ -370,6 +370,14 @@ class BezierCurve2D:
     def plot(self) -> None:
         xs, ys = self.get_curve()
         plt.plot(xs, ys, 'o')
+
+    def show_funcs(self, list_of_curves: list = []) -> None:
+        self.plot()
+        if not list_of_curves:
+            plt.show()
+            return
+        for c in list_of_curves:
+            c.plot()
         plt.show()
 
 
@@ -511,11 +519,13 @@ def csv_read(file_path: str) -> np.ndarray:
         return np.array([])
 
 
-def init(m: list) -> None:
+def init() -> None:
     m = csv_read('test.csv')  # reads csv file with bezier points
-    b1 = BezierCurve2D(m, 10000)
-    b1.plot()
-    #b1.min_max_box()
+    b1 = BezierCurve2D(m)
+    m = csv_read('test2.csv')  # reads csv file with bezier points
+    print(m)
+    b2 = BezierCurve2D(m)
+    b2.show_funcs([b1])
 
 
 if __name__ == "__main__":
