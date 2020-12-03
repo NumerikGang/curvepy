@@ -1,13 +1,18 @@
+import sys
 import numpy as np
-import matplotlib.pyplot as plt
+import sympy as sy
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import interp1d
+import math
 from typing import Tuple, Callable
 import functools
+import matplotlib.pyplot as plt
+from sympy.plotting import plot3d_parametric_line
 
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
     """
-    method to calculate a single point on a straight line through a and b
+    Method to calculate a single point on a straight line through a and b.
 
     Parameters
     ----------
@@ -25,9 +30,9 @@ def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndar
     return (1 - t) * a + t * b
 
 
-def straight_line_function(a: np.ndarray, b: np.ndarray) -> functools.partial:
+def straight_line_function(a: np.ndarray, b: np.ndarray) -> Callable:
     """
-    method to get the function of a straight line through a and b
+    Method to get the function of a straight line through a and b.
 
     Parameters
     ----------
@@ -43,9 +48,34 @@ def straight_line_function(a: np.ndarray, b: np.ndarray) -> functools.partial:
     return functools.partial(straight_line_point, a, b)
 
 
+def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
+    """
+    Calculates the cross product of d1 and d2 to see if all 3 points are collinear.
+
+    Parameters
+    ----------
+    a: np.ndArray
+        first point
+    b: np.ndArray
+        second point
+    c: np.ndArray
+        third point
+
+    Returns
+    -------
+    bool:
+        True if points are collinear else False
+    """
+    d1 = b - a
+    d2 = c - a
+    if np.count_nonzero(np.cross(d1, d2)) == 0: return True
+    return False
+
+
 def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     """
-    method to calculate the ratio of the three collinear points from the parameters
+    Method to calculate the ratio of the three collinear points from the parameters.
+    Throws an exception if the points are not collinear.
 
     Parameters
     ----------
@@ -60,17 +90,37 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     -------
     the ratio of the three collinear points from the parameters
     """
+    if not collinear_check(left, col_point, right): sys.exit("The points are not collinear!")
+
     for i in range(len(left)):
         if left[i] == right[i]:
             continue
+        if right[i] - col_point[i] == 0:
+            return np.NINF
         return (col_point[i] - left[i]) / (right[i] - col_point[i])
     return 0
 
 
+class Polygon:
+
+    def __init__(self, points: np.ndarray) -> None:
+        self._piece_funcs = self.create_polygon(points)
+
+    def create_polygon(self, points: np.ndarray) -> list:
+        fs = []
+        for a, b in zip(points[0:len(points)-1], points[1:len(points)]):
+            fs.append(straight_line_function(a, b))
+        return fs
+
+    def eval(self, x: float) -> np.ndarray:
+        t, index = math.modf(x)
+        if int(index) >= len(self._piece_funcs): sys.exit("Not defined!")
+        return self._piece_funcs[int(index)](t)
+
 def ratio_test() -> None:
     left = np.array([0, 0, 0])
     right = np.array([1, 1, 1])
-    col_point = np.array([.66, .66, .66])
+    col_point = np.array([0.00000000000001, 0.00000000000001, 0.00000000000001])
     test = ratio(left, col_point, right)
     print(test)
 
@@ -87,12 +137,18 @@ def straight_line_point_test() -> None:
 
 
 def init() -> None:
-    straight_line_point_test()
-    ratio_test()
-    # print(ratio((0, 0), (1, 1), (10, 10)))
+    # straight_line_point_test()
+    # ratio_test()
+    test_points = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+
+    test_PG = Polygon(test_points)
+    print(test_PG.eval(1.5))
 
 
 if __name__ == "__main__":
     init()
 
 #####################################################################################################
+"""
+interp1d(x, y) for piecewise linear interpolation
+"""
