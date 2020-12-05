@@ -104,18 +104,45 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
 class Polygon:
 
     def __init__(self, points: np.ndarray) -> None:
+        self._points = points.copy()
+        self._dim = points.shape[1]
         self._piece_funcs = self.create_polygon(points)
 
     def create_polygon(self, points: np.ndarray) -> list:
         fs = []
-        for a, b in zip(points[0:len(points)-1], points[1:len(points)]):
+        for a, b in zip(points[0:len(points) - 1], points[1:len(points)]):
             fs.append(straight_line_function(a, b))
+            print(f"a = {a}, \nb = {b}")
         return fs
 
-    def eval(self, x: float) -> np.ndarray:
+    def evaluate(self, x: float) -> np.ndarray:
         t, index = math.modf(x)
-        if int(index) >= len(self._piece_funcs): sys.exit("Not defined!")
+        if int(index) > len(self._piece_funcs): sys.exit("Not defined!")
+        if int(index) == len(self._piece_funcs): return self._piece_funcs[len(self._piece_funcs)-1](1)
         return self._piece_funcs[int(index)](t)
+
+    def plot_polygon(self, xs: np.ndarray):
+        ep = np.array([self.evaluate(x) for x in xs])
+        print(f"points = {self._points}")
+        np.append(ep, self._points)
+        print(f"ep = {ep}")
+        ravel_points = self._points.ravel()
+        if self._dim == 2:
+            tmp = ep.ravel()
+            xs, ys = tmp[0::2], tmp[1::2]
+            print(f"xs = {xs}, \nys = {ys}")
+            func_x, func_y = ravel_points[0::2], ravel_points[1::2]
+            plt.plot(func_x, func_y)
+            plt.plot(xs, ys, 'o', markersize=3)
+        if self._dim == 3:
+            tmp = ep.ravel()
+            xs, ys, zs = tmp[0::3], tmp[1::3], tmp[2::3]
+            func_x, func_y, func_z = ravel_points[0::2], ravel_points[1::2], ravel_points[2::2]
+            ax = plt.axes(projection='3d')
+            ax.plot(func_x, func_y, func_z, 'r')
+            ax.plot(xs, ys, zs, 'o', markersize=3)
+        plt.show()
+
 
 def ratio_test() -> None:
     left = np.array([0, 0, 0])
@@ -139,10 +166,15 @@ def straight_line_point_test() -> None:
 def init() -> None:
     # straight_line_point_test()
     # ratio_test()
-    test_points = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
 
-    test_PG = Polygon(test_points)
-    print(test_PG.eval(1.5))
+    test_points2d = np.array([[0, 0], [1, 1], [3, 4], [5, -2]])
+    print(len(test_points2d))
+
+    test_PG = Polygon(test_points2d)
+    # print(test_PG.evaluate(1.5))
+    test_PG.plot_polygon(np.linspace(0, 3, 20))
+    # test_PG.plot_polygon(np.array([0.5]))
 
 
 if __name__ == "__main__":
