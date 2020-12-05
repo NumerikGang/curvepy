@@ -1,26 +1,40 @@
 import matplotlib.pyplot as plt
 
-class BezierCurve():
+# https://stackoverflow.com/a/7152649/9958281
+class DeCasteljau():
+    class _BezierCurve():
+        def __init__(self, curves, step, k):
+            self.step = step
+            self.k = k
+            if step == 0:
+                self.func = lambda t: curves[0][k]
+            else:
+                self.func = lambda t: (1 - t) * curves[step - 1][k](t) + t * curves[step - 1][k + 1](t)
+
+        def __str__(self):
+            pass
+
+        def __call__(self, *args, **kwargs):
+            pass
+
+        def __repr__(self):
+            pass
+
     def __init__(self, bs):
-        bs = [lambda t: b for b in bs]
-        self.curves = [bs]
+        base_case = [self._BezierCurve(bs, 0, k) for k in range(len(bs))]
+        self.curves = [base_case]
         self.n = len(bs) - 1
 
-        self._gen_all_curves()
+        self._rec_gen_curves()
 
         self.curve = self.curves[-1][0]
 
-    def _gen_all_curves(self):
+    def _rec_gen_curves(self):
         for step in range(1, self.n + 1):
             self.curves.append(
-                [self._gen_single_curve(step, k) for k in range(len(self.curves[step - 1]) - 1)]
+                [self._BezierCurve(self.curves, step, k) for k in range(len(self.curves[step - 1]) - 1)]
             )
-
-    def _gen_single_curve(self, step, k):
-        '''Expecting not to be base case'''
-        return lambda t: (1 - t) * self.curves[step - 1][k](t) + t * self.curves[step - 1][k + 1](t)
 
 
 if __name__ == '__main__':
-    x = BezierCurve([0, 0.1, 0.2, 0.3, 0.4, 0.5])
-    print(x.curves)
+    pass
