@@ -3,7 +3,6 @@ import sympy as sy
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
-import scipy.optimize as sco
 from typing import Tuple, Callable
 
 lockMe = th.Lock()  # variable used to control access of threads
@@ -51,7 +50,7 @@ class Tholder:
 
 class CasteljauThread(th.Thread):
     """
-    Init belonging to class CasteljauThread
+    Thread class computing de Casteljau
 
     Parameters
     ----------
@@ -138,7 +137,7 @@ class CasteljauThread(th.Thread):
 
 class BezierCurve2D:
     """
-    Init belonging to BezierCurve2D
+    Class for creating a Beziercurve in 2D
 
     Parameters
     ----------
@@ -168,16 +167,41 @@ class BezierCurve2D:
         self.min_max_box()
 
     def init_func(self, m: np.ndarray) -> Callable:
+        """
+        method returns minmax box of calculated curve
+
+        Parameters
+        ----------
+        m: np.ndArray:
+            array containing the bezierpoints
+
+        Returns
+        -------
+        Callable:
+            func representing the beziercurve
+        """
         _, n = m.shape
         m = sy.Matrix(m)
         t = sy.symbols('t')
         for r in range(n):
             m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
-        return sy.lambdify(t, m[:, 0])
+        f = sy.lambdify(t, m[:, 0])
+        return np.frompyfunc(f, 1, 1)
 
     def init_curve(self) -> np.ndarray:
+        """
+        method returns minmax box of calculated curve
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        np.ndArray:
+            calculating no. of points defined by variable cnt_ts
+        """
         ts = np.linspace(0, 1, self._cnt_ts)
-        return np.array([self._func(t) for t in ts])
+        return self._func(ts)
 
     def get_box(self) -> list:
         """
@@ -205,10 +229,21 @@ class BezierCurve2D:
         lists:
             first list for x coords, second for y coords
         """
-        tmp = np.ravel(self._curve)
+        tmp = np.ravel([*self._curve])
         return tmp[0::2], tmp[1::2]
 
     def get_func(self) -> Callable:
+        """
+        method return x and y coordinates of all calculated points
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        Callable:
+            func representing the beziercurve
+        """
         return self._func
 
     def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
@@ -355,9 +390,9 @@ class BezierCurve2D:
         xs, ys = self.get_curve()
         plt.plot(xs, ys, 'o')
 
-    def show_funcs(self, list_of_curves: list = []) -> None:
+    def show_funcs(self, list_of_curves: list = None) -> None:
         """
-        method plotting multiple Beziercurves in one figure
+        method plotting multiple beziercurves in one figure
 
         Parameters
         ----------
@@ -368,6 +403,10 @@ class BezierCurve2D:
         -------
         None
         """
+
+        if list_of_curves is None:
+            list_of_curves = []
+
         self.plot()
         if not list_of_curves:
             plt.show()
@@ -379,7 +418,7 @@ class BezierCurve2D:
 
 class BezierCurve3D(BezierCurve2D):
     """
-    Init belonging to BezierCurve3D
+    Class for creating a Beziercurve in 3D
 
     Parameters
     ----------
@@ -409,7 +448,7 @@ class BezierCurve3D(BezierCurve2D):
             first list for x coords, second for y coords and third for z coords
         """
 
-        tmp = np.ravel(self._curve)
+        tmp = np.ravel([*self._curve])
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
     def min_max_box(self) -> None:
@@ -514,14 +553,6 @@ def init() -> None:
     m = csv_read('test2.csv')  # reads csv file with bezier points
     b2 = BezierCurve2D(m)
     b2.show_funcs([b1])
-    f = b1.get_func()
-    g = b2.get_func()
-
-    def h(x):
-        return f(x) - g(x)
-    #print([h(t).ravel() for t in np.linspace(0, 1, 100)])
-
-    print(sco.newton(lambda x: f(x) - g(x), np.array([0.5])))
 
 
 if __name__ == "__main__":
