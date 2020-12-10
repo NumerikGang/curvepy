@@ -68,8 +68,7 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     """
     d1 = b - a
     d2 = c - a
-    if np.count_nonzero(np.cross(d1, d2)) == 0: return True
-    return False
+    return np.count_nonzero(np.cross(d1, d2)) == 0
 
 
 def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
@@ -90,7 +89,8 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     -------
     the ratio of the three collinear points from the parameters
     """
-    if not collinear_check(left, col_point, right): sys.exit("The points are not collinear!")
+    if not collinear_check(left, col_point, right):
+        raise Exception("The points are not collinear!")
 
     for i in range(len(left)):
         if left[i] == right[i]:
@@ -101,6 +101,7 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     return 0
 
 
+# split in 2d and 3d Polygon similar to 2d and 3d bezier?
 class Polygon:
 
     def __init__(self, points: np.ndarray) -> None:
@@ -112,25 +113,23 @@ class Polygon:
         fs = []
         for a, b in zip(points[0:len(points) - 1], points[1:len(points)]):
             fs.append(straight_line_function(a, b))
-            print(f"a = {a}, \nb = {b}")
         return fs
 
     def evaluate(self, x: float) -> np.ndarray:
         t, index = math.modf(x)
-        if int(index) > len(self._piece_funcs): sys.exit("Not defined!")
-        if int(index) == len(self._piece_funcs): return self._piece_funcs[len(self._piece_funcs)-1](1)
+        if int(index) > len(self._piece_funcs) or int(index) < 0:
+            raise Exception("Not defined!")
+        if int(index) == len(self._piece_funcs):
+            return self._piece_funcs[len(self._piece_funcs) - 1](1)
         return self._piece_funcs[int(index)](t)
 
     def plot_polygon(self, xs: np.ndarray):
         ep = np.array([self.evaluate(x) for x in xs])
-        print(f"points = {self._points}")
         np.append(ep, self._points)
-        print(f"ep = {ep}")
-        ravel_points = self._points.ravel()
+        ravel_points = self._points.ravel()  # the corner points to plot the function
         if self._dim == 2:
             tmp = ep.ravel()
             xs, ys = tmp[0::2], tmp[1::2]
-            print(f"xs = {xs}, \nys = {ys}")
             func_x, func_y = ravel_points[0::2], ravel_points[1::2]
             plt.plot(func_x, func_y)
             plt.plot(xs, ys, 'o', markersize=3)
@@ -147,7 +146,7 @@ class Polygon:
 def ratio_test() -> None:
     left = np.array([0, 0, 0])
     right = np.array([1, 1, 1])
-    col_point = np.array([0.00000000000001, 0.00000000000001, 0.00000000000001])
+    col_point = np.array([1.2, 1.3, 1.4])
     test = ratio(left, col_point, right)
     print(test)
 
@@ -172,8 +171,8 @@ def init() -> None:
     print(len(test_points2d))
 
     test_PG = Polygon(test_points2d)
-    # print(test_PG.evaluate(1.5))
-    test_PG.plot_polygon(np.linspace(0, 3, 20))
+    print(test_PG.evaluate(1.5))
+    # test_PG.plot_polygon(np.linspace(0, 3, 20))
     # test_PG.plot_polygon(np.array([0.5]))
 
 
@@ -181,6 +180,3 @@ if __name__ == "__main__":
     init()
 
 #####################################################################################################
-"""
-interp1d(x, y) for piecewise linear interpolation
-"""
