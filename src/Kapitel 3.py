@@ -25,7 +25,8 @@ def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndar
 
     Returns
     -------
-    new point on straight line through a and b
+    np.ndArray:
+        new point on straight line through a and b
     """
     return (1 - t) * a + t * b
 
@@ -43,7 +44,8 @@ def straight_line_function(a: np.ndarray, b: np.ndarray) -> Callable:
 
     Returns
     -------
-    function for the straight line through a and b
+    Callable:
+        function for the straight line through a and b
     """
     return functools.partial(straight_line_point, a, b)
 
@@ -87,7 +89,8 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
 
     Returns
     -------
-    the ratio of the three collinear points from the parameters
+    np.ndArray:
+        the ratio of the three collinear points from the parameters
     """
     if not collinear_check(left, col_point, right):
         raise Exception("The points are not collinear!")
@@ -103,19 +106,58 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
 
 # split in 2d and 3d Polygon similar to 2d and 3d bezier?
 class Polygon:
+    """
+    Class for creating a 2D or 3D Polygon.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    _points: np.ndArray
+        array containing copy of points that create the polygon
+    _dim: int
+        dimension of the polygon
+    _piece_funcs: list
+        list containing all between each points, _points[i] and _points[i+1]
+
+    """
 
     def __init__(self, points: np.ndarray) -> None:
         self._points = points.copy()
         self._dim = points.shape[1]
-        self._piece_funcs = self.create_polygon(points)
+        self._piece_funcs = self.create_polygon()
 
-    def create_polygon(self, points: np.ndarray) -> list:
+    def create_polygon(self) -> list:
+        """
+        Creates the polygon by creating an array with all straight_line_functions needed.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        fs: list
+            the array with all straight_line_functions
+        """
         fs = []
-        for a, b in zip(points[0:len(points) - 1], points[1:len(points)]):
+        for a, b in zip(self._points[0:len(self._points) - 1], self._points[1:len(self._points)]):
             fs.append(straight_line_function(a, b))
         return fs
 
     def evaluate(self, x: float) -> np.ndarray:
+        """
+        Menelaos' Theorem b[index, t] = evaluate(x), where x = t,index, x \in [0, len(self._piece_funcs)]
+
+        Parameters
+        ----------
+        x: float
+
+        Returns
+        -------
+        np.ndArray:
+            evaluated point: np.ndArray
+        """
         t, index = math.modf(x)
         if int(index) > len(self._piece_funcs) or int(index) < 0:
             raise Exception("Not defined!")
@@ -123,7 +165,20 @@ class Polygon:
             return self._piece_funcs[len(self._piece_funcs) - 1](1)
         return self._piece_funcs[int(index)](t)
 
-    def plot_polygon(self, xs: np.ndarray):
+    def plot_polygon(self, xs: np.ndarray) -> None:
+        """
+        Plots the polygon using matplotlib, either in 2D or 3D. Two Plots are given first one with a given number of points which will be
+        highlighted on the function, and second is the function as a whole.
+
+        Parameters
+        ----------
+        xs: np.ndArray
+            the points that may be plotted
+
+        Returns
+        -------
+        None
+        """
         ep = np.array([self.evaluate(x) for x in xs])
         np.append(ep, self._points)
         ravel_points = self._points.ravel()  # the corner points to plot the function
@@ -136,9 +191,9 @@ class Polygon:
         if self._dim == 3:
             tmp = ep.ravel()
             xs, ys, zs = tmp[0::3], tmp[1::3], tmp[2::3]
-            func_x, func_y, func_z = ravel_points[0::2], ravel_points[1::2], ravel_points[2::2]
+            func_x, func_y, func_z = ravel_points[0::3], ravel_points[1::3], ravel_points[2::3]
             ax = plt.axes(projection='3d')
-            ax.plot(func_x, func_y, func_z, 'r')
+            ax.plot(func_x, func_y, func_z)
             ax.plot(xs, ys, zs, 'o', markersize=3)
         plt.show()
 
@@ -170,9 +225,9 @@ def init() -> None:
     test_points2d = np.array([[0, 0], [1, 1], [3, 4], [5, -2]])
     print(len(test_points2d))
 
-    test_PG = Polygon(test_points2d)
+    test_PG = Polygon(test_points)
     print(test_PG.evaluate(1.5))
-    # test_PG.plot_polygon(np.linspace(0, 3, 20))
+    test_PG.plot_polygon(np.linspace(0, 3, 20))
     # test_PG.plot_polygon(np.array([0.5]))
 
 
