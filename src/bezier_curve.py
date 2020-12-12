@@ -434,9 +434,6 @@ class BezierCurve3D(BezierCurve2D):
     see BezierCurve2D
     """
 
-    def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
-        super().__init__(m, cnt_ts)
-
     def get_curve(self) -> Tuple[list, list, list]:
         """
         method return x, y and z coords of all calculated points
@@ -468,26 +465,6 @@ class BezierCurve3D(BezierCurve2D):
         zs = [*self._bezier_points[2, :]]
         zs.sort()
         self._box.append((zs[0], zs[-1]))
-
-    def collision_check(self, other_curve) -> bool:
-        """
-        method checking collision with given curve.
-        first box check, if false return otherwise checking actual curves
-
-        Parameters
-        ----------
-        other_curve: BezierCurve3D
-            curve to check
-
-        Returns
-        -------
-        bool:
-            true if curves collide otherwise false
-        """
-        if not self.box_collision_check(other_curve):
-            return False
-
-        return self.curve_collision_check(other_curve)
 
     def curve_collision_check(self, other_curve) -> bool:
         """
