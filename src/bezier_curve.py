@@ -69,7 +69,7 @@ class CasteljauThread(th.Thread):
         instance of class Tholder so thread can get ts for calculating de Casteljau
     _coords: np.ndArray
         original control points
-    _res: list
+    res: list
         actual points on curve
     _func: Function
         function for transforming t
@@ -79,21 +79,8 @@ class CasteljauThread(th.Thread):
         th.Thread.__init__(self)
         self._ts_holder = ts_holder
         self._coords = c
-        self._res = []
+        self.res = []
         self._func = f
-
-    def get_res(self) -> list:
-        """
-        method to get List with calculated points
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        List containing all points calculated by the thread instance
-        """
-        return self._res
 
     def de_caes(self, t: float, n: int) -> None:
         """
@@ -114,7 +101,7 @@ class CasteljauThread(th.Thread):
         t = self._func(t)
         for r in range(n):
             m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
-        self._res.append(m[:, 0])
+        self.res.append(m[:, 0])
 
     def run(self) -> None:
         """
@@ -156,16 +143,16 @@ class BezierCurve2D:
         numbers of equidistant ts to calculate
     _curve: list
         list containing points belonging to actual curve
-    _box: list
+    box: list
         points describing minmax box of curve
     """
 
     def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
         self._bezier_points = m
         self._cnt_ts = cnt_ts
-        self._func = self.init_func(m)
+        self.func = self.init_func(m)
         self._curve = self.init_curve()
-        self._box = []
+        self.box = []
         self.min_max_box()
 
     def init_func(self, m: np.ndarray) -> Callable:
@@ -203,21 +190,7 @@ class BezierCurve2D:
             calculating no. of points defined by variable cnt_ts
         """
         ts = np.linspace(0, 1, self._cnt_ts)
-        return self._func(ts)
-
-    def get_box(self) -> list:
-        """
-        method returns minmax box of calculated curve
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        list:
-            contains points describing the box
-        """
-        return self._box
+        return self.func(ts)
 
     def get_curve(self) -> Tuple[list, list]:
         """
@@ -233,20 +206,6 @@ class BezierCurve2D:
         """
         tmp = np.ravel([*self._curve])
         return tmp[0::2], tmp[1::2]
-
-    def get_func(self) -> Callable:
-        """
-        method return x and y coordinates of all calculated points
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        Callable:
-            func representing the beziercurve
-        """
-        return self._func
 
     def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
         """
@@ -272,7 +231,7 @@ class BezierCurve2D:
 
         for t in threads:
             t.join()
-            tmp = t.get_res()
+            tmp = t.res
             self._curve = self._curve + tmp
 
         self.min_max_box()
@@ -313,7 +272,7 @@ class BezierCurve2D:
         ys = [*self._bezier_points[1, :]]
         xs.sort()
         ys.sort()
-        self._box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
+        self.box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
 
     def collision_check(self, other_curve) -> bool:
         """
@@ -349,8 +308,8 @@ class BezierCurve2D:
         bool:
             true if boxes collide otherwise false
         """
-        o_box = other_curve.get_box()
-        box = self._box
+        o_box = other_curve.box
+        box = self.box
         for t1, t2 in zip(box, o_box):
             if not self.intersect(t1, t2):
                 return False
@@ -464,7 +423,7 @@ class BezierCurve3D(BezierCurve2D):
         super().min_max_box()
         zs = [*self._bezier_points[2, :]]
         zs.sort()
-        self._box.append((zs[0], zs[-1]))
+        self.box.append((zs[0], zs[-1]))
 
     def curve_collision_check(self, other_curve) -> bool:
         """
