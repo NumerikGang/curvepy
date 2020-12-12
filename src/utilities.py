@@ -1,3 +1,5 @@
+import numpy as np
+
 def csv_read(file_path: str) -> np.ndarray:
     try:
         with open(file_path, 'r') as csv_file:
