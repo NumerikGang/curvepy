@@ -35,9 +35,6 @@ class Tholder:
         """
         Method for threads to get next t
 
-        Parameters
-        ----------
-
         Returns
         -------
         float:
@@ -92,10 +89,6 @@ class CasteljauThread(th.Thread):
             value at which to be evaluated at
         n: int
             number of iterations TODO find more describing phrasing together
-
-        Returns
-        -------
-        None
         """
         m = self._coords.copy()
         t = self._func(t)
@@ -106,13 +99,6 @@ class CasteljauThread(th.Thread):
     def run(self) -> None:
         """
         Method calculates points until depot is empty
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None
         """
         _, n = self._coords.shape
         while True:
@@ -181,9 +167,6 @@ class BezierCurve2D:
         """
         Method returns minmax box of calculated curve
 
-        Parameters
-        ----------
-
         Returns
         -------
         np.ndarray:
@@ -195,9 +178,6 @@ class BezierCurve2D:
     def get_curve(self) -> Tuple[list, list]:
         """
         Method returning x and y coordinates of all calculated points
-
-        Parameters
-        ----------
 
         Returns
         -------
@@ -215,10 +195,6 @@ class BezierCurve2D:
         ----------
         cnt_threads: int
             number of threads to use
-
-        Returns
-        -------
-        None
         """
         ts = Tholder(self._cnt_ts)
         threads = []
@@ -260,13 +236,6 @@ class BezierCurve2D:
     def min_max_box(self) -> None:
         """
         Method creates minmax box for the corresponding curve
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None
         """
         xs = [*self._bezier_points[0, :]]
         ys = [*self._bezier_points[1, :]]
@@ -340,13 +309,6 @@ class BezierCurve2D:
     def plot(self) -> None:
         """
         Method plotting the curve
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None
         """
         xs, ys = self.get_curve()
         plt.plot(xs, ys, 'o')
@@ -359,10 +321,6 @@ class BezierCurve2D:
         ----------
         list_of_curves:
             curves to plot
-
-        Returns
-        -------
-        None
         """
 
         if list_of_curves is None:
@@ -397,9 +355,6 @@ class BezierCurve3D(BezierCurve2D):
         """
         Method return x, y and z coords of all calculated points
 
-        Parameters
-        ----------
-
         Returns
         -------
         lists:
@@ -412,13 +367,6 @@ class BezierCurve3D(BezierCurve2D):
     def min_max_box(self) -> None:
         """
         Method creates minmax box for the corresponding curve
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None
         """
         super().min_max_box()
         zs = [*self._bezier_points[2, :]]
@@ -449,13 +397,6 @@ class BezierCurve3D(BezierCurve2D):
     def plot(self) -> None:
         """
         Method plotting the curve
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        None
         """
         xs, ys, zs = self.get_curve()
         ax = plt.axes(projection='3d')
