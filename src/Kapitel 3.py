@@ -1,13 +1,11 @@
-import sys
 import numpy as np
-import sympy as sy
+from scipy.optimize import fsolve
+from sympy import Symbol, solve
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.interpolate import interp1d
 import math
 from typing import Tuple, Callable
 import functools
 import matplotlib.pyplot as plt
-from sympy.plotting import plot3d_parametric_line
 
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -147,7 +145,7 @@ class Polygon:
 
     def evaluate(self, x: float) -> np.ndarray:
         """
-        Menelaos' Theorem b[index, t] = evaluate(x), where x = t,index, x \in [0, len(self._piece_funcs)]
+        Menelaos' Theorem notation b[index, t] = evaluate(x), where x = t,index, x \in [0, len(self._piece_funcs)].
 
         Parameters
         ----------
@@ -165,17 +163,28 @@ class Polygon:
             return self._piece_funcs[len(self._piece_funcs) - 1](1)
         return self._piece_funcs[int(index)](t)
 
-    def plot_polygon(self, xs: np.ndarray) -> None:
+    def new_point(self, func1: Callable, func2: Callable) -> np.ndarray:
+        # First try to calculate new point. Solve still gives false values for example if there never should be an
+        # intersection. Until now only tested with 2D functions.
+        x = Symbol('x')
+        y = Symbol('y')
+        # print(func1(0.6), func2(0.5))
+        ws = solve(func1(x) - func2(y))
+        print(func1(x) - func2(y))
+        print(ws)
+        return func1(ws[x])
+
+    def plot_polygon(self, xs: np.ndarray = np.array([0])) -> None:
         """
-        Plots the polygon using matplotlib, either in 2D or 3D. Two Plots are given first one with a given number of points which will be
-        highlighted on the function, and second is the function as a whole.
+        Plots the polygon using matplotlib, either in 2D or 3D. Two Plots are given first one with a given number
+        of points which will be highlighted on the function, and second is the function as a whole.
 
         Parameters
         ----------
         xs: np.ndArray
             the points that may be plotted
 
-        Returns
+        Return
         -------
         None
         """
@@ -220,15 +229,28 @@ def straight_line_point_test() -> None:
 def init() -> None:
     # straight_line_point_test()
     # ratio_test()
-    test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
+    # test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
 
-    test_points2d = np.array([[0, 0], [1, 1], [3, 4], [5, -2]])
-    print(len(test_points2d))
+    # test_points2d = np.array([[0, 0], [1, 1], [3, 4], [5, -2]])
+    # print(len(test_points2d))
 
-    test_PG = Polygon(test_points)
-    print(test_PG.evaluate(1.5))
-    test_PG.plot_polygon(np.linspace(0, 3, 20))
+    # test_PG = Polygon(test_points)
+    # print(test_PG.evaluate(1.5))
+    # test_PG.plot_polygon(np.linspace(0, 3, 20))
     # test_PG.plot_polygon(np.array([0.5]))
+
+    np_test = np.array([[0, 0], [1, 1], [1, 0]])
+    new_point_test = Polygon(np_test)
+
+    func1 = straight_line_function(new_point_test.evaluate(.5), new_point_test.evaluate(1.5))
+    func2 = straight_line_function(new_point_test.evaluate(.4), new_point_test.evaluate(1.6))
+    new_point_test.plot_polygon(np.array([.5, 1.5, .4, 1.6]))
+    print(new_point_test.new_point(func1, func2))
+
+    # vis_arr = (np.array([new_point_test.evaluate(.5), new_point_test.evaluate(1.5), new_point_test.evaluate(1.6),
+    #                     new_point_test.evaluate(.6)]))
+    # visual = Polygon(vis_arr)
+    # visual.plot_polygon()
 
 
 if __name__ == "__main__":
