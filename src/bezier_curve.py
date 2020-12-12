@@ -12,7 +12,7 @@ lockMe = th.Lock()  # variable used to control access of threads
 
 class Tholder:
     """
-    class holds Array with equidistant ts in [0,1] of length n
+    Class holds Array with equidistant ts in [0,1] of length n
 
     Parameters
     ----------
@@ -21,7 +21,7 @@ class Tholder:
 
     Attributes
     -------
-    _tArray : np.ndArray
+    _tArray : np.ndarray
         array in which all ts are stored
     _pointer : int
         pointer pointing on next t to get
@@ -33,7 +33,7 @@ class Tholder:
 
     def get_next_t(self) -> float:
         """
-        method for threads to get next t
+        Method for threads to get next t
 
         Parameters
         ----------
@@ -41,7 +41,7 @@ class Tholder:
         Returns
         -------
         float:
-            t to calculate next De Casteljau step
+            t to calculate the next De Casteljau step
         """
         if self._pointer == len(self._tArray):
             return -1
@@ -52,22 +52,22 @@ class Tholder:
 
 class CasteljauThread(th.Thread):
     """
-    Thread class computing de Casteljau
+    Thread class computing the De Casteljau algorithm
 
     Parameters
     ----------
     ts_holder: Tholder
         Class which yields all ts
-    c: np.ndArray
-        Array with control Points
+    c: np.ndarray
+        Array with control points
     f: Function
          Function to transform t if necessary
 
     Attributes
     -------
     _ts_holder : Tholder
-        instance of class Tholder so thread can get ts for calculating de Casteljau
-    _coords: np.ndArray
+        instance of class Tholder so thread can get the ts for calculating the de Casteljau algorithm
+    _coords: np.ndarray
         original control points
     res: list
         actual points on curve
@@ -84,14 +84,14 @@ class CasteljauThread(th.Thread):
 
     def de_caes(self, t: float, n: int) -> None:
         """
-        method implementing de Casteljau algorithm
+        Method implementing the the De Casteljau algorithm
 
         Parameters
         ----------
         t: float
-            t used in the calculation
+            value at which to be evaluated at
         n: int
-            number of iterations
+            number of iterations TODO find more describing phrasing together
 
         Returns
         -------
@@ -105,7 +105,7 @@ class CasteljauThread(th.Thread):
 
     def run(self) -> None:
         """
-        run method calculates points until depot is Empty
+        Method calculates points until depot is empty
 
         Parameters
         ----------
@@ -126,18 +126,18 @@ class CasteljauThread(th.Thread):
 
 class BezierCurve2D:
     """
-    Class for creating a Beziercurve in 2D
+    Class for creating a 2-dimensional Bezier Curve
 
     Parameters
     ----------
-    m: np.ndArray
+    m: np.ndarray
         Array containing control points
     cnt_ts: int
         number of ts to create
 
     Attributes
     -------
-    _bezier_points: np.ndArray
+    _bezier_points: np.ndarray
         array containing original bezier points
     _cnt_ts: int
         numbers of equidistant ts to calculate
@@ -157,17 +157,17 @@ class BezierCurve2D:
 
     def init_func(self, m: np.ndarray) -> Callable:
         """
-        method returns minmax box of calculated curve
+        Method returns minmax box of calculated curve
 
         Parameters
         ----------
-        m: np.ndArray:
-            array containing the bezierpoints
+        m: np.ndarray:
+            array containing the Bezier Points
 
         Returns
         -------
         Callable:
-            func representing the beziercurve
+            function representing the Bezier Curve
         """
         _, n = m.shape
         m = sy.Matrix(m)
@@ -179,14 +179,14 @@ class BezierCurve2D:
 
     def init_curve(self) -> np.ndarray:
         """
-        method returns minmax box of calculated curve
+        Method returns minmax box of calculated curve
 
         Parameters
         ----------
 
         Returns
         -------
-        np.ndArray:
+        np.ndarray:
             calculating no. of points defined by variable cnt_ts
         """
         ts = np.linspace(0, 1, self._cnt_ts)
@@ -194,7 +194,7 @@ class BezierCurve2D:
 
     def get_curve(self) -> Tuple[list, list]:
         """
-        method return x and y coordinates of all calculated points
+        Method returning x and y coordinates of all calculated points
 
         Parameters
         ----------
@@ -209,7 +209,7 @@ class BezierCurve2D:
 
     def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
         """
-        method implementing the threading for de Casteljau algorithm
+        Method implementing the threading for the De Casteljau algorithm
 
         Parameters
         ----------
@@ -243,9 +243,9 @@ class BezierCurve2D:
         Parameters
         ----------
         t1: tuple
-            tuple 1
+            first tuple
         t2: tuple
-            tuple 2
+            second tuple
 
         Returns
         -------
@@ -259,7 +259,7 @@ class BezierCurve2D:
 
     def min_max_box(self) -> None:
         """
-        method creates minmax box for the corresponding curve
+        Method creates minmax box for the corresponding curve
 
         Parameters
         ----------
@@ -276,8 +276,8 @@ class BezierCurve2D:
 
     def collision_check(self, other_curve) -> bool:
         """
-        method checking collision with given curve.
-        first box check, if false return otherwise checking actual curves
+        Method checking collision with given curve.
+        Starts with a box check, if this didn't intersect it is checking the actual curves
 
         Parameters
         ----------
@@ -296,7 +296,7 @@ class BezierCurve2D:
 
     def box_collision_check(self, other_curve) -> bool:
         """
-        method checking box collision with given curve.
+        Method checking box collision with the given curve.
 
         Parameters
         ----------
@@ -318,7 +318,7 @@ class BezierCurve2D:
 
     def curve_collision_check(self, other_curve) -> bool:
         """
-        method checking curve collision with given curve.
+        Method checking curve collision with the given curve.
 
         Parameters
         ----------
@@ -339,7 +339,7 @@ class BezierCurve2D:
 
     def plot(self) -> None:
         """
-        method plotting the curve
+        Method plotting the curve
 
         Parameters
         ----------
@@ -353,7 +353,7 @@ class BezierCurve2D:
 
     def show_funcs(self, list_of_curves: list = None) -> None:
         """
-        method plotting multiple beziercurves in one figure
+        Method plotting multiple Bezier Curves in one figure
 
         Parameters
         ----------
@@ -379,11 +379,11 @@ class BezierCurve2D:
 
 class BezierCurve3D(BezierCurve2D):
     """
-    Class for creating a Beziercurve in 3D
+    Class for creating a 3-dimensional Bezier Curve
 
     Parameters
     ----------
-    m: np.ndArray
+    m: np.ndarray
         Array containing control points
     cnt_ts: int
         number of ts to create
@@ -395,7 +395,7 @@ class BezierCurve3D(BezierCurve2D):
 
     def get_curve(self) -> Tuple[list, list, list]:
         """
-        method return x, y and z coords of all calculated points
+        Method return x, y and z coords of all calculated points
 
         Parameters
         ----------
@@ -411,7 +411,7 @@ class BezierCurve3D(BezierCurve2D):
 
     def min_max_box(self) -> None:
         """
-        method creates minmax box for the corresponding curve
+        Method creates minmax box for the corresponding curve
 
         Parameters
         ----------
@@ -427,7 +427,7 @@ class BezierCurve3D(BezierCurve2D):
 
     def curve_collision_check(self, other_curve) -> bool:
         """
-        method checking curve collision with given curve.
+        Method checking curve collision with given curve.
 
         Parameters
         ----------
@@ -448,7 +448,7 @@ class BezierCurve3D(BezierCurve2D):
 
     def plot(self) -> None:
         """
-        method plotting th curve
+        Method plotting the curve
 
         Parameters
         ----------
