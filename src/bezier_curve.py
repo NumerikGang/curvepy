@@ -127,6 +127,8 @@ class BezierCurve2D:
         array containing original bezier points
     _cnt_ts: int
         numbers of equidistant ts to calculate
+    func: Callable
+        function computing the Bezier Curve for a single point
     _curve: list
         list containing points belonging to actual curve
     box: list
@@ -341,10 +343,7 @@ class BezierCurve3D(BezierCurve2D):
 
     Parameters
     ----------
-    m: np.ndarray
-        Array containing control points
-    cnt_ts: int
-        number of ts to create
+    see BezierCurve2D
 
     Attributes
     -------
