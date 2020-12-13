@@ -7,9 +7,6 @@ from typing import Tuple, Callable
 
 from src.utilities import csv_read
 
-lockMe = th.Lock()  # variable used to control access of threads
-
-
 class Tholder:
     """
     Class holds Array with equidistant ts in [0,1] of length n
@@ -30,6 +27,7 @@ class Tholder:
     def __init__(self, n: int = 1) -> None:
         self._tArray = np.linspace(0, 1, n)
         self._pointer = 0
+        self.lockMe = th.Lock()  # variable used to control access of threads
 
     def get_next_t(self) -> float:
         """
@@ -102,9 +100,9 @@ class CasteljauThread(th.Thread):
         """
         _, n = self._coords.shape
         while True:
-            lockMe.acquire()
+            self._ts_holder.lockMe.acquire()
             t = self._ts_holder.get_next_t()
-            lockMe.release()
+            self._ts_holder.lockMe.release()
             if t == -1:
                 break
             self.de_caes(t, n)
