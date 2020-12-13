@@ -245,10 +245,8 @@ class BezierCurve2D:
         """
         Method creates minmax box for the corresponding curve
         """
-        xs = [*self._bezier_points[0, :]]
-        ys = [*self._bezier_points[1, :]]
-        xs.sort()
-        ys.sort()
+        xs = sorted([*self._bezier_points[0, :]])
+        ys = sorted([*self._bezier_points[1, :]])
         self.box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
 
     def collision_check(self, other_curve) -> bool:
