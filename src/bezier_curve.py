@@ -3,6 +3,7 @@ import sympy as sy
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
+from abc import ABC, abstractmethod
 from typing import Tuple, Callable, Union, Any
 
 from src.utilities import csv_read
@@ -27,8 +28,8 @@ class Tholder:
         lock for multithreading
     """
 
-    def __init__(self, n: int = 1) -> None:
-        self._tArray = np.linspace(0, 1, n)
+    def __init__(self, ts: int = 1) -> None:
+        self._tArray = ts
         self._pointer = 0
         self.lockMe = th.Lock()  # variable used to control access of threads
 
@@ -111,9 +112,10 @@ class CasteljauThread(th.Thread):
             self.de_caes(t, n)
 
 
-class BezierCurve:
+class AbstractBezierCurve(ABC):
     """
-    Class for creating a 2-dimensional Bezier Curve
+    Abstract class for creating a Bezier Curve.
+    The function init_func has to be overwritten.
 
     Parameters
     ----------
@@ -146,10 +148,10 @@ class BezierCurve:
         self._curve = None
         self.box = []
 
-    @staticmethod
-    def init_func(m: np.ndarray) -> Callable:
+    @abstractmethod
+    def init_func(self, m: np.ndarray) -> Callable:
         """
-        Method returns minmax box of calculated curve
+        Method returns the function to calculate all values at once.
 
         Parameters
         ----------
@@ -161,13 +163,7 @@ class BezierCurve:
         Callable:
             function representing the Bezier Curve
         """
-        _, n = m.shape
-        m = sy.Matrix(m)
-        t = sy.symbols('t')
-        for r in range(n):
-            m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
-        f = sy.lambdify(t, m[:, 0])
-        return np.frompyfunc(f, 1, 1)
+        ...
 
     def _get_or_create_values(self) -> np.ndarray:
         """
@@ -199,31 +195,6 @@ class BezierCurve:
             return tmp[0::2], tmp[1::2]
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
-    def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
-        """
-        Method implementing the threading for the De Casteljau algorithm
-
-        Parameters
-        ----------
-        cnt_threads: int
-            number of threads to use
-        """
-        ts = Tholder(self._cnt_ts)
-        threads = []
-        self._curve = []  # TODO: Since we regenerate them, right? Plots are looking good
-
-        for _ in range(cnt_threads):
-            threads.append(CasteljauThread(ts, self._bezier_points))
-
-        for t in threads:
-            t.start()
-
-        for t in threads:
-            t.join()
-            tmp = t.res
-            self._curve = self._curve + tmp
-
-        self.min_max_box()
 
     @staticmethod
     def intersect(t1: tuple, t2: tuple) -> bool:
@@ -357,6 +328,95 @@ class BezierCurve:
             c.plot()
         plt.show()
 
+class BezierCurve(AbstractBezierCurve):
+    """
+    Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
+
+    Parameters
+    ----------
+    see AbstractBezierCurve
+
+    Attributes
+    -------
+    see AbstractBezierCurve
+    """
+
+    def init_func(self, m: np.ndarray) -> Callable:
+        """
+        Method returns the function to calculate all values at once.
+
+        Parameters
+        ----------
+        m: np.ndarray:
+            array containing the Bezier Points
+
+        Returns
+        -------
+        Callable:
+            function representing the Bezier Curve
+        """
+        _, n = m.shape
+        m = sy.Matrix(m)
+        t = sy.symbols('t')
+        for r in range(n):
+            m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
+        f = sy.lambdify(t, m[:, 0])
+        return np.frompyfunc(f, 1, 1)
+
+class BezierCurveThreaded(AbstractBezierCurve):
+    """
+    Class for creating a 2-dimensional Bezier Curve by using the threaded De Casteljau Algorithm
+
+    Parameters
+    ----------
+    see AbstractBezierCurve
+
+    Attributes
+    -------
+    see AbstractBezierCurve
+    """
+
+    def init_func(self, m: np.ndarray) -> Callable:
+        """
+        Method returns the function to calculate all values at once.
+
+        Parameters
+        ----------
+        m: np.ndarray:
+            array containing the Bezier Points
+
+        Returns
+        -------
+        Callable:
+            function representing the Bezier Curve
+        """
+        return self.de_casteljau_threading
+
+    def de_casteljau_threading(self, ts, cnt_threads: int = 4) -> None:
+        """
+        Method implementing the threading for the De Casteljau algorithm
+
+        Parameters
+        ----------
+        cnt_threads: int
+            number of threads to use
+        """
+        ts = Tholder(ts)
+        threads = []
+        curve = []
+
+        for _ in range(cnt_threads):
+            threads.append(CasteljauThread(ts, self._bezier_points))
+
+        for t in threads:
+            t.start()
+
+        for t in threads:
+            t.join()
+            tmp = t.res
+            curve = curve + tmp
+
+        return curve
 
 def init() -> None:
     m = csv_read('test.csv')  # reads csv file with bezier points
