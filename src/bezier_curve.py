@@ -3,7 +3,7 @@ import sympy as sy
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
-from typing import Tuple, Callable, Union
+from typing import Tuple, Callable, Union, Any
 
 from src.utilities import csv_read
 
@@ -111,7 +111,7 @@ class CasteljauThread(th.Thread):
             self.de_caes(t, n)
 
 
-class BezierCurve2D:
+class BezierCurve:
     """
     Class for creating a 2-dimensional Bezier Curve
 
@@ -126,6 +126,8 @@ class BezierCurve2D:
     -------
     _bezier_points: np.ndarray
         array containing original bezier points
+    _dimension: int
+        dimension of the bezier points, therefore of the curve as well
     _cnt_ts: int
         numbers of equidistant ts to calculate
     func: Callable
@@ -138,6 +140,7 @@ class BezierCurve2D:
 
     def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
         self._bezier_points = m
+        self._dimension = self._bezier_points.shape[0]
         self._cnt_ts = cnt_ts
         self.func = self.init_func(m)
         self._curve = None
@@ -166,7 +169,7 @@ class BezierCurve2D:
         f = sy.lambdify(t, m[:, 0])
         return np.frompyfunc(f, 1, 1)
 
-    def _get_or_create_curve(self) -> np.ndarray:
+    def _get_or_create_values(self) -> np.ndarray:
         """
         Method returns minmax box of calculated curve
 
@@ -182,17 +185,19 @@ class BezierCurve2D:
         return self._curve
 
     @property
-    def curve(self) -> Tuple[list, list]:
+    def curve(self) -> Union[tuple[list, list], tuple[list, list, list]]:
         """
-        Method returning x and y coordinates of all calculated points
+        Method returning coordinates of all calculated points
 
         Returns
         -------
-        lists:
-            first list for x coords, second for y coords
+        Union[tuple[list, list], tuple[list, list, list]]:
+            first list for x coords, second for y coords and third for z if existing
         """
-        tmp = np.ravel([*self._get_or_create_curve()])
-        return tmp[0::2], tmp[1::2]
+        tmp = np.ravel([*self._get_or_create_values()])
+        if self._dimension == 2:
+            return tmp[0::2], tmp[1::2]
+        return tmp[0::3], tmp[1::3], tmp[2::3]
 
     def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
         """
@@ -248,7 +253,11 @@ class BezierCurve2D:
         """
         xs = sorted([*self._bezier_points[0, :]])
         ys = sorted([*self._bezier_points[1, :]])
-        self.box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
+        if self._dimension == 2:
+            self.box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
+            return
+        zs = sorted([*self._bezier_points[2, :]])
+        self.box.append((zs[0], zs[-1]))
 
     def collision_check(self, other_curve) -> bool:
         """
@@ -317,7 +326,11 @@ class BezierCurve2D:
         """
         Method plotting the curve by adding it to the current pyplot figure
         """
-        plt.plot(*self.curve, 'o')
+        if self._dimension == 2:
+            plt.plot(*self.curve, 'o')
+        else:
+            ax = plt.axes(projection='3d')
+            ax.scatter3D(*self.curve)
 
     def show_funcs(self, list_of_curves: list = None) -> None:
         """
@@ -345,56 +358,11 @@ class BezierCurve2D:
         plt.show()
 
 
-class BezierCurve3D(BezierCurve2D):
-    """
-    Class for creating a 3-dimensional Bezier Curve
-
-    Parameters
-    ----------
-    see BezierCurve2D
-
-    Attributes
-    -------
-    see BezierCurve2D
-    """
-
-    @property
-    def curve(self) -> Tuple[list, list, list]:
-        """
-        Method return x, y and z coords of all calculated points
-
-        Returns
-        -------
-        lists:
-            first list for x coords, second for y coords and third for z coords
-        """
-
-        tmp = np.ravel([*self._get_or_create_curve()])
-        return tmp[0::3], tmp[1::3], tmp[2::3]
-
-    def min_max_box(self) -> None:
-        """
-        Method creates minmax box for the corresponding curve
-        """
-        super().min_max_box()
-        zs = [*self._bezier_points[2, :]]
-        zs.sort()
-        self.box.append((zs[0], zs[-1]))
-
-    def plot(self) -> None:
-        """
-        Method plotting the curve by adding it to the current pyplot figure
-        """
-        ax = plt.axes(projection='3d')
-        ax.scatter3D(*self.curve)
-        plt.show()
-
-
 def init() -> None:
     m = csv_read('test.csv')  # reads csv file with bezier points
-    b1 = BezierCurve2D(m)
+    b1 = BezierCurve(m)
     m = csv_read('test2.csv')  # reads csv file with bezier points
-    b2 = BezierCurve2D(m)
+    b2 = BezierCurve(m)
     b2.show_funcs([b1])
 
 
