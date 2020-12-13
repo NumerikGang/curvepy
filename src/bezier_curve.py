@@ -22,6 +22,8 @@ class Tholder:
         array in which all ts are stored
     _pointer : int
         pointer pointing on next t to get
+    lockMe: th.Lock
+        lock for multithreading
     """
 
     def __init__(self, n: int = 1) -> None:
