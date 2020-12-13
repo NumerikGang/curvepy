@@ -164,7 +164,7 @@ class BezierCurve2D:
         f = sy.lambdify(t, m[:, 0])
         return np.frompyfunc(f, 1, 1)
 
-    def init_curve(self) -> np.ndarray:
+    def _get_or_create_curve(self) -> np.ndarray:
         """
         Method returns minmax box of calculated curve
 
@@ -179,7 +179,8 @@ class BezierCurve2D:
             self.min_max_box()
         return self._curve
 
-    def get_curve(self) -> Tuple[list, list]:
+    @property
+    def curve(self) -> Tuple[list, list]:
         """
         Method returning x and y coordinates of all calculated points
 
@@ -188,7 +189,7 @@ class BezierCurve2D:
         lists:
             first list for x coords, second for y coords
         """
-        tmp = np.ravel([*self.get_curve()])
+        tmp = np.ravel([*self._get_or_create_curve()])
         return tmp[0::2], tmp[1::2]
 
     def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
@@ -304,9 +305,9 @@ class BezierCurve2D:
         bool:
             true if curves collide otherwise false
         """
-        xs, ys = self.get_curve()
+        xs, ys = self.curve
         f1 = sg.LineString(np.column_stack((xs, ys)))
-        xs, ys = other_curve.get_curve()
+        xs, ys = other_curve.curve
         f2 = sg.LineString(np.column_stack((xs, ys)))
         inter = f1.intersection(f2)
         return not inter.geom_type == 'LineString'
@@ -315,7 +316,7 @@ class BezierCurve2D:
         """
         Method plotting the curve by adding it to the current pyplot figure
         """
-        xs, ys = self.get_curve()
+        xs, ys = self.curve
         plt.plot(xs, ys, 'o')
 
     def show_funcs(self, list_of_curves: list = None) -> None:
@@ -353,7 +354,8 @@ class BezierCurve3D(BezierCurve2D):
     see BezierCurve2D
     """
 
-    def get_curve(self) -> Tuple[list, list, list]:
+    @property
+    def curve(self) -> Tuple[list, list, list]:
         """
         Method return x, y and z coords of all calculated points
 
@@ -363,7 +365,7 @@ class BezierCurve3D(BezierCurve2D):
             first list for x coords, second for y coords and third for z coords
         """
 
-        tmp = np.ravel([*self.get_curve()])
+        tmp = np.ravel([*self._get_or_create_curve()])
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
     def min_max_box(self) -> None:
@@ -389,9 +391,9 @@ class BezierCurve3D(BezierCurve2D):
         bool:
             true if curves collide otherwise false
         """
-        xs, ys, zs = self.get_curve()
+        xs, ys, zs = self.curve
         f1 = sg.LineString(np.column_stack((xs, ys, zs)))
-        xs, ys, zs = other_curve.get_curve()
+        xs, ys, zs = other_curve.curve
         f2 = sg.LineString(np.column_stack((xs, ys, zs)))
         inter = f1.intersection(f2)
         return not inter.geom_type == 'LineString'
@@ -400,7 +402,7 @@ class BezierCurve3D(BezierCurve2D):
         """
         Method plotting the curve by adding it to the current pyplot figure
         """
-        xs, ys, zs = self.get_curve()
+        xs, ys, zs = self.curve
         ax = plt.axes(projection='3d')
         ax.scatter3D(xs, ys, zs)
         plt.show()
