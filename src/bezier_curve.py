@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
+from scipy.special import comb
 from typing import Tuple, Callable, Union, Any
 
 from src.utilities import csv_read
@@ -195,7 +196,6 @@ class AbstractBezierCurve(ABC):
             return tmp[0::2], tmp[1::2]
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
-
     @staticmethod
     def intersect(t1: tuple, t2: tuple) -> bool:
         """
@@ -328,6 +328,27 @@ class AbstractBezierCurve(ABC):
             c.plot()
         plt.show()
 
+    def __str__(self):
+        """
+        Returns string represenation as the mathematical bezier curve
+
+        Returns
+        -------
+        String: represenation as the mathematical bezier curve
+        """
+        return f"b^{self._bezier_points.shape[1] - 1}(t)"
+
+    def __repr__(self):
+        """
+        Returns internal represenation based on __str__
+
+        Returns
+        -------
+        String: internal represenation based on __str__
+        """
+        return f"<id {id(self)}, {self.__str__()}>"
+
+
 class BezierCurve(AbstractBezierCurve):
     """
     Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
@@ -362,6 +383,7 @@ class BezierCurve(AbstractBezierCurve):
             m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
         f = sy.lambdify(t, m[:, 0])
         return np.frompyfunc(f, 1, 1)
+
 
 class BezierCurveThreaded(AbstractBezierCurve):
     """
@@ -417,6 +439,7 @@ class BezierCurveThreaded(AbstractBezierCurve):
             curve = curve + tmp
 
         return curve
+
 
 def init() -> None:
     m = csv_read('test.csv')  # reads csv file with bezier points
