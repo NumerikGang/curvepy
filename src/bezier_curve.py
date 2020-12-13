@@ -205,7 +205,7 @@ class BezierCurve2D:
         """
         ts = Tholder(self._cnt_ts)
         threads = []
-        self._curve = []  # TODO: Since we regenerate them, right?
+        self._curve = []  # TODO: Since we regenerate them, right? Plots are looking good
 
         for _ in range(cnt_threads):
             threads.append(CasteljauThread(ts, self._bezier_points))
@@ -333,6 +333,10 @@ class BezierCurve2D:
             list_of_curves = []
 
         self.plot()
+        # TODO: debate whether the if below should be thrown away
+        # this is possible since we would just iterate through an empty list
+        # This shouldn't be that much faster since we check if the list is empty anyways
+        # but it would reduce noise
         if not list_of_curves:
             plt.show()
             return
