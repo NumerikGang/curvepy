@@ -143,29 +143,57 @@ class Polygon:
             fs.append(straight_line_function(a, b))
         return fs
 
-    def evaluate(self, x: float) -> np.ndarray:
+    def evaluate(self, index: int, t: float) -> np.ndarray:
         """
-        Menelaos' Theorem notation b[index, t] = evaluate(x), where x = t,index, x \in [0, len(self._piece_funcs)].
+        Evaluates the polygon on the index function with the given t.
 
         Parameters
         ----------
-        x: float
+        index: int
+        t: float
 
         Returns
         -------
         np.ndArray:
             evaluated point: np.ndArray
         """
-        t, index = math.modf(x)
+        # t, index = math.modf(x)
         if int(index) > len(self._piece_funcs) or int(index) < 0:
             raise Exception("Not defined!")
         if int(index) == len(self._piece_funcs):
             return self._piece_funcs[len(self._piece_funcs) - 1](1)
         return self._piece_funcs[int(index)](t)
 
-    def new_point(self, func1: Callable, func2: Callable) -> np.ndarray:
+    def blossom(self, ts: list) -> np.ndarray:
+        """
+        Recursive calculation of a blossom with parameters ts and the polygon.
+
+        Parameters
+        ----------
+        ts: list
+
+        Returns
+        -------
+        np.ndArray
+        """
+        if len(ts) > len(self._piece_funcs):
+            raise Exception("The polygon is not long enough!")
+        if len(ts) == 1:
+            return self.evaluate(0, ts[0])
+        tmp_poly_points = []
+        # With the first t we make the first tmp_poly
+        for i in range(len(ts)):
+            tmp_poly_points.append(self._piece_funcs[i](ts[0]))
+        tmp_poly_points = np.array(tmp_poly_points)
+        tmp_poly = Polygon(tmp_poly_points)
+        # cut the first t out
+        new_ts = ts[1:len(ts)]
+        return tmp_poly.blossom(new_ts)
+
+    def func_intersection(self, func1: Callable, func2: Callable) -> np.ndarray:
         # First try to calculate new point. Solve still gives false values for example if there never should be an
         # intersection. Until now only tested with 2D functions.
+        # This only shows that b[s,t] = b[t,s] !!! aka Meleanos Theorem
         x = Symbol('x')
         y = Symbol('y')
         # print(func1(0.6), func2(0.5))
@@ -239,18 +267,26 @@ def init() -> None:
     # test_PG.plot_polygon(np.linspace(0, 3, 20))
     # test_PG.plot_polygon(np.array([0.5]))
 
-    np_test = np.array([[0, 0], [1, 1], [1, 0]])
-    new_point_test = Polygon(np_test)
+    # Intersection testing
 
-    func1 = straight_line_function(new_point_test.evaluate(.5), new_point_test.evaluate(1.5))
-    func2 = straight_line_function(new_point_test.evaluate(.4), new_point_test.evaluate(1.6))
-    new_point_test.plot_polygon(np.array([.5, 1.5, .4, 1.6]))
-    print(new_point_test.new_point(func1, func2))
+    # np_test = np.array([[0, 0], [1, 1], [1, 0]])
+    # new_point_test = Polygon(np_test)
+
+    # func1 = straight_line_function(new_point_test.evaluate(.5), new_point_test.evaluate(1.5))
+    # func2 = straight_line_function(new_point_test.evaluate(.4), new_point_test.evaluate(1.6))
+    # new_point_test.plot_polygon(np.array([.5, 1.5, .4, 1.6]))
+    # print(new_point_test.func_intersection(func1, func2))
 
     # vis_arr = (np.array([new_point_test.evaluate(.5), new_point_test.evaluate(1.5), new_point_test.evaluate(1.6),
     #                     new_point_test.evaluate(.6)]))
     # visual = Polygon(vis_arr)
     # visual.plot_polygon()
+
+    # Blossom testing
+
+    b_test_points = np.array([[0, 0], [1, 1], [2, 1], [3, 0]])
+    b_test_poly = Polygon(b_test_points)
+    print(b_test_poly.blossom([0.3, 0.6, 0.5]))
 
 
 if __name__ == "__main__":
