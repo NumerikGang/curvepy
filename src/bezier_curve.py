@@ -142,7 +142,8 @@ class BezierCurve2D:
         self._curve = None
         self.box = []
 
-    def init_func(self, m: np.ndarray) -> Callable:
+    @staticmethod
+    def init_func(m: np.ndarray) -> Callable:
         """
         Method returns minmax box of calculated curve
 
@@ -218,7 +219,8 @@ class BezierCurve2D:
 
         self.min_max_box()
 
-    def intersect(self, t1: tuple, t2: tuple) -> bool:
+    @staticmethod
+    def intersect(t1: tuple, t2: tuple) -> bool:
         """
         Method checking intersection of two given tuples TODO find more describing phrasing together
 
