@@ -29,7 +29,7 @@ class Tholder:
         lock for multithreading
     """
 
-    def __init__(self, ts: int = 1) -> None:
+    def __init__(self, ts: np.ndarray = None) -> None:
         self._tArray = ts
         self._pointer = 0
         self.lockMe = th.Lock()  # variable used to control access of threads
@@ -182,7 +182,7 @@ class AbstractBezierCurve(ABC):
         return self._curve
 
     @property
-    def curve(self) -> Union[tuple[list, list], tuple[list, list, list]]:
+    def curve(self) -> Union[Tuple[list, list], Tuple[list, list, list]]:
         """
         Method returning coordinates of all calculated points
 
