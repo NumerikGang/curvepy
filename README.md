@@ -9,7 +9,7 @@ This project contains all algorithms from the following chapters of "Curves and 
 
 ## Technical Decisions for now
 - `pdoc` for document generation
-- `google style` docstring formatting
+- `numpy` docstring formatting
 
 ---
 
