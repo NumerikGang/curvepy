@@ -139,9 +139,8 @@ class BezierCurve2D:
         self._bezier_points = m
         self._cnt_ts = cnt_ts
         self.func = self.init_func(m)
-        self._curve = self.init_curve()
+        self._curve = None
         self.box = []
-        self.min_max_box()
 
     def init_func(self, m: np.ndarray) -> Callable:
         """
@@ -174,8 +173,11 @@ class BezierCurve2D:
         np.ndarray:
             calculating no. of points defined by variable cnt_ts
         """
-        ts = np.linspace(0, 1, self._cnt_ts)
-        return self.func(ts)
+        if self._curve is None:
+            ts = np.linspace(0, 1, self._cnt_ts)
+            self._curve = self.func(ts)
+            self.min_max_box()
+        return self._curve
 
     def get_curve(self) -> Tuple[list, list]:
         """
@@ -186,7 +188,7 @@ class BezierCurve2D:
         lists:
             first list for x coords, second for y coords
         """
-        tmp = np.ravel([*self._curve])
+        tmp = np.ravel([*self.get_curve()])
         return tmp[0::2], tmp[1::2]
 
     def de_casteljau_threading(self, cnt_threads: int = 4) -> None:
@@ -200,6 +202,7 @@ class BezierCurve2D:
         """
         ts = Tholder(self._cnt_ts)
         threads = []
+        self._curve = [] # TODO: Since we regenerate them, right?
 
         for _ in range(cnt_threads):
             threads.append(CasteljauThread(ts, self._bezier_points))
@@ -360,7 +363,7 @@ class BezierCurve3D(BezierCurve2D):
             first list for x coords, second for y coords and third for z coords
         """
 
-        tmp = np.ravel([*self._curve])
+        tmp = np.ravel([*self.get_curve()])
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
     def min_max_box(self) -> None:
