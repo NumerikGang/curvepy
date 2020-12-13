@@ -107,9 +107,6 @@ class Polygon:
     """
     Class for creating a 2D or 3D Polygon.
 
-    Parameters
-    ----------
-
     Attributes
     ----------
     _points: np.ndArray
@@ -126,12 +123,9 @@ class Polygon:
         self._dim = points.shape[1]
         self._piece_funcs = self.create_polygon()
 
-    def create_polygon(self) -> list:
+    def create_polygon(self) -> np.ndarray:
         """
         Creates the polygon by creating an array with all straight_line_functions needed.
-
-        Parameters
-        ----------
 
         Returns
         -------
@@ -141,6 +135,7 @@ class Polygon:
         fs = []
         for a, b in zip(self._points[0:len(self._points) - 1], self._points[1:len(self._points)]):
             fs.append(straight_line_function(a, b))
+        fs = np.array(fs)
         return fs
 
     def evaluate(self, index: int, t: float) -> np.ndarray:
@@ -180,27 +175,7 @@ class Polygon:
             raise Exception("The polygon is not long enough!")
         if len(ts) == 1:
             return self.evaluate(0, ts[0])
-        tmp_poly_points = []
-        # With the first t we make the first tmp_poly
-        for i in range(len(ts)):
-            tmp_poly_points.append(self._piece_funcs[i](ts[0]))
-        tmp_poly_points = np.array(tmp_poly_points)
-        tmp_poly = Polygon(tmp_poly_points)
-        # cut the first t out
-        new_ts = ts[1:len(ts)]
-        return tmp_poly.blossom(new_ts)
-
-    def func_intersection(self, func1: Callable, func2: Callable) -> np.ndarray:
-        # First try to calculate new point. Solve still gives false values for example if there never should be an
-        # intersection. Until now only tested with 2D functions.
-        # This only shows that b[s,t] = b[t,s] !!! aka Meleanos Theorem
-        x = Symbol('x')
-        y = Symbol('y')
-        # print(func1(0.6), func2(0.5))
-        ws = solve(func1(x) - func2(y))
-        print(func1(x) - func2(y))
-        print(ws)
-        return func1(ws[x])
+        return Polygon(np.array([self._piece_funcs[i](ts[0]) for i in range(len(ts))])).blossom(ts[1:])
 
     def plot_polygon(self, xs: np.ndarray = np.array([0])) -> None:
         """
@@ -211,10 +186,6 @@ class Polygon:
         ----------
         xs: np.ndArray
             the points that may be plotted
-
-        Return
-        -------
-        None
         """
         ep = np.array([self.evaluate(x) for x in xs])
         np.append(ep, self._points)
@@ -254,6 +225,12 @@ def straight_line_point_test() -> None:
     plt.show()
 
 
+def blossom_testing() -> None:
+    b_test_points = np.array([[0, 0], [1, 1], [2, 1], [3, 0]])
+    b_test_poly = Polygon(b_test_points)
+    print(b_test_poly.blossom([0.3, 0.6, 0.5]))
+
+
 def init() -> None:
     # straight_line_point_test()
     # ratio_test()
@@ -267,26 +244,8 @@ def init() -> None:
     # test_PG.plot_polygon(np.linspace(0, 3, 20))
     # test_PG.plot_polygon(np.array([0.5]))
 
-    # Intersection testing
-
-    # np_test = np.array([[0, 0], [1, 1], [1, 0]])
-    # new_point_test = Polygon(np_test)
-
-    # func1 = straight_line_function(new_point_test.evaluate(.5), new_point_test.evaluate(1.5))
-    # func2 = straight_line_function(new_point_test.evaluate(.4), new_point_test.evaluate(1.6))
-    # new_point_test.plot_polygon(np.array([.5, 1.5, .4, 1.6]))
-    # print(new_point_test.func_intersection(func1, func2))
-
-    # vis_arr = (np.array([new_point_test.evaluate(.5), new_point_test.evaluate(1.5), new_point_test.evaluate(1.6),
-    #                     new_point_test.evaluate(.6)]))
-    # visual = Polygon(vis_arr)
-    # visual.plot_polygon()
-
     # Blossom testing
-
-    b_test_points = np.array([[0, 0], [1, 1], [2, 1], [3, 0]])
-    b_test_poly = Polygon(b_test_points)
-    print(b_test_poly.blossom([0.3, 0.6, 0.5]))
+    blossom_testing()
 
 
 if __name__ == "__main__":
