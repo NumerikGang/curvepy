@@ -3,7 +3,7 @@ import sympy as sy
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Union
 
 from src.utilities import csv_read
 
@@ -297,7 +297,7 @@ class BezierCurve2D:
 
         Parameters
         ----------
-        other_curve: BezierCurve2D
+        other_curve: Union[BezierCurve2D, BezierCurve3D] # TODO: check whether same type as everywhere
             curve to check
 
         Returns
@@ -305,10 +305,10 @@ class BezierCurve2D:
         bool:
             true if curves collide otherwise false
         """
-        xs, ys = self.curve
-        f1 = sg.LineString(np.column_stack((xs, ys)))
-        xs, ys = other_curve.curve
-        f2 = sg.LineString(np.column_stack((xs, ys)))
+        tuple_of_dimensions = self.curve
+        f1 = sg.LineString(np.column_stack(tuple_of_dimensions))
+        tuple_of_dimensions = other_curve.curve
+        f2 = sg.LineString(np.column_stack(tuple_of_dimensions))
         inter = f1.intersection(f2)
         return not inter.geom_type == 'LineString'
 
@@ -376,27 +376,6 @@ class BezierCurve3D(BezierCurve2D):
         zs = [*self._bezier_points[2, :]]
         zs.sort()
         self.box.append((zs[0], zs[-1]))
-
-    def curve_collision_check(self, other_curve) -> bool:
-        """
-        Method checking curve collision with given curve.
-
-        Parameters
-        ----------
-        other_curve: BezierCurve3D
-            curve to check
-
-        Returns
-        -------
-        bool:
-            true if curves collide otherwise false
-        """
-        xs, ys, zs = self.curve
-        f1 = sg.LineString(np.column_stack((xs, ys, zs)))
-        xs, ys, zs = other_curve.curve
-        f2 = sg.LineString(np.column_stack((xs, ys, zs)))
-        inter = f1.intersection(f2)
-        return not inter.geom_type == 'LineString'
 
     def plot(self) -> None:
         """
