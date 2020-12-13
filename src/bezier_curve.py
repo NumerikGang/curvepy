@@ -7,6 +7,7 @@ from typing import Tuple, Callable, Union
 
 from src.utilities import csv_read
 
+
 class Tholder:
     """
     Class holds Array with equidistant ts in [0,1] of length n
@@ -204,7 +205,7 @@ class BezierCurve2D:
         """
         ts = Tholder(self._cnt_ts)
         threads = []
-        self._curve = [] # TODO: Since we regenerate them, right?
+        self._curve = []  # TODO: Since we regenerate them, right?
 
         for _ in range(cnt_threads):
             threads.append(CasteljauThread(ts, self._bezier_points))
@@ -316,8 +317,7 @@ class BezierCurve2D:
         """
         Method plotting the curve by adding it to the current pyplot figure
         """
-        xs, ys = self.curve
-        plt.plot(xs, ys, 'o')
+        plt.plot(*self.curve, 'o')
 
     def show_funcs(self, list_of_curves: list = None) -> None:
         """
@@ -381,9 +381,8 @@ class BezierCurve3D(BezierCurve2D):
         """
         Method plotting the curve by adding it to the current pyplot figure
         """
-        xs, ys, zs = self.curve
         ax = plt.axes(projection='3d')
-        ax.scatter3D(xs, ys, zs)
+        ax.scatter3D(*self.curve)
         plt.show()
 
 
