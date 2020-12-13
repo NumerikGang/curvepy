@@ -216,7 +216,7 @@ class BezierCurve2D:
 
     def intersect(self, t1: tuple, t2: tuple) -> bool:
         """
-        Method checking intersection of two given tuples
+        Method checking intersection of two given tuples TODO find more describing phrasing together
 
         Parameters
         ----------
@@ -310,7 +310,7 @@ class BezierCurve2D:
 
     def plot(self) -> None:
         """
-        Method plotting the curve
+        Method plotting the curve by adding it to the current pyplot figure
         """
         xs, ys = self.get_curve()
         plt.plot(xs, ys, 'o')
@@ -395,7 +395,7 @@ class BezierCurve3D(BezierCurve2D):
 
     def plot(self) -> None:
         """
-        Method plotting the curve
+        Method plotting the curve by adding it to the current pyplot figure
         """
         xs, ys, zs = self.get_curve()
         ax = plt.axes(projection='3d')
