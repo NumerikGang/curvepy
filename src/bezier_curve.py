@@ -414,7 +414,7 @@ class BezierCurveThreaded(AbstractBezierCurve):
         """
         return self.de_casteljau_threading
 
-    def de_casteljau_threading(self, ts, cnt_threads: int = 4) -> None:
+    def de_casteljau_threading(self, ts: np.ndarray = None, cnt_threads: int = 4) -> None:
         """
         Method implementing the threading for the De Casteljau algorithm
 
@@ -422,6 +422,10 @@ class BezierCurveThreaded(AbstractBezierCurve):
         ----------
         cnt_threads: int
             number of threads to use
+
+        ts: np.ndarray:
+            array containing all ts used to calculate points
+
         """
         ts = Tholder(ts)
         threads = []
