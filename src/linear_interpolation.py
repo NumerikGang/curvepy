@@ -1,8 +1,5 @@
 import numpy as np
-from scipy.optimize import fsolve
-from sympy import Symbol, solve
 from mpl_toolkits.mplot3d import Axes3D
-import math
 from typing import Tuple, Callable
 import functools
 import matplotlib.pyplot as plt
@@ -129,14 +126,11 @@ class Polygon:
 
         Returns
         -------
-        fs: list
+        np.ndarray:
             the array with all straight_line_functions
         """
-        fs = []
-        for a, b in zip(self._points[0:len(self._points) - 1], self._points[1:len(self._points)]):
-            fs.append(straight_line_function(a, b))
-        fs = np.array(fs)
-        return fs
+        return np.array([straight_line_function(self._points[i],
+                                                self._points[i+1]) for i in range(len(self._points)-1)])
 
     def evaluate(self, index: int, t: float) -> np.ndarray:
         """
@@ -145,14 +139,15 @@ class Polygon:
         Parameters
         ----------
         index: int
+            Which piece of the function to use for given t.
         t: float
+            For the weights (a-t) and t to calculate the point on the polygon piece.
 
         Returns
         -------
         np.ndArray:
-            evaluated point: np.ndArray
+            evaluated point
         """
-        # t, index = math.modf(x)
         if int(index) > len(self._piece_funcs) or int(index) < 0:
             raise Exception("Not defined!")
         if int(index) == len(self._piece_funcs):
@@ -166,17 +161,20 @@ class Polygon:
         Parameters
         ----------
         ts: list
+            b[t_1, t_2, ..., t_n]
 
         Returns
         -------
-        np.ndArray
+        np.ndArray:
+            Calculated value for the blossom.
         """
         if len(ts) > len(self._piece_funcs):
-            raise Exception("The polygon is not long enough!")
+            raise Exception("The polygon is not long enough for all the ts!")
         if len(ts) == 1:
             return self.evaluate(0, ts[0])
         return Polygon(np.array([self._piece_funcs[i](ts[0]) for i in range(len(ts))])).blossom(ts[1:])
 
+    # CURRENTLY OUT OF ORDER!
     def plot_polygon(self, xs: np.ndarray = np.array([0])) -> None:
         """
         Plots the polygon using matplotlib, either in 2D or 3D. Two Plots are given first one with a given number
@@ -241,8 +239,6 @@ def init() -> None:
 
     # test_PG = Polygon(test_points)
     # print(test_PG.evaluate(1.5))
-    # test_PG.plot_polygon(np.linspace(0, 3, 20))
-    # test_PG.plot_polygon(np.array([0.5]))
 
     # Blossom testing
     blossom_testing()
