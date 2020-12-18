@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from scipy.special import comb
 from typing import Tuple, Callable, Union, Any
 
-from src.utilities import csv_read
+from curvepy.utilities import csv_read
 
 
 class Tholder:
