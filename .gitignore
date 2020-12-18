@@ -1,6 +1,8 @@
 # BEGIN OWN GITIGNORE
 # We don't want idea folders to be shared at all.
 .idea/
+# For local testing until a proper test pipeline is created
+src/tests
 # END OWN GITIGNORE
 ###############################
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,python
