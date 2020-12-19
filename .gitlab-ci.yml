@@ -18,6 +18,7 @@ cache:
     - venv/
 
 before_script:
+  - apt update && apt upgrade -y && apt install -y libgl1 # Needed for PyQT5
   - python -m venv venv
   - source venv/bin/activate
   - python -V
