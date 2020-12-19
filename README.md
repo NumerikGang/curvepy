@@ -8,7 +8,7 @@ This project contains all algorithms from the following chapters of "Curves and 
 ---
 
 ## Technical Decisions for now
-- `pdoc` for document generation
+- `pdoc3` for document generation
 - `numpy` docstring formatting
 
 ---

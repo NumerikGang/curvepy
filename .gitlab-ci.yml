@@ -1,22 +1,32 @@
-build-job:
-  stage: build
-  script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
+# TODO: restrict to master only (and merge requests)
 
-test-job1:
-  stage: test
-  script:
-    - echo "This job tests something"
+image: python:latest
 
-test-job2:
-  stage: test
-  script:
-    - echo "This job tests something, but takes more time than test-job1."
-    - echo "After the echo commands complete, it runs the sleep command for 20 seconds"
-    - echo "which simulates a test that runs 20 seconds longer than test-job1"
-    - sleep 20
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
-deploy-prod:
-  stage: deploy
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+#
+# If you want to also cache the installed packages, you have to install
+# them in a virtualenv and cache it as well.
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+before_script:
+  - python -V               # Print out python version for debugging
+  - python -m venv venv
+  - source venv/bin/activate
+  - pip install -r requirements.txt
+  - pip install pdoc3 # pytest pytest-cov pytest-html
+
+pages:
   script:
-    - echo "This job deploys something from the $CI_COMMIT_BRANCH branch."
+    - pdoc3 --html --output-dir public curvepy
+  artifacts:
+    paths:
+      - public
