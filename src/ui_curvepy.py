@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QTabWidget, QVBoxLayout, \
-    QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog
+    QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog, QFrame
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5 import QtGui
 import utilities as u
@@ -168,10 +168,18 @@ class MyTableWidget(QWidget):
 
     def create_tab(self, tab, tab_type: u.CurveTypes):
         tab.layout = QGridLayout()
-        plot = MyPlotCanvas(tab, tab_type.name)  # Add plot to tab
-        option_window = MyOptionWidget(tab, tab_type, plot)  # Add options window to tab
-        tab.layout.addWidget(plot, 1, 1)
-        tab.layout.addWidget(option_window, 1, 2)
+        plot = MyPlotCanvas(tab, tab_type.name)
+        option_window = MyOptionWidget(tab, tab_type, plot)
+        tab.layout.addWidget(plot, 1, 1)  # Add plot to tab
+        tab.layout.addWidget(option_window, 1, 3)  # Add options window to tab
+
+        # Create vertical line to separate plot and options
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine | QFrame.Sunken)
+        line.setLineWidth(1)
+        line.setMidLineWidth(3)
+        tab.layout.addWidget(line, 1, 2)
+        
         tab.setLayout(tab.layout)
 
     @pyqtSlot()
