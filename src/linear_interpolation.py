@@ -99,6 +99,32 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     return 0
 
 
+def bary_plane_point(bary_coords: np.ndarray, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
+    """
+    Given the barycentric coordinates and three points this method will calculate a new point as a barycentric
+    combination of a, b, c.
+
+    Parameters
+    ----------
+    bary_coords: np.ndarray
+        The barycentric coordinates corresponding to a, b, c. Have to sum up to 1.
+    a: np.ndarray
+        First point of the triangle.
+    b: np.ndarray
+        Second point of the triangle.
+    c: np.ndarray
+        Third point of the triangle.
+
+    Returns
+    -------
+    np.ndarray:
+        Barycentric combination of a, b, c with given coordinates.
+    """
+    if sum(bary_coords) != 1:
+        raise Exception("The barycentric coordinates don't sum up to 1!")
+    return np.array((bary_coords[0]*a + bary_coords[1]*b + bary_coords[2]*c))
+
+
 # split in 2d and 3d Polygon similar to 2d and 3d bezier?
 class Polygon:
     """
@@ -130,7 +156,7 @@ class Polygon:
             the array with all straight_line_functions
         """
         return np.array([straight_line_function(self._points[i],
-                                                self._points[i+1]) for i in range(len(self._points)-1)])
+                                                self._points[i + 1]) for i in range(len(self._points) - 1)])
 
     def evaluate(self, index: int, t: float) -> np.ndarray:
         """
@@ -230,6 +256,8 @@ def blossom_testing() -> None:
 
 
 def init() -> None:
+    coords = np.array([1/3, 1/3, 1/3])
+    a, b, c = np.array([0, 0, 0]), np.array([1, 1, 1]), np.array([2, 0, 0])
     # straight_line_point_test()
     # ratio_test()
     # test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
@@ -242,6 +270,9 @@ def init() -> None:
 
     # Blossom testing
     blossom_testing()
+
+    # barycentric coords point test
+    print(bary_plane_point(coords, a, b, c))
 
 
 if __name__ == "__main__":
