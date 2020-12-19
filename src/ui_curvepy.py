@@ -31,33 +31,49 @@ class MyMainApp(QMainWindow):
 
 
 class MyPlotCanvas(FigureCanvas):
-    def __init__(self, parent):
+    def __init__(self, parent, title: str = ""):
         fig, self.ax = plt.subplots(figsize=(5, 4))
         super().__init__(fig)
         self.setParent(parent)
+        self.title = title
 
-        # Mathplotlib code
+        # Make dummy plot to show something
         t = np.arange(0.0, 2.0, 0.01)
         s = 1 + np.sin(2 * np.pi * t)
 
         self.ax.plot(t, s)
 
-        self.ax.set(xlabel='time (s)', ylabel='voltage (mV)',
-                    title='About as simple as it gets, folks')
+        self.ax.set(xlabel='x', ylabel='y',
+                    title=self.title)
         self.ax.grid()
+
+    @property
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, value: str):
+        self._title = value
+
+    def plot_calculated_curve(self, data):  # used to display curved calculated by corresponding algorithm
+        pass
 
 
 class MyOptionWidget(QWidget):
-    def __init__(self, parent,  curve_type: u.CurveTypes):
+    def __init__(self, parent,  curve_type: u.CurveTypes, plot_canvas):
         super(QWidget, self).__init__(parent)
+
+        self.plot_canvas = plot_canvas
 
         self.names = ['BezierCurve', 'BezierCurveThreaded', 'BezierCurveBlossoms']
 
         self.sld_points_cnt = QSlider(Qt.Horizontal)
 
         self.btn_file_select = QPushButton('select file')
+        self.btn_file_select.setToolTip('Select file containing points which can be used to calculate curve')
         self.btn_file_select.clicked.connect(self.on_click_file_select)
         self.btn_calculate_curve = QPushButton('Calculate  ' + self.names[curve_type.value])
+        self.btn_calculate_curve.setToolTip('Initiate curve calculation using the algorithm')
         self.btn_calculate_curve.clicked.connect(self.on_click_calculate_curve)
 
         self.lbl_selected_file = QLabel('No file selected')
@@ -84,19 +100,23 @@ class MyOptionWidget(QWidget):
         slider.setTickInterval(100)  # rug interval
 
         # Create Labels
-        label1 = QLabel('Selected Number')
-        label1.setAlignment(Qt.AlignCenter)
+        label1 = QLabel('Selected Number:')
         label2 = QLabel()
-        label2.setAlignment(Qt.AlignCenter)
         label2.setNum(100)  # set initial number to be displayed
 
         slider.valueChanged.connect(label2.setNum)  # dynamically change selected Number in Label
 
-        # Add labels and slider to layout
+        # Create Parent Layout
         layout = QVBoxLayout()
         layout.addWidget(slider)
-        layout.addWidget(label1)
-        layout.addWidget(label2)
+
+        # Create Layout for labels
+        lbl_layout = QGridLayout()
+        lbl_layout.addWidget(label1, 2, 1)
+        lbl_layout.addWidget(label2, 2, 2)
+
+        # add label layout to master layout
+        layout.addLayout(lbl_layout)
 
         group_box.setLayout(layout)
 
@@ -144,10 +164,10 @@ class MyTableWidget(QWidget):
 
     def create_tab(self, tab, tab_type: u.CurveTypes):
         tab.layout = QGridLayout()
-        figure = MyPlotCanvas(tab)  # Add plot to tab
-        figure2 = MyOptionWidget(tab, tab_type)  # Add options window to tab
-        tab.layout.addWidget(figure, 1, 1)
-        tab.layout.addWidget(figure2, 1, 2)
+        plot = MyPlotCanvas(tab, tab_type.name)  # Add plot to tab
+        option_window = MyOptionWidget(tab, tab_type, plot)  # Add options window to tab
+        tab.layout.addWidget(plot, 1, 1)
+        tab.layout.addWidget(option_window, 1, 2)
         tab.setLayout(tab.layout)
 
     @pyqtSlot()
