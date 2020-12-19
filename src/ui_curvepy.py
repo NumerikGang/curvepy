@@ -3,12 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QTabWidget, QVBoxLayout, \
-    QGridLayout, QSlider, QGroupBox, QLabel
-from PyQt5.QtCore import Qt
-from PyQt5.QtCore import pyqtSlot
+    QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog
+from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5 import QtGui
+import utilities as u
 
 
-class App(QMainWindow):
+class MyMainApp(QMainWindow):
 
     def __init__(self, height: int = 600, width: int = 800):
         super().__init__()
@@ -47,16 +48,34 @@ class MyPlotCanvas(FigureCanvas):
 
 
 class MyOptionWidget(QWidget):
-    def __init__(self, parent, name: str):
+    def __init__(self, parent,  curve_type: u.CurveTypes):
         super(QWidget, self).__init__(parent)
-        self.points_cnt_slider = QSlider(Qt.Horizontal)
-        self.layout = QVBoxLayout(self)
-        self.layout.addWidget(QLabel(name))
-        self.layout.addWidget(self.create_group(self.points_cnt_slider))
-        self.layout.addWidget(QPushButton('Calculate Curve'))
 
-    def create_group(self, slider: QSlider):
-        group_box = QGroupBox('Number of Points')
+        self.names = ['BezierCurve', 'BezierCurveThreaded', 'BezierCurveBlossoms']
+
+        self.sld_points_cnt = QSlider(Qt.Horizontal)
+
+        self.btn_file_select = QPushButton('select file')
+        self.btn_file_select.clicked.connect(self.on_click_file_select)
+        self.btn_calculate_curve = QPushButton('Calculate  ' + self.names[curve_type.value])
+        self.btn_calculate_curve.clicked.connect(self.on_click_calculate_curve)
+
+        self.lbl_selected_file = QLabel('No file selected')
+        self.lbl_title = QLabel('Options:  ' + self.names[curve_type.value])
+        self.lbl_title.setFont(QtGui.QFont("Arial", 11, QtGui.QFont.Bold))
+
+        self.filename = None
+
+        # creating Layout for options
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.lbl_title)
+        self.layout.addWidget(self.btn_file_select)
+        self.layout.addWidget(self.lbl_selected_file)
+        self.layout.addWidget(self.create_group(self.sld_points_cnt, 'Number of Points'))
+        self.layout.addWidget(self.btn_calculate_curve)
+
+    def create_group(self, slider: QSlider, name: str):
+        group_box = QGroupBox(name)
 
         # Create Slider with max/min cnt for Points
         slider.setMinimum(100)
@@ -83,6 +102,20 @@ class MyOptionWidget(QWidget):
 
         return group_box
 
+    # Events for Buttons
+    @pyqtSlot()
+    def on_click_file_select(self):
+        # select file, so we can use it to calculate curves
+        self.filename, _ = QFileDialog.getOpenFileName(self, "Choose File containing data")
+        if len(self.filename) == 0:
+            self.lbl_selected_file.setText("No file selected")
+        else:
+            self.lbl_selected_file.setText(self.filename)
+
+    @pyqtSlot()
+    def on_click_calculate_curve(self):
+        print("Does Something")
+
 
 class MyTableWidget(QWidget):
 
@@ -101,17 +134,18 @@ class MyTableWidget(QWidget):
             self.tabs.addTab(tab, title)
 
         # Create Tabs
-        for i in range(1, self.tabs_cnt):
-            self.create_tab(self.tab_list[i],)  # Later change tab name for more specific naming
+        for i, t in zip(range(1, self.tabs_cnt), u.CurveTypes):
+            print(t)
+            self.create_tab(self.tab_list[i], t)
 
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
-    def create_tab(self, tab, tab_name: str = 'Options for curve'):
+    def create_tab(self, tab, tab_type: u.CurveTypes):
         tab.layout = QGridLayout()
         figure = MyPlotCanvas(tab)  # Add plot to tab
-        figure2 = MyOptionWidget(tab, tab_name)  # Add options window to tab
+        figure2 = MyOptionWidget(tab, tab_type)  # Add options window to tab
         tab.layout.addWidget(figure, 1, 1)
         tab.layout.addWidget(figure2, 1, 2)
         tab.setLayout(tab.layout)
@@ -125,6 +159,6 @@ class MyTableWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = App()
+    ex = MyMainApp()
     sys.exit(app.exec_())
 
