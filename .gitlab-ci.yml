@@ -24,7 +24,7 @@ before_script:
 
 pages:
   script:
-    - pdoc3 --html --output-dir public curvepy && mv public/curvepy/* . && rm -d public/curvepy
+    - pdoc3 --html --output-dir public curvepy && mv public/curvepy/* public/ && rm -d public/curvepy
   artifacts:
     paths:
       - public
