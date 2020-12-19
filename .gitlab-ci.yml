@@ -19,12 +19,11 @@ cache:
 
 before_script:
   - apt update && apt upgrade -y && apt install -y libgl1 # Needed for PyQT5
-  - python -m venv venv
-  - source venv/bin/activate
+  - python -m venv venv && source venv/bin/activate
   - python -V
-  - python -m pip install --upgrade pip
-  - python -m pip install -r requirements.txt
-  - python -m pip install pdoc3 # pytest pytest-cov pytest-html
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
+  - pip install pdoc3 # pytest pytest-cov pytest-html
 
 pages:
   script:
