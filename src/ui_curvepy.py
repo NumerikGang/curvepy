@@ -65,9 +65,11 @@ class MyOptionWidget(QWidget):
 
         self.plot_canvas = plot_canvas
 
+        self.type = curve_type
         self.names = ['BezierCurve', 'BezierCurveThreaded', 'BezierCurveBlossoms']
 
         self.sld_points_cnt = QSlider(Qt.Horizontal)
+        self.sld_thread_cnt = QSlider(Qt.Horizontal)
 
         self.btn_file_select = QPushButton('select file')
         self.btn_file_select.setToolTip('Select file containing points which can be used to calculate curve')
@@ -87,22 +89,24 @@ class MyOptionWidget(QWidget):
         self.layout.addWidget(self.lbl_title)
         self.layout.addWidget(self.btn_file_select)
         self.layout.addWidget(self.lbl_selected_file)
-        self.layout.addWidget(self.create_group(self.sld_points_cnt, 'Number of Points'))
+        self.layout.addWidget(self.create_group(self.sld_points_cnt, 'Number of Points', 100, 1000, 100))
+        if self.type == u.CurveTypes.bezier_curve_threaded:
+            self.layout.addWidget(self.create_group(self.sld_thread_cnt, 'Number of Threads', 1, 4, 1))
         self.layout.addWidget(self.btn_calculate_curve)
 
-    def create_group(self, slider: QSlider, name: str):
+    def create_group(self, slider: QSlider, name: str, minimum: int, maximum: int, tick_interval: int):
         group_box = QGroupBox(name)
 
         # Create Slider with max/min cnt for Points
-        slider.setMinimum(100)
-        slider.setMaximum(1000)
+        slider.setMinimum(minimum)
+        slider.setMaximum(maximum)
         slider.setTickPosition(QSlider.TicksBelow)  # Show rugs at bottom of slider
-        slider.setTickInterval(100)  # rug interval
+        slider.setTickInterval(tick_interval)  # rug interval
 
         # Create Labels
         label1 = QLabel('Selected Number:')
         label2 = QLabel()
-        label2.setNum(100)  # set initial number to be displayed
+        label2.setNum(minimum)  # set initial number to be displayed
 
         slider.valueChanged.connect(label2.setNum)  # dynamically change selected Number in Label
 
