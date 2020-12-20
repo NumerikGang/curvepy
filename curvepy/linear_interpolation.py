@@ -141,7 +141,7 @@ def triangle_area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
     float:
         Area of the triangle.
     """
-    return 1/2 * np.linalg.det(np.array([a,b,c]))
+    return 1 / 2 * np.linalg.det(np.array([a, b, c]))
 
 
 def get_bary_coords(p: np.ndarray, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
