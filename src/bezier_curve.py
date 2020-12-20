@@ -448,6 +448,7 @@ class BezierCurveThreaded(AbstractBezierCurve):
 def init() -> None:
     m = csv_read('test.csv')  # reads csv file with bezier points
     b1 = BezierCurve(m)
+    print(b1.func(0.5))
     m = csv_read('test2.csv')  # reads csv file with bezier points
     b2 = BezierCurve(m)
     b2.show_funcs([b1])
