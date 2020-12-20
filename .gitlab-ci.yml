@@ -27,10 +27,18 @@ before_script:
   - python -m venv venv && source venv/bin/activate && python --version
   - pip install --upgrade pip && pip install -r requirements.txt && pip install pdoc3 pytest hypothesis
 
-pytest:
+unit-tests:
   stage: test
   script:
-    python -m pytest -s -v --hypothesis-show-statistics
+    python -m pytest -s -v pytest -v -s curvepy/tests/unit_tests
+  only:
+    - master
+    - 01-pipeline-creation # TODO: remove me once the merge is done
+
+property-based-tests:
+  stage: test
+  script:
+    python -m pytest -s -v --hypothesis-show-statistics curvepy/tests/property_based_tests
   only:
     - master
     - 01-pipeline-creation # TODO: remove me once the merge is done
