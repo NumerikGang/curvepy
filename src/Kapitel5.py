@@ -5,7 +5,7 @@ from src.utilities import csv_read
 
 def horn_bez(m: np.ndarray, t: int = 0.5) -> np.ndarray:
     """
-    Method using horner like schema to calculate point on curve with given t
+    Method using horner like scheme to calculate point on curve with given t
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ def horn_bez(m: np.ndarray, t: int = 0.5) -> np.ndarray:
 
 def bezier_to_power(m: np.ndarray) -> np.ndarray:
     """
-    Method calculating monomial representation of given bezier form
+    Method calculating monomial representation of given bezier form using 5.27
 
     Parameters
     ----------
@@ -74,9 +74,22 @@ def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
     return np.array(diff).T
 
 
+def horner(m: np.ndarray, t: int = 0.5) -> np.ndarray:
+    n = m.shape[1]-1  # need degree of curve (n points means degree = n-1)
+    res = m[:, -1]  # last index has highest exponent
+
+    for i in range(n, 0, -1):
+        res = t*res + m[:, i-1]
+
+    return res
+
+
 def init() -> None:
     test = csv_read("test.csv")
+    print(test)
+    print(horn_bez(test))
     print(differences(test))
+    print(horner(test, 2))
 
 
 if __name__ == "__main__":
