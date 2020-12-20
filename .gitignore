@@ -1,6 +1,6 @@
 # BEGIN OWN GITIGNORE
-# We don't want idea folders to be shared at all.
 .idea/
+.pytest_cache/
 # END OWN GITIGNORE
 ###############################
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,python

@@ -5,7 +5,7 @@ image: python:latest
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -17,14 +17,31 @@ cache:
     - .cache/pip
     - venv/
 
+stages:
+  - lint
+  - test
+  - deploy
+
 before_script:
   - apt update && apt upgrade -y && apt install -y libgl1 # Needed for PyQT5
   - python -m venv venv && source venv/bin/activate && python --version
-  - pip install --upgrade pip && pip install -r requirements.txt && pip install pdoc3 # pytest pytest-cov pytest-html
+  - pip install --upgrade pip && pip install -r requirements.txt && pip install pdoc3 pytest # hypothesis
+
+pytest:
+  stage: test
+  script:
+    python -m pytest
+  only:
+    - master
+    - 01-pipeline-creation # TODO: remove me once the merge is done
 
 pages:
+  stage: deploy
   script:
     - pdoc3 --html --output-dir public curvepy && mv public/curvepy/* public/ && rm -d public/curvepy
   artifacts:
     paths:
       - public
+  only:
+    - master
+    - 01-pipeline-creation # TODO: remove me once the merge is done
