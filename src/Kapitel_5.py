@@ -29,5 +29,11 @@ def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
     return np.array(diff).T
 
 
-test = csv_read("test.csv")
-print(differences(test))
+def init() -> None:
+    test = csv_read("test.csv")
+    print(differences(test))
+
+
+if __name__ == "__main__":
+    init()
+
