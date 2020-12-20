@@ -30,7 +30,7 @@ before_script:
 pytest:
   stage: test
   script:
-    python -m pytest
+    python -m pytest -s -v
   only:
     - master
     - 01-pipeline-creation # TODO: remove me once the merge is done
