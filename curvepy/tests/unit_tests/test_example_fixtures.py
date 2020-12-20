@@ -70,7 +70,8 @@ def test_use_teardown_fixture(teardown_fixture):
     ----------
     teardown_fixture the fixture named above
     """
-    assert teardown_fixture == 2+3
+    assert teardown_fixture == 2 + 3
+
 
 @pytest.fixture(scope="session")
 def fixture_which_will_be_only_called_once():
@@ -95,6 +96,7 @@ def fixture_which_will_be_only_called_once():
     """
     print('fixture_which_will_be_only_called_once: YOPO (you only print once)')
     return None
+
 
 @pytest.mark.parametrize('x', [*range(10)])
 def test_for_scope_fixture(x, fixture_which_will_be_only_called_once):

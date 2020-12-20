@@ -18,14 +18,28 @@ cache:
     - venv/
 
 stages:
-  - lint
+  - static-analysis
   - test
   - deploy
 
 before_script:
   - apt update && apt upgrade -y && apt install -y libgl1 # Needed for PyQT5
   - python -m venv venv && source venv/bin/activate && python --version
-  - pip install --upgrade pip && pip install -r requirements.txt && pip install pdoc3 pytest hypothesis
+  - pip install --upgrade pip && pip install -r requirements.txt && pip install pdoc3 pytest hypothesis flake8
+
+# We decide to not comply with PEP 8 on the following standards:
+#
+# - Line too long (E501): PEP 8 recommends line lengths to be no longer than 79 characters. I quote:
+#     Limiting the required editor window width makes it possible to have several files open side-by-side,
+#     and works well when using code review tools that present the two versions in adjacent columns.
+#     Since we are all adults with big HD monitors we conform with JetBrains standard of 120 characters.
+flake8:
+  stage: static-analysis
+  script:
+    flake8 --count --statistics --max-line-length=120 curvepy
+  only:
+    - master
+    - 01-pipeline-creation # TODO: remove me once the merge is done
 
 unit-tests:
   stage: test

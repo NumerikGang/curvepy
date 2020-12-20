@@ -8,6 +8,8 @@ simplifying it until it finds a much smaller example that still causes the probl
 for later, so that once it has found a problem with your code it will not forget it in the future.
 
 For further information when testing, run pytest with `--hypothesis-show-statistics`
+
+More examples may follow.
 """
 
 from hypothesis import given
@@ -44,4 +46,3 @@ def test_reversing_twice_gives_same_list(xs):
     ys.reverse()
     ys.reverse()
     assert xs == ys
-
