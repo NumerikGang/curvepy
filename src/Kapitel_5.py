@@ -3,7 +3,7 @@ import scipy.special as scs
 from src.utilities import csv_read
 
 
-def horn_bez(m: np.ndarray, t: int = 0.5) -> float:
+def horn_bez(m: np.ndarray, t: int = 0.5) -> np.ndarray:
     n = m.shape[1] - 1  # need degree of curve (n points means degree = n-1)
     n_above_i, t_fac = 1, 1
     res = m[:, 0] * (1 - t)
@@ -18,12 +18,14 @@ def horn_bez(m: np.ndarray, t: int = 0.5) -> float:
 
 
 def bezier_to_power(m: np.ndarray):
-    pass
+    _, n = m.shape
+    diff = differences(m)
+    return 0
 
 
 def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
     _, n = m.shape
-    diff = [np.sum([scs.binom(r, j) * (-1) ** (r - j) * m[:, i + j] for j in range(0, r+1)], axis=0) for r in range(0, n)]
+    diff = [np.sum([scs.binom(r, j)*(-1)**(r - j)*m[:, i + j] for j in range(0, r+1)], axis=0) for r in range(0, n)]
     return np.array(diff).T
 
 
