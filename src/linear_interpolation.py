@@ -63,9 +63,7 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     bool:
         True if points are collinear else False
     """
-    d1 = b - a
-    d2 = c - a
-    return np.count_nonzero(np.cross(d1, d2)) == 0
+    return np.count_nonzero(np.cross(b - a, c - a)) == 0
 
 
 def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
@@ -122,7 +120,62 @@ def bary_plane_point(bary_coords: np.ndarray, a: np.ndarray, b: np.ndarray, c: n
     """
     if sum(bary_coords) != 1:
         raise Exception("The barycentric coordinates don't sum up to 1!")
-    return np.array((bary_coords[0]*a + bary_coords[1]*b + bary_coords[2]*c))
+    return np.array((bary_coords[0] * a + bary_coords[1] * b + bary_coords[2] * c))
+
+
+def triangle_area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
+    """
+    Calculates the area of a triangle defined by the parameters.
+
+    Parameters
+    ----------
+    a: np.ndarray
+        First point of the triangle.
+    b: np.ndarray
+        Second point of the triangle.
+    c: np.ndarray
+        Third point of the triangle.
+
+    Returns
+    -------
+    float:
+        Area of the triangle.
+    """
+    return 1/2 * np.linalg.det(np.array([a,b,c]))
+
+
+def get_bary_coords(p: np.ndarray, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
+    """
+    Calculates the barycentric coordinates of p with respect to a, b, c.
+
+    Parameters
+    ----------
+    p: np.ndarray
+        Point of which we want the barycentric coordinates.
+    a: np.ndarray
+        First point of the triangle.
+    b: np.ndarray
+        Second point of the triangle.
+    c: np.ndarray
+        Third point of the triangle.
+
+    Returns
+    -------
+    np.ndarray:
+        Barycentric coordinates of p with respect to a, b, c.
+    """
+    # Cramer's Rule for 2d easy
+    # how do i do Cramer's Rule with 3d points???
+    tmp1, tmp2, tmp3, tmp4 = p.copy(), a.copy(), b.copy(), c.copy()
+    for i in range(len(a)):
+        if a[i] != b[i] != c[i] and a[i - 1] != b[i - 1] != c[i - 1]:
+            tmp1[i - 2], tmp2[i - 2], tmp3[i - 2], tmp4[i - 2] = 1, 1, 1, 1
+            break
+    abc_area = triangle_area(tmp2, tmp3, tmp4)
+    if abc_area == 0:
+        raise Exception("The area of the triangle defined by a, b, c has to be greater than 0!")
+    return np.array([triangle_area(tmp1, tmp3, tmp4) / abc_area, triangle_area(tmp2, tmp1, tmp4) / abc_area,
+                     triangle_area(tmp2, tmp3, tmp1) / abc_area])
 
 
 # split in 2d and 3d Polygon similar to 2d and 3d bezier?
@@ -256,7 +309,7 @@ def blossom_testing() -> None:
 
 
 def init() -> None:
-    coords = np.array([1/3, 1/3, 1/3])
+    coords = np.array([1 / 3, 1 / 3, 1 / 3])
     a, b, c = np.array([0, 0, 0]), np.array([1, 1, 1]), np.array([2, 0, 0])
     # straight_line_point_test()
     # ratio_test()
@@ -269,10 +322,12 @@ def init() -> None:
     # print(test_PG.evaluate(1.5))
 
     # Blossom testing
-    blossom_testing()
+    # blossom_testing()
 
-    # barycentric coords point test
-    print(bary_plane_point(coords, a, b, c))
+    # barycentric coords test
+    # print(bary_plane_point(coords, a, b, c))
+    # print(np.linalg.det(np.array([a, b, c])))
+    print(get_bary_coords(bary_plane_point(coords, a, b, c), a, b, c))
 
 
 if __name__ == "__main__":
