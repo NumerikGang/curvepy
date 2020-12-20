@@ -40,7 +40,7 @@ flake8:
     flake8 --version && flake8 --count --statistics --max-line-length=120 --exit-zero curvepy
   only:
     - master
-    - 01-pipeline-creation # TODO: remove me once the merge is done
+    - merge_requests
 
 mypy:
   stage: static-analysis
@@ -48,7 +48,7 @@ mypy:
     mypy --ignore-missing-imports -p curvepy || true # TODO: remove true once the merge is done
   only:
     - master
-    - 01-pipeline-creation # TODO: remove me once the merge is done
+    - merge_requests
 
 unit-tests:
   stage: test
@@ -56,7 +56,7 @@ unit-tests:
     python -m pytest -s -v curvepy/tests/unit_tests
   only:
     - master
-    - 01-pipeline-creation # TODO: remove me once the merge is done
+    - merge_requests
 
 property-based-tests:
   stage: test
@@ -64,7 +64,7 @@ property-based-tests:
     python -m pytest -s -v --hypothesis-show-statistics curvepy/tests/property_based_tests
   only:
     - master
-    - 01-pipeline-creation # TODO: remove me once the merge is done
+    - merge_requests
 
 pages:
   stage: deploy
@@ -75,4 +75,4 @@ pages:
       - public
   only:
     - master
-    - 01-pipeline-creation # TODO: remove me once the merge is done
+    - merge_requests
