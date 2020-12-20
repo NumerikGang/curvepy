@@ -75,6 +75,22 @@ def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
 
 
 def horner(m: np.ndarray, t: int = 0.5) -> np.ndarray:
+    """
+    Method using horner scheme to calculate point with given t
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        array containing coefficients
+
+    t: int:
+        value for which point is calculated
+
+    Returns
+    -------
+    np.ndarray:
+        point calculated with given t
+    """
     n = m.shape[1]-1  # need degree of curve (n points means degree = n-1)
     res = m[:, -1]  # last index has highest exponent
 
