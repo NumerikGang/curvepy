@@ -47,7 +47,7 @@ def straight_line_function(a: np.ndarray, b: np.ndarray) -> Callable:
 
 def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     """
-    Calculates the cross product of d1 and d2 to see if all 3 points are collinear.
+    Calculates the cross product of (b-a) and (c-a) to see if all 3 points are collinear.
 
     Parameters
     ----------
@@ -95,87 +95,6 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
             return np.NINF
         return (col_point[i] - left[i]) / (right[i] - col_point[i])
     return 0
-
-
-def bary_plane_point(bary_coords: np.ndarray, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
-    """
-    Given the barycentric coordinates and three points this method will calculate a new point as a barycentric
-    combination of a, b, c.
-
-    Parameters
-    ----------
-    bary_coords: np.ndarray
-        The barycentric coordinates corresponding to a, b, c. Have to sum up to 1.
-    a: np.ndarray
-        First point of the triangle.
-    b: np.ndarray
-        Second point of the triangle.
-    c: np.ndarray
-        Third point of the triangle.
-
-    Returns
-    -------
-    np.ndarray:
-        Barycentric combination of a, b, c with given coordinates.
-    """
-    if sum(bary_coords) != 1:
-        raise Exception("The barycentric coordinates don't sum up to 1!")
-    return np.array((bary_coords[0] * a + bary_coords[1] * b + bary_coords[2] * c))
-
-
-def triangle_area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
-    """
-    Calculates the area of a triangle defined by the parameters.
-
-    Parameters
-    ----------
-    a: np.ndarray
-        First point of the triangle.
-    b: np.ndarray
-        Second point of the triangle.
-    c: np.ndarray
-        Third point of the triangle.
-
-    Returns
-    -------
-    float:
-        Area of the triangle.
-    """
-    return 1 / 2 * np.linalg.det(np.array([a, b, c]))
-
-
-def get_bary_coords(p: np.ndarray, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
-    """
-    Calculates the barycentric coordinates of p with respect to a, b, c.
-
-    Parameters
-    ----------
-    p: np.ndarray
-        Point of which we want the barycentric coordinates.
-    a: np.ndarray
-        First point of the triangle.
-    b: np.ndarray
-        Second point of the triangle.
-    c: np.ndarray
-        Third point of the triangle.
-
-    Returns
-    -------
-    np.ndarray:
-        Barycentric coordinates of p with respect to a, b, c.
-    """
-    # Cramer's Rule for 2d easy
-    # how do i do Cramer's Rule with 3d points???
-    tmp1, tmp2, tmp3, tmp4 = p.copy(), a.copy(), b.copy(), c.copy()
-    for i in range(len(a)):
-        if a[i] != b[i] != c[i] and a[i - 1] != b[i - 1] != c[i - 1]:
-            tmp1[i - 2], tmp2[i - 2], tmp3[i - 2], tmp4[i - 2] = 1, 1, 1, 1
-            break
-    abc_area = triangle_area(tmp2, tmp3, tmp4)
-    if abc_area == 0:
-        raise Exception("The area of the triangle defined by a, b, c has to be greater than 0!")
-    return np.array([triangle_area(tmp1, tmp3, tmp4) / abc_area, triangle_area(tmp2, tmp1, tmp4) / abc_area,
-                     triangle_area(tmp2, tmp3, tmp1) / abc_area])
 
 
 # split in 2d and 3d Polygon similar to 2d and 3d bezier?
@@ -253,34 +172,138 @@ class Polygon:
             return self.evaluate(0, ts[0])
         return Polygon(np.array([self._piece_funcs[i](ts[0]) for i in range(len(ts))])).blossom(ts[1:])
 
-    # CURRENTLY OUT OF ORDER!
-    def plot_polygon(self, xs: np.ndarray = np.array([0])) -> None:
+    # # CURRENTLY OUT OF ORDER!
+    # def plot_polygon(self, xs: np.ndarray = np.array([0])) -> None:
+    #     """
+    #     Plots the polygon using matplotlib, either in 2D or 3D. Two Plots are given first one with a given number
+    #     of points which will be highlighted on the function, and second is the function as a whole.
+    #
+    #     Parameters
+    #     ----------
+    #     xs: np.ndArray
+    #         the points that may be plotted
+    #     """
+    #     ep = np.array([self.evaluate(x) for x in xs])
+    #     np.append(ep, self._points)
+    #     ravel_points = self._points.ravel()  # the corner points to plot the function
+    #     if self._dim == 2:
+    #         tmp = ep.ravel()
+    #         xs, ys = tmp[0::2], tmp[1::2]
+    #         func_x, func_y = ravel_points[0::2], ravel_points[1::2]
+    #         plt.plot(func_x, func_y)
+    #         plt.plot(xs, ys, 'o', markersize=3)
+    #     if self._dim == 3:
+    #         tmp = ep.ravel()
+    #         xs, ys, zs = tmp[0::3], tmp[1::3], tmp[2::3]
+    #         func_x, func_y, func_z = ravel_points[0::3], ravel_points[1::3], ravel_points[2::3]
+    #         ax = plt.axes(projection='3d')
+    #         ax.plot(func_x, func_y, func_z)
+    #         ax.plot(xs, ys, zs, 'o', markersize=3)
+    #     plt.show()
+
+
+class Triangle(Polygon):
+
+    def __init__(self, points: np.ndarray) -> None:
+        points_copy = points.copy()
+        points_copy = np.append(points_copy, [points_copy[0]], axis=0)
+        super().__init__(points_copy)
+
+    def bary_plane_point(self, bary_coords: np.ndarray) -> np.ndarray:
         """
-        Plots the polygon using matplotlib, either in 2D or 3D. Two Plots are given first one with a given number
-        of points which will be highlighted on the function, and second is the function as a whole.
+        Given the barycentric coordinates and three points this method will calculate a new point as a barycentric
+        combination of the triangle points.
 
         Parameters
         ----------
-        xs: np.ndArray
-            the points that may be plotted
+        bary_coords: np.ndarray
+            The barycentric coordinates corresponding to a, b, c. Have to sum up to 1.
+
+        Returns
+        -------
+        np.ndarray:
+            Barycentric combination of a, b, c with given coordinates.
         """
-        ep = np.array([self.evaluate(x) for x in xs])
-        np.append(ep, self._points)
-        ravel_points = self._points.ravel()  # the corner points to plot the function
-        if self._dim == 2:
-            tmp = ep.ravel()
-            xs, ys = tmp[0::2], tmp[1::2]
-            func_x, func_y = ravel_points[0::2], ravel_points[1::2]
-            plt.plot(func_x, func_y)
-            plt.plot(xs, ys, 'o', markersize=3)
-        if self._dim == 3:
-            tmp = ep.ravel()
-            xs, ys, zs = tmp[0::3], tmp[1::3], tmp[2::3]
-            func_x, func_y, func_z = ravel_points[0::3], ravel_points[1::3], ravel_points[2::3]
-            ax = plt.axes(projection='3d')
-            ax.plot(func_x, func_y, func_z)
-            ax.plot(xs, ys, zs, 'o', markersize=3)
-        plt.show()
+        if sum(bary_coords) != 1:
+            raise Exception("The barycentric coordinates don't sum up to 1!")
+        return np.array((bary_coords[0] * self._points[0] + bary_coords[1] * self._points[1]
+                         + bary_coords[2] * self._points[2]))
+
+    @staticmethod
+    def area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
+        """
+        Calculates the area of a triangle defined by the parameters.
+
+        Parameters
+        ----------
+        a: np.ndarray
+            First point of the triangle.
+        b: np.ndarray
+            Second point of the triangle.
+        c: np.ndarray
+            Third point of the triangle.
+
+        Returns
+        -------
+        float:
+            Area of the triangle.
+        """
+        return 1 / 2 * np.linalg.det(np.array([a, b, c]))
+
+    def map_to_plane(self, p: np.ndarray):
+        """
+        This method projects p and the points of the triangle on a plane, so that cramer's rule can easily be applied
+        to them in order to calculate the area of every 3 out of the 4 points.
+
+        Parameters
+        ----------
+        p: np.ndarray
+            Additional point that should be on the same plane as the triangle.
+
+        Returns
+        -------
+        np.ndarray:
+            Copys of p and the triangle points now mapped on to a plane.
+        """
+        p_copy, a, b, c = p.copy(), self._points[0].copy(), self._points[1].copy(), self._points[2].copy()
+        print(self._points[0][-1] != self._points[2][-1])
+        # how to map the points on a plane without collapsing points on another?
+        for i in range(len(self._points)):
+            if self._points[0][i] != self._points[1][i] != self._points[2][i] \
+                    and self._points[0][i - 1] != self._points[1][i - 1] != self._points[2][i - 1]:
+                p_copy[i - 2], a[i - 2], b[i - 2], c[i - 2] = 1, 1, 1, 1
+                break
+        return p_copy, a, b, c
+
+    def get_bary_coords(self, p: np.ndarray) -> np.ndarray:
+        """
+        Calculates the barycentric coordinates of p with respect to the points defining the triangle.
+
+        Parameters
+        ----------
+        p: np.ndarray
+            Point of which we want the barycentric coordinates.
+
+        Returns
+        -------
+        np.ndarray:
+            Barycentric coordinates of p with respect to a, b, c.
+        """
+        if np.shape(p)[0] != self._dim:
+            raise Exception("p has to have the same dimension as the triangle points!")
+        elif np.shape(p)[0] == 3:
+            p_copy, a, b, c = self.map_to_plane(p)
+        elif np.shape(p)[0] == 2:
+            p_copy, a, b, c = p.copy(), self._points[0].copy(), self._points[1].copy(), self._points[2].copy()
+        else:
+            raise Exception("Dimension hast to be 2 or 3!")
+
+        abc_area = self.area(a, b, c)
+        if abc_area == 0:
+            raise Exception("The area of the triangle defined by a, b, c has to be greater than 0!")
+
+        return np.array([self.area(p_copy, b, c) / abc_area, self.area(a, p_copy, c) / abc_area,
+                         self.area(a, b, p_copy) / abc_area])
 
 
 def ratio_test() -> None:
@@ -324,10 +347,13 @@ def init() -> None:
     # Blossom testing
     # blossom_testing()
 
+    # triangle test
+    t = Triangle(np.array([a, b, c]))
+
     # barycentric coords test
-    # print(bary_plane_point(coords, a, b, c))
+    print(t.bary_plane_point(coords))
     # print(np.linalg.det(np.array([a, b, c])))
-    print(get_bary_coords(bary_plane_point(coords, a, b, c), a, b, c))
+    print(t.get_bary_coords(t.bary_plane_point(coords)))
 
 
 if __name__ == "__main__":
