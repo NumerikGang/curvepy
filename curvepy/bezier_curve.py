@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from scipy.special import comb
 from typing import Tuple, Callable, Union, Any
 
-from src.utilities import csv_read
+from curvepy.utilities import csv_read
 
 
 class Tholder:
@@ -214,9 +214,9 @@ class AbstractBezierCurve(ABC):
             true if intersect otherwise false
         """
         return t2[0] <= t1[0] <= t2[1] \
-               or t2[0] <= t1[1] <= t2[1] \
-               or t1[0] <= t2[0] <= t1[1] \
-               or t1[0] <= t2[1] <= t1[1]
+            or t2[0] <= t1[1] <= t2[1] \
+            or t1[0] <= t2[0] <= t1[1] \
+            or t1[0] <= t2[1] <= t1[1]
 
     def min_max_box(self) -> None:
         """
