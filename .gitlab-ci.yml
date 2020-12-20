@@ -1,0 +1,77 @@
+# TODO: restrict to master only (and merge requests)
+
+image: python:latest
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+#
+# If you want to also cache the installed packages, you have to install
+# them in a virtualenv and cache it as well.
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+stages:
+  - static-analysis
+  - test
+  - deploy
+
+before_script:
+  - apt update && apt upgrade -y && apt install -y libgl1 # Needed for PyQT5
+  - python -m venv venv && source venv/bin/activate && python --version
+  - pip install --upgrade pip && pip install -r requirements.txt
+  - pip install pdoc3 pytest hypothesis flake8 flake8-bugbear pep8-naming flake8-builtins flake8-comprehensions mypy
+
+# We decide to not comply with PEP 8 on the following standards:
+#
+# - Line too long (E501): PEP 8 recommends line lengths to be no longer than 79 characters. I quote:
+#     Limiting the required editor window width makes it possible to have several files open side-by-side,
+#     and works well when using code review tools that present the two versions in adjacent columns.
+#     Since we are all adults with big HD monitors we conform with JetBrains standard of 120 characters.
+flake8:
+  stage: static-analysis
+  script: # TODO: remove exit-zero once merge is done
+    flake8 --version && flake8 --count --statistics --max-line-length=120 --exit-zero curvepy
+  only:
+    - master
+    - merge_requests
+
+mypy:
+  stage: static-analysis
+  script:
+    mypy --ignore-missing-imports -p curvepy || true # TODO: remove true once the merge is done
+  only:
+    - master
+    - merge_requests
+
+unit-tests:
+  stage: test
+  script:
+    python -m pytest -s -v curvepy/tests/unit_tests
+  only:
+    - master
+    - merge_requests
+
+property-based-tests:
+  stage: test
+  script:
+    python -m pytest -s -v --hypothesis-show-statistics curvepy/tests/property_based_tests
+  only:
+    - master
+    - merge_requests
+
+pages:
+  stage: deploy
+  script:
+    - pdoc3 --html --output-dir public curvepy && mv public/curvepy/* public/ && rm -d public/curvepy
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

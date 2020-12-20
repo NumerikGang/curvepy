@@ -7,8 +7,12 @@ This project contains all algorithms from the following chapters of "Curves and 
 
 ---
 
+Full Documentation is found [here](https://numerikgang.pages.gwdg.de/curvepy/).
+
+---
+
 ## Technical Decisions for now
-- `pdoc` for document generation
+- `pdoc3` for document generation
 - `numpy` docstring formatting
 
 ---
