@@ -1,9 +1,10 @@
 import numpy as np
 import scipy.special as scs
 from src.utilities import csv_read
+from typing import Tuple
 
 
-def horn_bez(m: np.ndarray, t: int = 0.5) -> np.ndarray:
+def horn_bez(m: np.ndarray, t: float = 0.5) -> np.ndarray:
     """
     Method using horner like scheme to calculate point on curve with given t
 
@@ -12,7 +13,7 @@ def horn_bez(m: np.ndarray, t: int = 0.5) -> np.ndarray:
     m: np.ndarray:
         array containing the Bezier Points
 
-    t: int:
+    t: float:
         value for which point is calculated
 
     Returns
@@ -74,7 +75,7 @@ def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
     return np.array(diff).T
 
 
-def horner(m: np.ndarray, t: int = 0.5) -> np.ndarray:
+def horner(m: np.ndarray, t: float = 0.5) -> np.ndarray:
     """
     Method using horner scheme to calculate point with given t
 
@@ -83,7 +84,7 @@ def horner(m: np.ndarray, t: int = 0.5) -> np.ndarray:
     m: np.ndarray:
         array containing coefficients
 
-    t: int:
+    t: float:
         value for which point is calculated
 
     Returns
@@ -100,12 +101,104 @@ def horner(m: np.ndarray, t: int = 0.5) -> np.ndarray:
     return res
 
 
+def de_caes_in_place(m: np.ndarray, t: float = 0.5) -> np.ndarray:
+    """
+    Method computing de Casteljau in place
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        array containing coefficients
+
+    t: float:
+        value for which point is calculated
+
+    Returns
+    -------
+    np.ndarray:
+        array containing calculated points with given t
+    """
+    _, n = m.shape
+    for r in range(n):
+        m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
+    return m
+
+
+def subdiv(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Method using subdivison to calculate right and left polygon with given t using de Casteljau
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        array containing coefficients
+
+    t: float:
+        value for which point is calculated
+
+    Returns
+    -------
+    np.ndarray:
+        right polygon
+    np.ndarray:
+        left polygon
+    """
+    return de_caes_in_place(m.copy(), t), de_caes_in_place(m.copy()[:, ::-1], 1.0-t)
+
+
+def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> float:
+    """
+    Method calculating distance of point to line through p1 and p2
+
+    Parameters
+    ----------
+    p1: np.ndarray:
+        beginning point of line
+
+    p2: np.ndarray:
+        end point of line
+
+    p_to_check: np.ndarray:
+        point for which distance is calculated
+
+    Returns
+    -------
+    float:
+        distance from point to line
+    """
+    numerator = abs((p2[0] - p1[0]) * (p1[1] - p_to_check[1]) - (p1[0] - p_to_check[0]) * (p2[1] - p1[1]))
+    denominator = ((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)**0.5
+    return numerator/denominator
+
+
+def check_flat(m: np.ndarray, tol: float = 1) -> bool:
+    """
+    Method checking if all points between the first and the last point
+     are less than tol away from line through beginning and end point of bezier curve
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        points of curve
+
+    tol: float:
+        tolerance for distance check
+
+    Returns
+    -------
+    bool:
+        True if all point are less than tol away from line otherwise false
+    """
+    return all(distance_to_line(m[:, 0], m[:, len(m[0])-1], m[:, i]) <= tol for i in range(1, len(m[0])-1))
+
+
 def init() -> None:
     test = csv_read("test.csv")
     print(test)
-    print(horn_bez(test))
-    print(differences(test))
-    print(horner(test, 2))
+    #print(check_flat(test))
+    #print(horn_bez(test))
+    #print(differences(test))
+    #print(horner(test, 2))
 
 
 if __name__ == "__main__":
