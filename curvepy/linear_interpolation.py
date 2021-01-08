@@ -250,10 +250,12 @@ class Triangle(Polygon):
         """
         return 1 / 2 * np.linalg.det(np.array([a, b, c]))
 
-    def map_to_plane(self, p: np.ndarray):
+    def map_parallel_to_axis_plane(self, p: np.ndarray):
         """
-        This method projects p and the points of the triangle on a plane, so that cramer's rule can easily be applied
-        to them in order to calculate the area of every 3 out of the 4 points.
+        This method projects p and the points of the triangle on a plane, for example the y-plane with distance 1 for
+        all points of the triangle to the plane, so that cramer's rule can easily be applied to them
+        in order to calculate the area of every 3 out of the 4 points.
+        But this method does not overwrite the self._points.
 
         Parameters
         ----------
@@ -263,17 +265,41 @@ class Triangle(Polygon):
         Returns
         -------
         np.ndarray:
-            Copys of p and the triangle points now mapped on to a plane.
+            Copy of p and the triangle points now mapped on to a plane.
         """
         p_copy, a, b, c = p.copy(), self._points[0].copy(), self._points[1].copy(), self._points[2].copy()
-        print(self._points[0][-1] != self._points[2][-1])
-        # how to map the points on a plane without collapsing points on another?
+        # is there another way?
         for i in range(len(self._points)):
             if self._points[0][i] != self._points[1][i] != self._points[2][i] \
                     and self._points[0][i - 1] != self._points[1][i - 1] != self._points[2][i - 1]:
                 p_copy[i - 2], a[i - 2], b[i - 2], c[i - 2] = 1, 1, 1, 1
                 break
         return p_copy, a, b, c
+
+    def check_points_for_area_calc(self, p):
+        """
+        This method checks if the point p and the points of the triangle have the right dimension and will make them so
+        that cramer's rule can be applied to them.
+
+        Parameters
+        ----------
+        p: np.ndarray
+            Additional point that has to be on the same plane as the triangle.
+
+        Returns
+        -------
+        np.ndarrays:
+            The triangle points and p so that cramer's rule can be used.
+        """
+        if np.shape(p)[0] != self._dim:
+            raise Exception("p has to have the same dimension as the triangle points!")
+        elif np.shape(p)[0] == 3:
+            return self.map_parallel_to_axis_plane(p)
+        elif np.shape(p)[0] == 2:
+            return np.append(p.copy(), [1]), np.append(self._points[0].copy(), [1]), np.append(self._points[1].copy(), [1]),\
+                              np.append(self._points[2].copy(), [1])
+        else:
+            raise Exception("Dimension has to be 2 or 3!")
 
     def get_bary_coords(self, p: np.ndarray) -> np.ndarray:
         """
@@ -289,21 +315,14 @@ class Triangle(Polygon):
         np.ndarray:
             Barycentric coordinates of p with respect to a, b, c.
         """
-        if np.shape(p)[0] != self._dim:
-            raise Exception("p has to have the same dimension as the triangle points!")
-        elif np.shape(p)[0] == 3:
-            p_copy, a, b, c = self.map_to_plane(p)
-        elif np.shape(p)[0] == 2:
-            p_copy, a, b, c = p.copy(), self._points[0].copy(), self._points[1].copy(), self._points[2].copy()
-        else:
-            raise Exception("Dimension hast to be 2 or 3!")
+        p_copy, a, b, c = self.check_points_for_area_calc(p)
 
         abc_area = self.area(a, b, c)
         if abc_area == 0:
             raise Exception("The area of the triangle defined by a, b, c has to be greater than 0!")
 
         return np.array([self.area(p_copy, b, c) / abc_area, self.area(a, p_copy, c) / abc_area,
-                         self.area(a, b, p_copy) / abc_area])
+                         self.area(a, b, p_copy) / abc_area])[0:np.shape(p)[0]]
 
 
 def ratio_test() -> None:
@@ -333,7 +352,7 @@ def blossom_testing() -> None:
 
 def init() -> None:
     coords = np.array([1 / 3, 1 / 3, 1 / 3])
-    a, b, c = np.array([0, 0, 0]), np.array([1, 1, 1]), np.array([2, 0, 0])
+    a, b, c = np.array([2, 1, 1]), np.array([4, 3, 1]), np.array([5, 1, 1])
     # straight_line_point_test()
     # ratio_test()
     # test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
