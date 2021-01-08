@@ -97,7 +97,6 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     return 0
 
 
-# split in 2d and 3d Polygon similar to 2d and 3d bezier?
 class Polygon:
     """
     Class for creating a 2D or 3D Polygon.
@@ -269,7 +268,6 @@ class Triangle(Polygon):
             Copy of p and the triangle points now mapped on to a plane.
         """
         p_copy, a, b, c = p.copy(), self._points[0].copy(), self._points[1].copy(), self._points[2].copy()
-        # is there another way?
         for i in range(len(self._points)):
             if self._points[0][i] != self._points[1][i] != self._points[2][i] \
                     and self._points[0][i - 1] != self._points[1][i - 1] != self._points[2][i - 1]:
@@ -292,14 +290,11 @@ class Triangle(Polygon):
         np.ndarrays:
             The triangle points and p so that cramer's rule can be used.
         """
-        if np.shape(p)[0] != self._dim:
-            raise Exception("p has to have the same dimension as the triangle points!")
-        elif np.shape(p)[0] == 3:
+        if self._dim == 3:
             return self.map_parallel_to_axis_plane(p)
-        elif np.shape(p)[0] == 2:
-            return np.append(p.copy(), [1]), np.append(self._points[0].copy(), [1]), np.append(self._points[1].copy(),
-                                                                                               [1]), \
-                   np.append(self._points[2].copy(), [1])
+        elif self._dim == 2:
+            return np.append(p.copy(), [1]), np.append(self._points[0].copy(), [1]), \
+                   np.append(self._points[1].copy(), [1]), np.append(self._points[2].copy(), [1])
         else:
             raise Exception("Dimension has to be 2 or 3!")
 
@@ -354,7 +349,7 @@ def blossom_testing() -> None:
 
 def init() -> None:
     coords = np.array([2 / 3, 1 / 6, 1 / 6])
-    a, b, c = np.array([2, 1, 1]), np.array([4, 3, 2]), np.array([5, 1, 1])
+    a, b, c = np.array([2, 1, 3]), np.array([4, 3, 3]), np.array([5, 1, 3])
     # straight_line_point_test()
     # ratio_test()
     # test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
