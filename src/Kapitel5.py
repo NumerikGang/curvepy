@@ -22,14 +22,11 @@ def horn_bez(m: np.ndarray, t: float = 0.5) -> np.ndarray:
         point calculated with given t
     """
     n = m.shape[1] - 1  # need degree of curve (n points means degree = n-1)
-    n_above_i, t_fac = 1, 1
     res = m[:, 0] * (1 - t)
     for i in range(1, n):
-        t_fac = t_fac * t
-        n_above_i *= (n - i + 1) // i  # needs to be int
-        res = (res + t_fac * n_above_i * m[:, i]) * (1 - t)
+        res = (res + t**i * scs.binom(n, i) * m[:, i]) * (1 - t)
 
-    res += t_fac * t * m[:, n]
+    res += t**n * m[:, n]
 
     return res
 
@@ -196,7 +193,7 @@ def init() -> None:
     test = csv_read("test.csv")
     print(test)
     #print(check_flat(test))
-    #print(horn_bez(test))
+    print(horn_bez(test))
     #print(differences(test))
     #print(horner(test, 2))
 
