@@ -224,7 +224,8 @@ class Triangle(Polygon):
         np.ndarray:
             Barycentric combination of a, b, c with given coordinates.
         """
-        if sum(bary_coords) != 1:
+        eps = 0.0000000000000001  # rounding error
+        if sum(bary_coords) - eps != 1 and sum(bary_coords) + eps != 1:
             raise Exception("The barycentric coordinates don't sum up to 1!")
         return np.array((bary_coords[0] * self._points[0] + bary_coords[1] * self._points[1]
                          + bary_coords[2] * self._points[2]))
@@ -296,8 +297,9 @@ class Triangle(Polygon):
         elif np.shape(p)[0] == 3:
             return self.map_parallel_to_axis_plane(p)
         elif np.shape(p)[0] == 2:
-            return np.append(p.copy(), [1]), np.append(self._points[0].copy(), [1]), np.append(self._points[1].copy(), [1]),\
-                              np.append(self._points[2].copy(), [1])
+            return np.append(p.copy(), [1]), np.append(self._points[0].copy(), [1]), np.append(self._points[1].copy(),
+                                                                                               [1]), \
+                   np.append(self._points[2].copy(), [1])
         else:
             raise Exception("Dimension has to be 2 or 3!")
 
@@ -351,8 +353,8 @@ def blossom_testing() -> None:
 
 
 def init() -> None:
-    coords = np.array([1 / 3, 1 / 3, 1 / 3])
-    a, b, c = np.array([2, 1]), np.array([4, 3]), np.array([5, 1])
+    coords = np.array([2 / 3, 1 / 6, 1 / 6])
+    a, b, c = np.array([2, 1, 1]), np.array([4, 3, 2]), np.array([5, 1, 1])
     # straight_line_point_test()
     # ratio_test()
     # test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
