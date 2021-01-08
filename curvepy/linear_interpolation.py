@@ -322,7 +322,7 @@ class Triangle(Polygon):
             raise Exception("The area of the triangle defined by a, b, c has to be greater than 0!")
 
         return np.array([self.area(p_copy, b, c) / abc_area, self.area(a, p_copy, c) / abc_area,
-                         self.area(a, b, p_copy) / abc_area])[0:np.shape(p)[0]]
+                         self.area(a, b, p_copy) / abc_area])
 
 
 def ratio_test() -> None:
@@ -352,7 +352,7 @@ def blossom_testing() -> None:
 
 def init() -> None:
     coords = np.array([1 / 3, 1 / 3, 1 / 3])
-    a, b, c = np.array([2, 1, 1]), np.array([4, 3, 1]), np.array([5, 1, 1])
+    a, b, c = np.array([2, 1]), np.array([4, 3]), np.array([5, 1])
     # straight_line_point_test()
     # ratio_test()
     # test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
