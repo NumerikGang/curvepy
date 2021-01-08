@@ -2,6 +2,7 @@ import numpy as np
 import scipy.special as scs
 from src.utilities import csv_read
 from typing import Tuple
+from functools import reduce
 
 
 def horn_bez(m: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -72,7 +73,7 @@ def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
     return np.array(diff).T
 
 
-def horner(m: np.ndarray, t: float = 0.5) -> np.ndarray:
+def horner(m: np.ndarray, t: float = 0.5) -> Tuple:
     """
     Method using horner scheme to calculate point with given t
 
@@ -86,16 +87,10 @@ def horner(m: np.ndarray, t: float = 0.5) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray:
+    tuple:
         point calculated with given t
     """
-    n = m.shape[1]-1  # need degree of curve (n points means degree = n-1)
-    res = m[:, -1]  # last index has highest exponent
-
-    for i in range(n, 0, -1):
-        res = t*res + m[:, i-1]
-
-    return res
+    return reduce(lambda x, y: t*x + y, m[0, ::-1]), reduce(lambda x, y: t*x + y, m[1, ::-1])
 
 
 def de_caes_in_place(m: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -192,10 +187,11 @@ def check_flat(m: np.ndarray, tol: float = 1) -> bool:
 def init() -> None:
     test = csv_read("test.csv")
     print(test)
+    print(test[:, ::-1])
     #print(check_flat(test))
     print(horn_bez(test))
     #print(differences(test))
-    #print(horner(test, 2))
+    print(horner(test, 2))
 
 
 if __name__ == "__main__":
