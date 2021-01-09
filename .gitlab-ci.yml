@@ -69,7 +69,7 @@ property-based-tests:
 pages:
   stage: deploy
   script:
-    - pdoc3 --html --output-dir public curvepy && mv public/curvepy/* public/ && rm -d public/curvepy
+    - pdoc3 --html --config latex_math=True --force --output-dir public curvepy && mv public/curvepy/* public/ && rm -d public/curvepy
   artifacts:
     paths:
       - public
