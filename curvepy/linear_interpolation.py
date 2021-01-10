@@ -3,6 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from typing import Tuple, Callable
 import functools
 import matplotlib.pyplot as plt
+import sys
 
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -223,8 +224,8 @@ class Triangle(Polygon):
         np.ndarray:
             Barycentric combination of a, b, c with given coordinates.
         """
-        eps = 0.0000000000000001  # rounding error
-        if sum(bary_coords) - eps != 1 and sum(bary_coords) + eps != 1:
+        eps = sys.float_info.epsilon
+        if np.sum(bary_coords) - eps != 1 and np.sum(bary_coords) + eps != 1:
             raise Exception("The barycentric coordinates don't sum up to 1!")
         return np.array((bary_coords[0] * self._points[0] + bary_coords[1] * self._points[1]
                          + bary_coords[2] * self._points[2]))
@@ -250,7 +251,7 @@ class Triangle(Polygon):
         """
         return 1 / 2 * np.linalg.det(np.array([a, b, c]))
 
-    def map_parallel_to_axis_plane(self, p: np.ndarray):
+    def squash_parallel_to_axis_plane(self, p: np.ndarray):
         """
         This method projects p and the points of the triangle on a plane, for example the y-plane with distance 1 for
         all points of the triangle to the plane, so that cramer's rule can easily be applied to them
@@ -291,7 +292,7 @@ class Triangle(Polygon):
             The triangle points and p so that cramer's rule can be used.
         """
         if self._dim == 3:
-            return self.map_parallel_to_axis_plane(p)
+            return self.squash_parallel_to_axis_plane(p)
         elif self._dim == 2:
             return np.append(p.copy(), [1]), np.append(self._points[0].copy(), [1]), \
                    np.append(self._points[1].copy(), [1]), np.append(self._points[2].copy(), [1])
