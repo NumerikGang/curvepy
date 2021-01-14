@@ -1,6 +1,9 @@
 # BEGIN OWN GITIGNORE
 .idea/
 .pytest_cache/
+
+# For local documentation generation
+public/
 # END OWN GITIGNORE
 ###############################
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,python
