@@ -192,22 +192,77 @@ def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
 
 
 def min_max_box(m: np.ndarray) -> list:
+    """
+    Method creating the minmaxbox of a given curve
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        points of curve
+
+    Returns
+    -------
+    list:
+        contains the points that describe the minmaxbox
+    """
     return [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
 
 
 def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> np.ndarray:
-    s = np.vstack([p1, p2, p3, p4])
-    print(s)
-    h = np.hstack((s, np.ones((4, 1))))
-    l1 = np.cross(h[0], h[1])
-    l2 = np.cross(h[2], h[3])
+    """
+    Method checking if line through p1, p2 intersects with line through p3, p4
+
+
+    Parameters
+    ----------
+    p1: np.ndarray:
+        first point of first line
+
+    p2: np.ndarray:
+        second point of first line
+
+    p3: np.ndarray:
+        first point of second line
+
+    p4: np.ndarray:
+        second point of second line
+
+    Returns
+    -------
+    bool:
+        True if all point are less than tol away from line otherwise false
+    """
+    # First we vertical stack the points in an array
+    vertical_stack = np.vstack([p1, p2, p3, p4])
+    # Then we transform them to homogeneous coordinates, to perform a little trick
+    homogeneous = np.hstack((vertical_stack, np.ones((4, 1))))
+    # having our points in this form we can get the lines through the cross product
+    l1, l2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
+    # when we calculate the cross product of the lines we get intersect point
     x, y, z = np.cross(l1, l2)
     if z == 0:
         return np.array([])
+    # we dividing with z to turn back to 2D space
     return np.array([x/z, y/z])
 
 
 def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
+    """
+    Method checks if curve intersects with x-axis
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        points of curve
+
+    tol: float:
+        tolerance for check_flat
+
+    Returns
+    -------
+    np.ndarray:
+        Points where curve and x-axis intersect
+    """
     box = min_max_box(m)
     res = np.array([])
 
@@ -234,8 +289,6 @@ def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
 def init() -> None:
     test = csv_read("test.csv")
     print(test)
-    print(intersect_lines(np.array([0, 1]), np.array([0, 2]), np.array([1, 10]), np.array([2, 10])))
-    #print(test[:, -1])
     #print(min_max_box(test))
     #print(np.ndarray([]).size)
     #print(check_flat(test))
