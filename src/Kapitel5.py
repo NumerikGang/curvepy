@@ -207,7 +207,7 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
     return np.array([x/z, y/z])
 
 
-def intersect(m: np.array, tol: float = s.float_info.epsilon) -> np.ndarray:
+def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
     box = min_max_box(m)
     res = np.array([])
 
