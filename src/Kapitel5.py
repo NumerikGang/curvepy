@@ -1,7 +1,9 @@
 import numpy as np
 import scipy.special as scs
+import sympy as sy
+import sys as s
 from src.utilities import csv_read
-from typing import Tuple
+from typing import Tuple, Callable
 from functools import reduce
 
 
@@ -32,7 +34,7 @@ def horn_bez(m: np.ndarray, t: float = 0.5) -> np.ndarray:
     return res
 
 
-def bezier_to_power(m: np.ndarray) -> np.ndarray:
+def bezier_to_power(m: np.ndarray) -> Callable:
     """
     Method calculating monomial representation of given bezier form using 5.27
 
@@ -48,7 +50,12 @@ def bezier_to_power(m: np.ndarray) -> np.ndarray:
     """
     _, n = m.shape
     diff = differences(m)
-    return np.ndarray([])
+    t = sy.symbols('t')
+    res = 0
+    for i in range(n):
+        res += scs.binom(n-1, i) * diff[:, i] * t**i
+
+    return sy.lambdify(t, res)
 
 
 def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
@@ -163,7 +170,7 @@ def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> 
     return numerator/denominator
 
 
-def check_flat(m: np.ndarray, tol: float = 1) -> bool:
+def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
     """
     Method checking if all points between the first and the last point
      are less than tol away from line through beginning and end point of bezier curve
@@ -184,14 +191,55 @@ def check_flat(m: np.ndarray, tol: float = 1) -> bool:
     return all(distance_to_line(m[:, 0], m[:, len(m[0])-1], m[:, i]) <= tol for i in range(1, len(m[0])-1))
 
 
+def min_max_box(m: np.ndarray) -> list:
+    return [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
+
+
+def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> np.ndarray:
+    s = np.vstack([p1, p2, p3, p4])
+    h = np.hstack((s, np.ones((4, 1))))
+    l1 = np.cross(h[0], h[1])
+    l2 = np.stack(h[2], h[3])
+    x, y, z = np.cross(l1, l2)
+    if z == 0:
+        return np.ndarray([])
+    return np.ndarray([x/z, y/z])
+
+
+def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
+    box = min_max_box(m)
+    res = np.ndarray([])
+
+    if box[2] * box[3] > 0:
+        # Both y values are positive, ergo curve lies above x_axis
+        return np.ndarray([])
+
+    if check_flat(m, tol):
+        # poly is flat enough, so we can perform intersect of straight lines
+        # since we are assuming poly is a straight line we define a line through first and las point of poly
+        # additionally we create a line which demonstrates the x axis
+        # having these two lines we can check them for intersection
+        p = intersect_lines(m[:, 0], m[:, -1], np.ndarray([0, 0]), np.ndarray([1, 0]))
+        np.append(res, p)
+    else:
+        # if poly not flat enough we subdivide and check the resulting polygons for intersection
+        p1, p2 = subdiv(m, 0.5)
+        np.append(res, intersect(p1, tol))
+        np.append(res, intersect(p2, tol))
+
+    return res
+
+
 def init() -> None:
     test = csv_read("test.csv")
     print(test)
-    print(test[:, ::-1])
+    print(test[:, -1])
+    print(min_max_box(test))
+    print(np.ndarray([]).size)
     #print(check_flat(test))
-    print(horn_bez(test))
+    #print(horn_bez(test))
     #print(differences(test))
-    print(horner(test, 2))
+    #print(horner(test, 2))
 
 
 if __name__ == "__main__":
