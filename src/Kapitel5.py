@@ -3,7 +3,7 @@ import scipy.special as scs
 import sympy as sy
 import sys as s
 from src.utilities import csv_read
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Union
 from functools import reduce
 
 
@@ -208,7 +208,7 @@ def min_max_box(m: np.ndarray) -> list:
     return [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
 
 
-def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> np.ndarray:
+def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> Union[np.ndarray, None]:
     """
     Method checking if line through p1, p2 intersects with line through p3, p4
 
@@ -241,7 +241,7 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
     # when we calculate the cross product of the lines we get intersect point
     x, y, z = np.cross(l1, l2)
     if z == 0:
-        return np.array([])
+        return None
     # we dividing with z to turn back to 2D space
     return np.array([x/z, y/z])
 
@@ -276,7 +276,8 @@ def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
         # additionally we create a line which demonstrates the x axis
         # having these two lines we can check them for intersection
         p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
-        np.append(res, p)
+        if p is not None:
+            np.append(res, p)
     else:
         # if poly not flat enough we subdivide and check the resulting polygons for intersection
         p1, p2 = subdiv(m, 0.5)
