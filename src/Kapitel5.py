@@ -237,9 +237,9 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
     # Then we transform them to homogeneous coordinates, to perform a little trick
     homogeneous = np.hstack((vertical_stack, np.ones((4, 1))))
     # having our points in this form we can get the lines through the cross product
-    l1, l2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
+    line_1, line_2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
     # when we calculate the cross product of the lines we get intersect point
-    x, y, z = np.cross(l1, l2)
+    x, y, z = np.cross(line_1, line_2)
     if z == 0:
         return None
     # we dividing with z to turn back to 2D space
