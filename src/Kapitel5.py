@@ -197,29 +197,30 @@ def min_max_box(m: np.ndarray) -> list:
 
 def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> np.ndarray:
     s = np.vstack([p1, p2, p3, p4])
+    print(s)
     h = np.hstack((s, np.ones((4, 1))))
     l1 = np.cross(h[0], h[1])
-    l2 = np.stack(h[2], h[3])
+    l2 = np.cross(h[2], h[3])
     x, y, z = np.cross(l1, l2)
     if z == 0:
-        return np.ndarray([])
-    return np.ndarray([x/z, y/z])
+        return np.array([])
+    return np.array([x/z, y/z])
 
 
-def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
+def intersect(m: np.array, tol: float = s.float_info.epsilon) -> np.ndarray:
     box = min_max_box(m)
-    res = np.ndarray([])
+    res = np.array([])
 
     if box[2] * box[3] > 0:
         # Both y values are positive, ergo curve lies above x_axis
-        return np.ndarray([])
+        return np.array([])
 
     if check_flat(m, tol):
         # poly is flat enough, so we can perform intersect of straight lines
         # since we are assuming poly is a straight line we define a line through first and las point of poly
         # additionally we create a line which demonstrates the x axis
         # having these two lines we can check them for intersection
-        p = intersect_lines(m[:, 0], m[:, -1], np.ndarray([0, 0]), np.ndarray([1, 0]))
+        p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
         np.append(res, p)
     else:
         # if poly not flat enough we subdivide and check the resulting polygons for intersection
@@ -233,9 +234,10 @@ def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
 def init() -> None:
     test = csv_read("test.csv")
     print(test)
-    print(test[:, -1])
-    print(min_max_box(test))
-    print(np.ndarray([]).size)
+    print(intersect_lines(np.array([0, 1]), np.array([0, 2]), np.array([1, 10]), np.array([2, 10])))
+    #print(test[:, -1])
+    #print(min_max_box(test))
+    #print(np.ndarray([]).size)
     #print(check_flat(test))
     #print(horn_bez(test))
     #print(differences(test))
