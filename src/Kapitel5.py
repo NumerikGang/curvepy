@@ -277,12 +277,12 @@ def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
         # having these two lines we can check them for intersection
         p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
         if p is not None:
-            np.append(res, p)
+            res = np.append(res, p.reshape((2, 1)), axis=1)
     else:
         # if poly not flat enough we subdivide and check the resulting polygons for intersection
         p1, p2 = subdiv(m, 0.5)
-        np.append(res, intersect(p1, tol))
-        np.append(res, intersect(p2, tol))
+        res = np.append(res, intersect(p1, tol).reshape((2, 1)), axis=1)
+        res = np.append(res, intersect(p2, tol).reshape((2, 1)), axis=1)
 
     return res
 
