@@ -1,3 +1,5 @@
+from plistlib import Data
+
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from typing import Tuple, Callable
@@ -233,7 +235,8 @@ class Triangle(Polygon):
     @staticmethod
     def area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
         """
-        Calculates the area of a triangle defined by the parameters.
+        Calculates the "area" of a triangle defined by the parameters. All three points have to be on a plane parallel
+        to an axis-plane!
 
         Parameters
         ----------
@@ -247,7 +250,7 @@ class Triangle(Polygon):
         Returns
         -------
         float:
-            Area of the triangle.
+            "Area" of the triangle.
         """
         return 1 / 2 * np.linalg.det(np.array([a, b, c]))
 
@@ -255,7 +258,7 @@ class Triangle(Polygon):
         """
         This method projects p and the points of the triangle on a plane, for example the y-plane with distance 1 for
         all points of the triangle to the plane, so that cramer's rule can easily be applied to them
-        in order to calculate the area of every 3 out of the 4 points.
+        in order to calculate the area of the triangle corresponding to every 3 out of the 4 points.
         But this method does not overwrite the self._points.
 
         Parameters
@@ -323,6 +326,25 @@ class Triangle(Polygon):
                          self.area(a, b, p_copy) / abc_area])
 
 
+class Dirichlet_tessellation:
+
+    def __init__(self, points: np.ndarray) -> None:
+        self.points_copy = points.copy()
+        self.tessellation = []
+        self.recursive_dirichlet_tessellation(0)
+
+    def recursive_dirichlet_tessellation(self, index: int) -> None:
+        if index == len(self.points_copy):
+            return
+        if not index:
+            self.tessellation.append(Polygon(np.array([[float('inf'), float('inf')],
+                                                       [float('inf'), float('-inf')],
+                                                       [float('-inf'), float('-inf')],
+                                                       [float('-inf'), float('inf')]])))
+            self.recursive_dirichlet_tessellation(1)
+
+
+
 def ratio_test() -> None:
     left = np.array([0, 0, 0])
     right = np.array([1, 1, 1])
@@ -349,8 +371,9 @@ def blossom_testing() -> None:
 
 
 def init() -> None:
-    coords = np.array([2 / 3, 1 / 6, 1 / 6])
-    a, b, c = np.array([2, 1, 3]), np.array([4, 3, 3]), np.array([5, 1, 3])
+    # coords = np.array([2 / 3, 1 / 6, 1 / 6])
+    # a, b, c = np.array([2, 1]), np.array([4, 3]), np.array([5, 1])
+
     # straight_line_point_test()
     # ratio_test()
     # test_points = np.array([[0, 0, 0], [1, 1, 1], [3, 4, 4], [5, -2, -2]])
@@ -365,12 +388,14 @@ def init() -> None:
     # blossom_testing()
 
     # triangle test
-    t = Triangle(np.array([a, b, c]))
+    # t = Triangle(np.array([a, b, c]))
 
     # barycentric coords test
-    print(t.bary_plane_point(coords))
+    # print(t.bary_plane_point(coords))
     # print(np.linalg.det(np.array([a, b, c])))
-    print(t.get_bary_coords(t.bary_plane_point(coords)))
+    # print(t.get_bary_coords(t.bary_plane_point(coords)))
+
+    test_tes = Dirichlet_tessellation(np.array([[0, 0]]))
 
 
 if __name__ == "__main__":
