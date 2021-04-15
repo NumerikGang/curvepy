@@ -45,8 +45,19 @@ def bezier_to_power(m: np.ndarray) -> Callable:
 
     Returns
     -------
-    np.ndarray:
-        array for monomial representation
+    Callable:
+        bezier function in polynomial form
+
+    Notes
+    -----
+    Equation 5.27 used for computing polynomial form:
+    math:: b^n(t) = \\sum_{j=0}^n \\binom{n}{j} \\Delta^j b_0 t^j
+
+    Initially the method would only compute the polynomial coefficients in an array, and parsing this array with a given
+    t to the horner method we would get a point back. Instead the method uses sympy to calculate a function depending on
+    t. After initial computation, f(t) calculates the value for a given t. Having a function it is simple to map it on
+    an array containing multiple values for t.
+    As a result we do not need to call the horner method for each t individually.
     """
     _, n = m.shape
     diff = differences(m)
@@ -74,6 +85,11 @@ def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
     -------
     np.ndarray:
          array holds all forward differences for given point i
+
+    Notes
+    -----
+    Equation used for computing differences:
+    math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
     """
     _, n = m.shape
     diff = [np.sum([scs.binom(r, j)*(-1)**(r - j)*m[:, i + j] for j in range(0, r+1)], axis=0) for r in range(0, n)]
@@ -82,7 +98,7 @@ def differences(m: np.ndarray, i: int = 0) -> np.ndarray:
 
 def horner(m: np.ndarray, t: float = 0.5) -> Tuple:
     """
-    Method using horner scheme to calculate point with given t
+    Method using horner's method to calculate point with given t
 
     Parameters
     ----------
@@ -97,7 +113,7 @@ def horner(m: np.ndarray, t: float = 0.5) -> Tuple:
     tuple:
         point calculated with given t
     """
-    return reduce(lambda x, y: t*x + y, m[0, ::-1]), reduce(lambda x, y: t*x + y, m[1, ::-1])
+    return tuple(reduce(lambda x, y: t*x+y, m[i, ::-1]) for i in [0, 1])
 
 
 def de_caes_in_place(m: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -164,6 +180,12 @@ def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> 
     -------
     float:
         distance from point to line
+
+    Notes
+    -----
+    Given p1 and p2 we can check the distance p3 has to the line going through p1 and p2 as follows:
+    math:: distance(p1,p2,p3) = \\frac{|(x_1-x_1)(y_1-y_3) - (x_1-x_3)(y_2-y_1)|}{//sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}}
+    more information on "https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line"
     """
     numerator = abs((p2[0] - p1[0]) * (p1[1] - p_to_check[1]) - (p1[0] - p_to_check[0]) * (p2[1] - p1[1]))
     denominator = ((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)**0.5
@@ -173,7 +195,7 @@ def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> 
 def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
     """
     Method checking if all points between the first and the last point
-     are less than tol away from line through beginning and end point of bezier curve
+    are less than tol away from line through beginning and end point of bezier curve
 
     Parameters
     ----------
@@ -242,7 +264,7 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
     x, y, z = np.cross(line_1, line_2)
     if z == 0:
         return None
-    # we dividing with z to turn back to 2D space
+    # we divide with z to turn back to 2D space
     return np.array([x/z, y/z])
 
 
@@ -290,12 +312,13 @@ def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
 def init() -> None:
     test = csv_read("test.csv")
     print(test)
+    print(distance_to_line.__doc__)
     #print(min_max_box(test))
     #print(np.ndarray([]).size)
     #print(check_flat(test))
     #print(horn_bez(test))
     #print(differences(test))
-    #print(horner(test, 2))
+    print(horner(test, 2))
 
 
 if __name__ == "__main__":
