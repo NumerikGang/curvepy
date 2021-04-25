@@ -326,23 +326,59 @@ class Triangle(Polygon):
                          self.area(a, b, p_copy) / abc_area])
 
 
+class tile_edge:
+
+    def __init__(self) -> None:
+        """
+        start: np.ndarray
+            start point
+        end: np.ndarray
+            end point
+        """
+        self.start = None
+        self.end = None
+
+
+class tile:
+
+    def __init__(self, center: np.ndarray) -> None:
+        self.center = center
+        self.edges = []
+
+    def add_edge(self, edge: tile_edge):
+        self.edges.append(edge)
+
+
 class Dirichlet_tessellation:
 
     def __init__(self, points: np.ndarray) -> None:
         self.points_copy = points.copy()
         self.tessellation = []
-        self.recursive_dirichlet_tessellation(0)
+        self.iterative_dirichlet_tessellation()
 
-    def recursive_dirichlet_tessellation(self, index: int) -> None:
-        if index == len(self.points_copy):
-            return
-        if not index:
-            self.tessellation.append(Polygon(np.array([[float('inf'), float('inf')],
-                                                       [float('inf'), float('-inf')],
-                                                       [float('-inf'), float('-inf')],
-                                                       [float('-inf'), float('inf')]])))
-            self.recursive_dirichlet_tessellation(1)
+    def iterative_dirichlet_tessellation(self) -> None:
+        for p in self.points_copy:
+            print(f"Punkt zum Einfügen: {p}")
+            if not self.tessellation:
+                self.tessellation.append(tile(p))
+                continue
 
+            print(f"Liste: {[t.center for t in self.tessellation]}")
+            min_idx = np.argmin([np.linalg.norm(p - t.center) for t in self.tessellation])
+
+            print(f"mindinmaler Index: {min_idx}")
+            self.tessellation.append(tile(p))
+
+            # das muss eig unter tiles dann können wir uns die schleifen sparen und updaten einfach immer nur die nachbarn
+            # aber maxi, WaNn siNd TiLeS keInE nAcHbArN MeHR?
+
+            neighbours = []
+            for e in self.tessellation[min_idx].edges:
+                for t in self.tessellation:
+                    if e in t.edges:
+                        neighbours.append(t)
+
+            # hier kommt totaler schwachsinn
 
 
 def ratio_test() -> None:
@@ -395,7 +431,7 @@ def init() -> None:
     # print(np.linalg.det(np.array([a, b, c])))
     # print(t.get_bary_coords(t.bary_plane_point(coords)))
 
-    test_tes = Dirichlet_tessellation(np.array([[0, 0]]))
+    test_tes = Dirichlet_tessellation(np.array([[0, 0], [1, 2], [-2, -3], [-3, -3]]))
 
 
 if __name__ == "__main__":
