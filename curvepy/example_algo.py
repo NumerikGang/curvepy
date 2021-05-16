@@ -2,10 +2,11 @@ from dataclasses import dataclass
 import numpy as np
 from typing import List, Set
 
+
 @dataclass
 class tile:
-    center: np.ndarray # 2D float
-    neighbours: list # of tiles
+    center: np.ndarray  # 2D float
+    neighbours: list  # of tiles
 
 
 class dirichlet_tessellation:
@@ -13,7 +14,6 @@ class dirichlet_tessellation:
     def __init__(self):
         self.tiles : List[tile] = []
         self.valid_triangulation: List[Set[np.ndarray, np.ndarray]] = []
-
 
     def append_point(self, p: np.ndarray):
         if not self.tiles:
@@ -23,30 +23,77 @@ class dirichlet_tessellation:
         min_idx = np.argmin([np.linalg.norm(p - t.center) for t in self.tiles])
         act_tile = self.tiles[min_idx]
 
-        # ERSTELLE TRIANGULATION ZWISCHEN p UND act_tile
+        # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_tile
+        self.valid_triangulation.append((p, nearest_tile.center))
 
-        # ZUERST ALLE KOLLISIONSFREIEN
-        for n in act_tile.neighbours:
-            if self._intersect(n,p):
-                continue
-            # FÜGE TRIANGULATION HINZU
+        # To make a more educated guess we solve any collisions __after__ adding the trivial connections
+        collisions_to_check = []
 
-        # DANN ALLE MIT KOLLISIONEN
-        for n in act_tile.neighbours:
-            if self._intersect(n,p):
-                if new_is_more_gleichseitig_sprich_abs_minus_60_minimieren(self, (n,p)):
-                    # replatziere alte Kante mit neuen kanten
-                    # TODO was passiert wenn wir mehr als eine Kollision haben? -> trashen wir die neue Kante dann?
+        for neighbour in nearest_tile.neighbours:
+            all_collisions = [x for x in self.valid_triangulation if self._intersect(neighbour.center, p, *x)]
+            if len(all_collisions) == 0:
+                self.valid_triangulation.append((p, neighbour.center))
+                neighbour.neighbours.append(
+                    p_tile)  # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
+            elif len(all_collisions) == 1:
+                # 1 collision could be still fine
+                collisions_to_check.append([p, neighbour.center, *all_collisions[0]])
+            # More than 1 collision is always not the best possible triangulation TODO is that true? Yesn't
 
-    def _intersect(self, n,p):
+        for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
+            new_triangles = (
+                # first triangle
+                ((p, neighbour), (p, collision_edge_p1)),
+                ((p, neighbour), (neighbour, collision_edge_p1)),
+                ((p, neighbour), (neighbour, collision_edge_p1)),
+                # second triangle
+                ((p, neighbour), (p, collision_edge_p2)),
+                ((p, collision_edge_p2), (neighbour, collision_edge_p2)),
+                ((p, neighbour), (neighbour, collision_edge_p2))
+            )
+
+            old_triangles = (
+                # first triangle
+                ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, p)),
+                ((collision_edge_p1, p), (collision_edge_p2, p)),
+                ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, p)),
+                # second triangle
+                ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, neighbour)),
+                ((collision_edge_p1, neighbour), (collision_edge_p2, neighbour)),
+                ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, neighbour))
+            )
+
+            rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
+            new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
+            if new_is_more_equilateral:
+                # dann kannte col_edge_p2 - col_edge_p1 entfernen und kannte p - neighbour hinzufügen
+                collision_edge_p1
+                ...
+
+    @staticmethod
+    def _angle(edge1, edge2):
+        return abs(180 / np.pi * (np.arctan((edge1[1][1] - edge1[0][1]) / (edge1[1][0] - edge1[0][0]))
+                                  - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))
+
+    @staticmethod
+    def get_all_edgepairs(A, B, C):
+        return [(A, B), (B, C), (A, C)]
+
+    @staticmethod
+    def _rate_triangle(A, B, C):
+        ...
+
+    @staticmethod
+    def _intersect(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
+        # First we vertical stack the points in an array
+        vertical_stack = np.vstack([p1, p2, p3, p4])
+        # Then we transform them to homogeneous coordinates, to perform a little trick
+        homogeneous = np.hstack((vertical_stack, np.ones((4, 1))))
+        # having our points in this form we can get the lines through the cross product
+        line_1, line_2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
+        # when we calculate the cross product of the lines we get intersect point
+        x, y, z = np.cross(line_1, line_2)
+        if z == 0:
+            return False
+        # we divide with z to turn back to 2D space
         return True
-
-# sum(abs(60-x) for x in [39.80, 71.88, 68.31, 48.63, 68.31, 63.06])
-# sum(abs(60-y) for y in [39.04, 116.94, 24.01, 32.84, 108.11, 39.04])
-
-# sum(abs(60-x) for x in [76.95, 85.12,  17.93, 18.19, 140.55, 21.25])
-# sum(abs(60-y) for y in [30.90, 36.12, 112.98, 46.05, 106.37, 27.57])
-
-"""
-
-"""
