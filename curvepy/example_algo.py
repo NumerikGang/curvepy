@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import numpy as np
-from typing import List, Set
+from typing import List, Set, Union, Dict, Tuple
 
 
 @dataclass
@@ -12,8 +12,8 @@ class tile:
 class dirichlet_tessellation:
 
     def __init__(self):
-        self.tiles : List[tile] = []
-        self.valid_triangulation: List[Set[np.ndarray, np.ndarray]] = []
+        self.tiles: List[tile] = []
+        self.valid_triangulation: List[Tuple[np.ndarray, np.ndarray]] = []
 
     def append_point(self, p: np.ndarray):
         if not self.tiles:
@@ -21,7 +21,11 @@ class dirichlet_tessellation:
             return
 
         min_idx = np.argmin([np.linalg.norm(p - t.center) for t in self.tiles])
-        act_tile = self.tiles[min_idx]
+        nearest_tile = self.tiles[min_idx]
+        p_tile = tile(center=p, neighbours=[])
+        nearest_tile.neighbours.append(p_tile)
+        p_tile.neighbours.append(nearest_tile)
+        self.tiles.append(p_tile)
 
         # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_tile
         self.valid_triangulation.append((p, nearest_tile.center))
