@@ -51,9 +51,7 @@ class dirichlet_tessellation:
             rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
             new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
             if new_is_more_equilateral:
-                # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
-                collision_edge_p1
-                ...
+                self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
 
     @staticmethod
     def _angle(edge1, edge2):
@@ -61,12 +59,14 @@ class dirichlet_tessellation:
                                   - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))
 
     @staticmethod
-    def get_all_edgepairs(A, B, C):
-        return [(A, B), (B, C), (A, C)]
+    def get_all_edge_pairs(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray):
+        return [(p1, p2), (p2, p3), (p1, p3)]
 
-    @staticmethod
-    def _rate_triangle(A, B, C):
-        ...
+    def replace_valid_triangulation(self, old_pair: Tuple[np.ndarray, np.ndarray], new_pair: Tuple[np.ndarray, np.ndarray]):
+        # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
+        # The list comprehension will always just have a single element matching the condition
+        self.valid_triangulation.remove(*[x for x in self.valid_triangulation if set(*x) == {*old_pair}])
+        self.valid_triangulation.append(new_pair)
 
     @staticmethod
     def _intersect(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
