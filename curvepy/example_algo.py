@@ -47,13 +47,20 @@ class dirichlet_tessellation:
         for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
             new_triangles = (
                 # first triangle
-                ((p, neighbour), (p, collision_edge_p1)),
-                ((p, neighbour), (neighbour, collision_edge_p1)),
-                ((p, neighbour), (neighbour, collision_edge_p1)),
+                (p, neighbour),
+                (p, collision_edge_p1),
+                (neighbour, collision_edge_p1),
+                # ((p, neighbour), (p, collision_edge_p1)),
+                # ((p, neighbour), (neighbour, collision_edge_p1)),
+                # ((p, neighbour), (neighbour, collision_edge_p1)),
                 # second triangle
-                ((p, neighbour), (p, collision_edge_p2)),
-                ((p, collision_edge_p2), (neighbour, collision_edge_p2)),
-                ((p, neighbour), (neighbour, collision_edge_p2))
+                (p, neighbour),
+                (p, collision_edge_p2),
+                (neighbour, collision_edge_p2)
+
+                # ((p, neighbour), (p, collision_edge_p2)),
+                # ((p, collision_edge_p2), (neighbour, collision_edge_p2)),
+                # ((p, neighbour), (neighbour, collision_edge_p2))
             )
 
             old_triangles = (
@@ -70,7 +77,7 @@ class dirichlet_tessellation:
             rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
             new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
             if new_is_more_equilateral:
-                # dann kannte col_edge_p2 - col_edge_p1 entfernen und kannte p - neighbour hinzufügen
+                # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
                 collision_edge_p1
                 ...
 
