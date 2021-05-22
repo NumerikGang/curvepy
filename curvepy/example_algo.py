@@ -67,15 +67,15 @@ class dirichlet_tessellation:
         self.tiles[p_new].add(p_neighbour)
         self.tiles[p_neighbour].add(p_new)
 
-    def replace_valid_triangulation(self, old_pair: Tuple[np.ndarray, np.ndarray],
-                                    new_pair: Tuple[np.ndarray, np.ndarray]):
+    def replace_valid_triangulation(self, old_pair: Tuple[h_tuple, h_tuple],
+                                    new_pair: Tuple[h_tuple, h_tuple]):
         # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
         # The list comprehension will always just have a single element matching the condition
         self.valid_triangulation.remove(*[x for x in self.valid_triangulation if set(*x) == {*old_pair}])
         self.valid_triangulation.add(new_pair)
 
     @staticmethod
-    def _intersect(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
+    def _intersect(p1: h_tuple, p2: h_tuple, p3: h_tuple, p4: h_tuple) -> bool:
         # First we vertical stack the points in an array
         vertical_stack = np.vstack([p1, p2, p3, p4])
         # Then we transform them to homogeneous coordinates, to perform a little trick
