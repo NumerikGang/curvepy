@@ -5,45 +5,51 @@ from typing import List, Set, Union, Dict, Tuple
 class dirichlet_tessellation:
 
     def __init__(self):
-        self.tiles2: Dict[np.ndarray, List[np.ndarray]] = {}
-        self.valid_triangulation: List[Tuple[np.ndarray, np.ndarray]] = []
+        self.tiles: Dict[np.ndarray, Set[np.ndarray]] = {}
+        self.valid_triangulation: Set[Tuple[np.ndarray, np.ndarray]] = set()
 
     def append_point(self, p: np.ndarray):
-        if not self.tiles2:
-            self.tiles2[p] = []
+        if not self.tiles:
+            self.tiles[p] = set()
             return
 
-        nearest_p = min(self.tiles2.keys(), key=lambda t: np.linalg.norm(t - p))
-        self.tiles2[p] = [nearest_p]
-        self.tiles2[nearest_p].append(p)
+        nearest_p = min(self.tiles.keys(), key=lambda t: np.linalg.norm(t - p))
+        self.tiles[p] = {nearest_p}
+        self.tiles[nearest_p].add(p)
 
         # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_p
-        self.valid_triangulation.append((p, nearest_p))
+        self.valid_triangulation.add((p, nearest_p))
 
         # To make a more educated guess we solve any collisions __after__ adding the trivial connections
-        collisions_to_check = []
+        while True:
+            collisions_to_check = []
 
-        for neighbour in self.tiles2[nearest_p]:
-            all_collisions = [x for x in self.valid_triangulation if self._intersect(neighbour, p, *x)]
-            if len(all_collisions) == 0:
-                self.valid_triangulation.append((p, neighbour))
-                # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
-                self.tiles2[neighbour].append(p)
-                self.tiles2[p].append(neighbour)
-            elif len(all_collisions) == 1:
-                # 1 collision could be still fine
-                collisions_to_check.append([p, neighbour, *all_collisions[0]])
-            # More than 1 collision is always not the best possible triangulation TODO Is that true? Yesn't
+            for neighbour in self.tiles[nearest_p]:
+                all_collisions = [x for x in self.valid_triangulation if self._intersect(neighbour, p, *x)]
+                if not all_collisions:
+                    self.valid_triangulation.add((p, neighbour))
+                    # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
+                    self.tiles[neighbour].add(p)
+                    self.tiles[p].add(neighbour)
+                elif len(all_collisions) == 1:
+                    # 1 collision could be still fine
+                    collisions_to_check.append([p, neighbour, *all_collisions[0]])
+                # More than 1 collision is always not the best possible triangulation TODO Is that true? Probably not ;)
 
-        for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
-            new_triangles = (self.get_all_edge_pairs(p, neighbour, e) for e in [collision_edge_p1, collision_edge_p2])
-            old_triangles = (self.get_all_edge_pairs(collision_edge_p1, collision_edge_p2, e) for e in [p, neighbour])
+            if not collisions_to_check:
+                return
 
-            rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
-            new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
-            if new_is_more_equilateral:
-                self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
-                self.update_neighbour()
+            for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
+                new_triangles = (self.get_all_edge_pairs(p, neighbour, e) for e in
+                                 [collision_edge_p1, collision_edge_p2])
+                old_triangles = (self.get_all_edge_pairs(collision_edge_p1, collision_edge_p2, e) for e in
+                                 [p, neighbour])
+
+                rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
+                new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
+                if new_is_more_equilateral:
+                    self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
+                    self.update_neighbour(p, neighbour, collision_edge_p1, collision_edge_p2)
 
     @staticmethod
     def _angle(edge1, edge2):
