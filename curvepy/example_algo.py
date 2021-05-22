@@ -37,8 +37,9 @@ class dirichlet_tessellation:
             all_collisions = [x for x in self.valid_triangulation if self._intersect(neighbour.center, p, *x)]
             if len(all_collisions) == 0:
                 self.valid_triangulation.append((p, neighbour.center))
-                neighbour.neighbours.append(
-                    p_tile)  # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
+                # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
+                neighbour.neighbours.append(p_tile)
+                p_tile.neighbours.append(neighbour)
             elif len(all_collisions) == 1:
                 # 1 collision could be still fine
                 collisions_to_check.append([p, neighbour.center, *all_collisions[0]])
@@ -52,6 +53,8 @@ class dirichlet_tessellation:
             new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
             if new_is_more_equilateral:
                 self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
+                self.update_neighbour()
+
 
     @staticmethod
     def _angle(edge1, edge2):
@@ -61,6 +64,9 @@ class dirichlet_tessellation:
     @staticmethod
     def get_all_edge_pairs(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray):
         return [(p1, p2), (p2, p3), (p1, p3)]
+
+    def update_neighbour(self, p_new, p_neighbour, p_out_1, p_out_2):
+        ...
 
     def replace_valid_triangulation(self, old_pair: Tuple[np.ndarray, np.ndarray], new_pair: Tuple[np.ndarray, np.ndarray]):
         # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
