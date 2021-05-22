@@ -17,23 +17,23 @@ class dirichlet_tessellation:
         self.tiles2[p] = [nearest_p]
         self.tiles2[nearest_p].append(p)
 
-        # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_tile
-        self.valid_triangulation.append((p, nearest_tile.center))
+        # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_p
+        self.valid_triangulation.append((p, nearest_p))
 
         # To make a more educated guess we solve any collisions __after__ adding the trivial connections
         collisions_to_check = []
 
-        for neighbour in nearest_tile.neighbours:
-            all_collisions = [x for x in self.valid_triangulation if self._intersect(neighbour.center, p, *x)]
+        for neighbour in self.tiles2[nearest_p]:
+            all_collisions = [x for x in self.valid_triangulation if self._intersect(neighbour, p, *x)]
             if len(all_collisions) == 0:
-                self.valid_triangulation.append((p, neighbour.center))
+                self.valid_triangulation.append((p, neighbour))
                 # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
                 self.tiles2[neighbour].append(p)
                 self.tiles2[p].append(neighbour)
             elif len(all_collisions) == 1:
                 # 1 collision could be still fine
-                collisions_to_check.append([p, neighbour.center, *all_collisions[0]])
-            # More than 1 collision is always not the best possible triangulation TODO is that true? Yesn't
+                collisions_to_check.append([p, neighbour, *all_collisions[0]])
+            # More than 1 collision is always not the best possible triangulation TODO Is that true? Yesn't
 
         for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
             new_triangles = (self.get_all_edge_pairs(p, neighbour, e) for e in [collision_edge_p1, collision_edge_p2])
