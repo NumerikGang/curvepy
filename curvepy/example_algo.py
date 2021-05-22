@@ -9,6 +9,7 @@ class tile:
     neighbours: list  # of tiles
 
 
+
 class dirichlet_tessellation:
 
     def __init__(self):
@@ -20,12 +21,9 @@ class dirichlet_tessellation:
             self.tiles.append(tile(p, []))
             return
 
-        min_idx = np.argmin([np.linalg.norm(p - t.center) for t in self.tiles])
-        nearest_tile = self.tiles[min_idx]
-        p_tile = tile(center=p, neighbours=[])
-        nearest_tile.neighbours.append(p_tile)
-        p_tile.neighbours.append(nearest_tile)
-        self.tiles.append(p_tile)
+        nearest_p = min(self.tiles2.keys(), key=lambda t: np.linalg.norm(t - p))
+        self.tiles2[p] = [nearest_p]
+        self.tiles2[nearest_p].append(p)
 
         # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_tile
         self.valid_triangulation.append((p, nearest_tile.center))
@@ -55,7 +53,6 @@ class dirichlet_tessellation:
                 self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
                 self.update_neighbour()
 
-
     @staticmethod
     def _angle(edge1, edge2):
         return abs(180 / np.pi * (np.arctan((edge1[1][1] - edge1[0][1]) / (edge1[1][0] - edge1[0][0]))
@@ -68,7 +65,8 @@ class dirichlet_tessellation:
     def update_neighbour(self, p_new, p_neighbour, p_out_1, p_out_2):
         ...
 
-    def replace_valid_triangulation(self, old_pair: Tuple[np.ndarray, np.ndarray], new_pair: Tuple[np.ndarray, np.ndarray]):
+    def replace_valid_triangulation(self, old_pair: Tuple[np.ndarray, np.ndarray],
+                                    new_pair: Tuple[np.ndarray, np.ndarray]):
         # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
         # The list comprehension will always just have a single element matching the condition
         self.valid_triangulation.remove(*[x for x in self.valid_triangulation if set(*x) == {*old_pair}])
