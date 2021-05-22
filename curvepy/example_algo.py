@@ -54,24 +54,14 @@ class dirichlet_tessellation:
                 # ((p, neighbour), (neighbour, collision_edge_p1)),
                 # ((p, neighbour), (neighbour, collision_edge_p1)),
                 # second triangle
-                (p, neighbour),
-                (p, collision_edge_p2),
-                (neighbour, collision_edge_p2)
-
-                # ((p, neighbour), (p, collision_edge_p2)),
-                # ((p, collision_edge_p2), (neighbour, collision_edge_p2)),
-                # ((p, neighbour), (neighbour, collision_edge_p2))
+                self.get_all_edgepairs(p, neighbour, collision_edge_p2)
             )
 
             old_triangles = (
                 # first triangle
-                ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, p)),
-                ((collision_edge_p1, p), (collision_edge_p2, p)),
-                ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, p)),
+                self.get_all_edgepairs(collision_edge_p1, collision_edge_p2, p),
                 # second triangle
-                ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, neighbour)),
-                ((collision_edge_p1, neighbour), (collision_edge_p2, neighbour)),
-                ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, neighbour))
+                self.get_all_edgepairs(collision_edge_p1, collision_edge_p2, neighbour)
             )
 
             rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
