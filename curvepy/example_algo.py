@@ -45,19 +45,8 @@ class dirichlet_tessellation:
             # More than 1 collision is always not the best possible triangulation TODO is that true? Yesn't
 
         for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
-            new_triangles = (
-                # first triangle
-                self.get_all_edgepairs(p, neighbour, collision_edge_p1),
-                # second triangle
-                self.get_all_edgepairs(p, neighbour, collision_edge_p2)
-            )
-
-            old_triangles = (
-                # first triangle
-                self.get_all_edgepairs(collision_edge_p1, collision_edge_p2, p),
-                # second triangle
-                self.get_all_edgepairs(collision_edge_p1, collision_edge_p2, neighbour)
-            )
+            new_triangles = (self.get_all_edgepairs(p, neighbour, e) for e in [collision_edge_p1, collision_edge_p2])
+            old_triangles = (self.get_all_edgepairs(collision_edge_p1, collision_edge_p2, e) for e in [p, neighbour])
 
             rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
             new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
