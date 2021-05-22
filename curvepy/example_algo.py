@@ -1,3 +1,4 @@
+import pprint
 import numpy as np
 from typing import List, Set, Union, Dict, Tuple
 
@@ -60,15 +61,18 @@ class dirichlet_tessellation:
     def get_all_edge_pairs(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray):
         return [(p1, p2), (p2, p3), (p1, p3)]
 
-    def update_neighbour(self, p_new, p_neighbour, p_out_1, p_out_2):
-        ...
+    def update_neighbour(self, p_new, p_neighbour, p_rem_1, p_rem_2):
+        self.tiles[p_rem_1].remove(p_rem_2)
+        self.tiles[p_rem_2].remove(p_rem_1)
+        self.tiles[p_new].add(p_neighbour)
+        self.tiles[p_neighbour].add(p_new)
 
     def replace_valid_triangulation(self, old_pair: Tuple[np.ndarray, np.ndarray],
                                     new_pair: Tuple[np.ndarray, np.ndarray]):
         # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
         # The list comprehension will always just have a single element matching the condition
         self.valid_triangulation.remove(*[x for x in self.valid_triangulation if set(*x) == {*old_pair}])
-        self.valid_triangulation.append(new_pair)
+        self.valid_triangulation.add(new_pair)
 
     @staticmethod
     def _intersect(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
@@ -84,3 +88,13 @@ class dirichlet_tessellation:
             return False
         # we divide with z to turn back to 2D space
         return True
+
+
+if __name__ == '__main__':
+    pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
+    d = dirichlet_tessellation()
+
+    for p in pts:
+        d.append_point(p)
+
+    pprint.pprint(d.valid_triangulation)
