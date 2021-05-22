@@ -1,24 +1,16 @@
-from dataclasses import dataclass
 import numpy as np
 from typing import List, Set, Union, Dict, Tuple
-
-
-@dataclass
-class tile:
-    center: np.ndarray  # 2D float
-    neighbours: list  # of tiles
-
 
 
 class dirichlet_tessellation:
 
     def __init__(self):
-        self.tiles: List[tile] = []
+        self.tiles2: Dict[np.ndarray, List[np.ndarray]] = {}
         self.valid_triangulation: List[Tuple[np.ndarray, np.ndarray]] = []
 
     def append_point(self, p: np.ndarray):
-        if not self.tiles:
-            self.tiles.append(tile(p, []))
+        if not self.tiles2:
+            self.tiles2[p] = []
             return
 
         nearest_p = min(self.tiles2.keys(), key=lambda t: np.linalg.norm(t - p))
@@ -36,8 +28,8 @@ class dirichlet_tessellation:
             if len(all_collisions) == 0:
                 self.valid_triangulation.append((p, neighbour.center))
                 # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
-                neighbour.neighbours.append(p_tile)
-                p_tile.neighbours.append(neighbour)
+                self.tiles2[neighbour].append(p)
+                self.tiles2[p].append(neighbour)
             elif len(all_collisions) == 1:
                 # 1 collision could be still fine
                 collisions_to_check.append([p, neighbour.center, *all_collisions[0]])
