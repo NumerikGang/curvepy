@@ -25,8 +25,8 @@ class dirichlet_tessellation:
             self.tiles[p] = set()
             return
 
-        nearest_p = min(self.tiles.keys(), key=lambda t: np.linalg.norm(t - p))
-        self.tiles[p] = {nearest_p}
+        nearest_p = min(self.tiles.keys(), key=lambda t: np.linalg.norm(t.data - p.data))
+        self.tiles[h_tuple(p)] = {nearest_p}
         self.tiles[nearest_p].add(p)
 
         # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_p
@@ -69,7 +69,7 @@ class dirichlet_tessellation:
                                   - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))
 
     @staticmethod
-    def get_all_edge_pairs(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray):
+    def get_all_edge_pairs(p1: h_tuple, p2: h_tuple, p3: h_tuple):
         return [(p1, p2), (p2, p3), (p1, p3)]
 
     def update_neighbour(self, p_new: h_tuple, p_neighbour: h_tuple, p_rem_1: h_tuple, p_rem_2: h_tuple):
