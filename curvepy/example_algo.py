@@ -1,15 +1,26 @@
 import pprint
 import numpy as np
-from typing import List, Set, Union, Dict, Tuple
+from typing import List, Set, Dict, Tuple
+
+class h_tuple:
+    def __init__(self, xs):
+        self.data: np.ndarray = xs
+
+    def __hash__(self):
+        return hash((self.data[0], self.data[1]))
+
+    def __iter__(self):
+        return iter(self.data)
 
 
 class dirichlet_tessellation:
 
     def __init__(self):
-        self.tiles: Dict[np.ndarray, Set[np.ndarray]] = {}
-        self.valid_triangulation: Set[Tuple[np.ndarray, np.ndarray]] = set()
+        self.tiles: Dict[h_tuple, Set[h_tuple]] = {}
+        self.valid_triangulation: Set[Tuple[h_tuple, h_tuple]] = set()
 
     def append_point(self, p: np.ndarray):
+        p = h_tuple(p)
         if not self.tiles:
             self.tiles[p] = set()
             return
@@ -61,7 +72,7 @@ class dirichlet_tessellation:
     def get_all_edge_pairs(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray):
         return [(p1, p2), (p2, p3), (p1, p3)]
 
-    def update_neighbour(self, p_new, p_neighbour, p_rem_1, p_rem_2):
+    def update_neighbour(self, p_new: h_tuple, p_neighbour: h_tuple, p_rem_1: h_tuple, p_rem_2: h_tuple):
         self.tiles[p_rem_1].remove(p_rem_2)
         self.tiles[p_rem_2].remove(p_rem_1)
         self.tiles[p_new].add(p_neighbour)
@@ -77,7 +88,7 @@ class dirichlet_tessellation:
     @staticmethod
     def _intersect(p1: h_tuple, p2: h_tuple, p3: h_tuple, p4: h_tuple) -> bool:
         # First we vertical stack the points in an array
-        vertical_stack = np.vstack([p1, p2, p3, p4])
+        vertical_stack = np.vstack([p1.data, p2.data, p3.data, p4.data])
         # Then we transform them to homogeneous coordinates, to perform a little trick
         homogeneous = np.hstack((vertical_stack, np.ones((4, 1))))
         # having our points in this form we can get the lines through the cross product
@@ -98,3 +109,6 @@ if __name__ == '__main__':
         d.append_point(p)
 
     pprint.pprint(d.valid_triangulation)
+
+    hash = lambda n: hash((*n))
+    np.ndarray
