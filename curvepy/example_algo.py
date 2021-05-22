@@ -47,12 +47,7 @@ class dirichlet_tessellation:
         for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
             new_triangles = (
                 # first triangle
-                (p, neighbour),
-                (p, collision_edge_p1),
-                (neighbour, collision_edge_p1),
-                # ((p, neighbour), (p, collision_edge_p1)),
-                # ((p, neighbour), (neighbour, collision_edge_p1)),
-                # ((p, neighbour), (neighbour, collision_edge_p1)),
+                self.get_all_edgepairs(p, neighbour, collision_edge_p1),
                 # second triangle
                 self.get_all_edgepairs(p, neighbour, collision_edge_p2)
             )
