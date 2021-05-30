@@ -108,7 +108,7 @@ if __name__ == '__main__':
     for p in pts:
         d.append_point(p)
 
-    pprint.pprint(d.valid_triangulation)
+    print(d.valid_triangulation)
 
     hash = lambda n: hash((*n))
     np.ndarray
