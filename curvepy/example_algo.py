@@ -39,6 +39,7 @@ class dirichlet_tessellation:
         # To make a more educated guess we solve any collisions __after__ adding the trivial connections
         while True:
             collisions_to_check = []
+            # print(f"collisions_to_check: {collisions_to_check}")
 
             for neighbour in self.tiles[nearest_p]:
                 if all(x == y for x, y in zip(p, neighbour)):
