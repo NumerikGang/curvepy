@@ -7,6 +7,9 @@ class h_tuple(np.ndarray):
     def __hash__(self):
         return hash(tuple(self))
 
+    def __eq__(self, other):
+        return len(self) == len(other) and all(x == y for x, y in zip(self, other))
+
     @staticmethod
     def create(xs: Iterable):
         return np.array(xs, dtype=np.float32).view(h_tuple)
