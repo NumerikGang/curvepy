@@ -9,7 +9,8 @@ class h_tuple(np.ndarray):
 
     @staticmethod
     def create(xs: Iterable):
-        return np.array(xs).view(h_tuple)
+        print("xd",xs)
+        return np.array(xs, dtype=np.float32).view(h_tuple)
 
 
 class dirichlet_tessellation:
@@ -40,7 +41,9 @@ class dirichlet_tessellation:
                 print(neighbour)
                 if all(x == y for x, y in zip(p, neighbour)):
                     continue
+                print("b4")
                 all_collisions = [x for x in self.valid_triangulation if self.intersect(neighbour, p, *x)]
+                print("after (no homo)")
                 if not all_collisions:
                     self.valid_triangulation.add((p, neighbour))
                     # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
@@ -87,7 +90,7 @@ class dirichlet_tessellation:
                                     new_pair: Tuple[h_tuple, h_tuple]):
         # dann kante col_edge_p2 - col_edge_p1 entfernen und kante p - neighbour hinzufügen
         # The list comprehension will always just have a single element matching the condition
-        self.valid_triangulation.remove(*[x for x in self.valid_triangulation if set(*x) == {*old_pair}])
+        self.valid_triangulation.remove(*[x for x in self.valid_triangulation if set(x) == set(old_pair)])
         self.valid_triangulation.add(new_pair)
 
     @staticmethod
@@ -100,8 +103,9 @@ class dirichlet_tessellation:
         line_1, line_2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
         # when we calculate the cross product of the lines we get intersect point
         x, y, z = np.cross(line_1, line_2)
-        if z == 0:
-            return False
+        print(f"{h_tuple.create([x/z, y/z])} und die Punkte sind: {p1}, {p2}, {p3}, {p4}")
+        # print([(h_tuple.create([x/z, y/z]), x) for x in [p1, p2, p3, p4]])
+        return not (z == 0 or any([x/z == p[0] and y/z == p[1] for p in [p1, p2, p3, p4]]))
         # we divide with z to turn back to 2D space
 
 
