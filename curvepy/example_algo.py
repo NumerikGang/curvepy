@@ -9,7 +9,6 @@ class h_tuple(np.ndarray):
 
     @staticmethod
     def create(xs: Iterable):
-        print("xd",xs)
         return np.array(xs, dtype=np.float32).view(h_tuple)
 
 
@@ -32,6 +31,8 @@ class dirichlet_tessellation:
         # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_p
         self.valid_triangulation.add((p, nearest_p))
 
+        garbage_heap = []
+
         # To make a more educated guess we solve any collisions __after__ adding the trivial connections
         while True:
             collisions_to_check = []
@@ -39,10 +40,11 @@ class dirichlet_tessellation:
             for neighbour in self.tiles[nearest_p]:
                 if all(x == y for x, y in zip(p, neighbour)):
                     continue
-                print("b4")
-                all_collisions = [x for x in self.valid_triangulation if self.intersect(neighbour, p, *x)]
-                print("after (no homo)")
-                if not all_collisions:
+                # print("b4")
+                all_collisions = [x for x in self.valid_triangulation if self.intersect(neighbour, p, *x)
+                                  and x not in garbage_heap and {neighbour, p} not in garbage_heap]
+                # print("after (no homo)")
+                if (not all_collisions) and ({p, neighbour} not in garbage_heap):
                     self.valid_triangulation.add((p, neighbour))
                     # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
                     self.tiles[neighbour].add(p)
@@ -83,6 +85,9 @@ class dirichlet_tessellation:
                 if new_is_more_equilateral:
                     self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
                     self.update_neighbour(p, neighbour, collision_edge_p1, collision_edge_p2)
+                    garbage_heap.append({collision_edge_p1, collision_edge_p2})
+                else:
+                    garbage_heap.append({p, neighbour})
 
     @staticmethod
     def _angle(edge1, edge2):
@@ -116,10 +121,23 @@ class dirichlet_tessellation:
         line_1, line_2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
         # when we calculate the cross product of the lines we get intersect point
         x, y, z = np.cross(line_1, line_2)
-        print(f"{h_tuple.create([x/z, y/z])} und die Punkte sind: {p1}, {p2}, {p3}, {p4}")
+        # print(f"{h_tuple.create([x/z, y/z])} und die Punkte sind: {p1}, {p2}, {p3}, {p4}")
         # print([(h_tuple.create([x/z, y/z]), x) for x in [p1, p2, p3, p4]])
-        return not (z == 0 or any([x/z == p[0] and y/z == p[1] for p in [p1, p2, p3, p4]]))
         # we divide with z to turn back to 2D space
+
+        # no intersection
+        if z == 0:
+            return False
+        intersection = h_tuple.create([x / z, y / z])
+        # if intersection is at one of the points
+        if any([intersection == p for p in [p1, p2, p3, p4]]):
+            return False
+        # if the intersection is in the convex space of both points we good (aka not on the line segment)
+        return dirichlet_tessellation.intersection_is_between(intersection, p1, p2)
+
+    @staticmethod
+    def intersection_is_between(intersection: h_tuple, p1: h_tuple, p2: h_tuple):
+        return abs(intersection - p1) + abs(intersection - p2) == abs(p2 - p1)
 
 
 if __name__ == '__main__':
@@ -128,7 +146,13 @@ if __name__ == '__main__':
     pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
     d = dirichlet_tessellation()
 
-    # print({2.0 == 2.})
+    # print(h_tuple.create([2,1]) == h_tuple.create([1, 2]))
+    # cords A, B, D, E
+    # Winkel altes dreieck1 = 108.44, 26.57, 45
+    # Winkel altes dreieck2 = 33.69, 112.62, 33.69
+
+    # Winkel neues dreieck1 = 49.4, 70.35, 60.26
+    # Winkel neues dreieck2 = 59.04, 78.69, 42.27
 
     for p in pts:
         d.append_point(p)
