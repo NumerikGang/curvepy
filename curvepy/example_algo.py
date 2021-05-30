@@ -61,11 +61,13 @@ class dirichlet_tessellation:
             if not collisions_to_check:
                 return
 
+            # Kantenpaare für rate_tri
             for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
                 new_triangles = (
                     # first triangle
                     ((p, neighbour), (p, collision_edge_p1)),
-                    ((p, neighbour), (neighbour, collision_edge_p1)),
+                    # ((p, neighbour), (neighbour, collision_edge_p1)), <- HEUTE REINKOPIERT
+                    ((p, collision_edge_p1), (neighbour, collision_edge_p1)),  # maybe jetzt die richtige kante?
                     ((p, neighbour), (neighbour, collision_edge_p1)),
                     # second triangle
                     ((p, neighbour), (p, collision_edge_p2)),
@@ -85,18 +87,37 @@ class dirichlet_tessellation:
                 )
 
                 rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
-                new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
+                a = rate_tri(old_triangles)
+                b = rate_tri(new_triangles)
+                new_is_more_equilateral = a > b
+                print(f"rate_tri(old_triangles) = {a}")
+                print(f"rate_tri(new_triangles) = {b}")
                 if new_is_more_equilateral:
                     self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
                     self.update_neighbour(p, neighbour, collision_edge_p1, collision_edge_p2)
                     garbage_heap.append({collision_edge_p1, collision_edge_p2})
                 else:
                     garbage_heap.append({p, neighbour})
+                print(f"garbage_heap = {garbage_heap}")
 
     @staticmethod
     def _angle(edge1, edge2):
-        return abs(180 / np.pi * (np.arctan((edge1[1][1] - edge1[0][1]) / (edge1[1][0] - edge1[0][0]))
-                                  - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))
+        print(f"edge1 = {edge1}, edge2 = {edge2}")
+        # print(f"(edge1[1][0] - edge1[0][0]) = {(edge1[1][0] - edge1[0][0])}")
+        # print(f"(edge2[1][0] - edge2[0][0]) = {(edge2[1][0] - edge2[0][0])}")
+        # print(f"_angle = {abs(180 / np.pi * (np.arctan((edge1[1][1] - edge1[0][1]) / (edge1[1][0] - edge1[0][0])) - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))}")
+        slope1 = dirichlet_tessellation.slope(edge1)
+        slope2 = dirichlet_tessellation.slope(edge2)
+        print(f"(180 / np.pi) * np.arctan(abs((slope2 - slope1)/(1 + slope1*slope2))) = {(180 / np.pi) * np.arctan(abs((slope2 - slope1)/(1 + slope1*slope2)))}")
+        return (180 / np.pi) * np.arctan(abs((slope2 - slope1)/(1 + slope1*slope2)))
+        # return abs(180 / np.pi * (np.arctan((edge1[1][1] - edge1[0][1]) / (edge1[1][0] - edge1[0][0]))
+        #                           - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))
+
+    @staticmethod
+    def slope(edge):
+        if edge[0][1] == edge[1][1]:
+            return 0
+        return (edge[0][0] - edge[1][0]) / (edge[0][1] - edge[1][1])
 
     @staticmethod
     def get_all_edge_pairs(p1: h_tuple, p2: h_tuple, p3: h_tuple):
@@ -160,6 +181,7 @@ if __name__ == '__main__':
 
     for p in pts:
         d.append_point(p)
+        print(f"d.valid_triangulation = {d.valid_triangulation}")
 
     print(d.valid_triangulation)
 
