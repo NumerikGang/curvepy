@@ -19,13 +19,13 @@ class dirichlet_tessellation:
         self.valid_triangulation: Set[Tuple[h_tuple, h_tuple]] = set()
 
     def append_point(self, p: np.ndarray):
-        p = h_tuple(p)
+        p = h_tuple.create(p)
         if not self.tiles:
             self.tiles[p] = set()
             return
 
-        nearest_p = min(self.tiles.keys(), key=lambda t: np.linalg.norm(t.data - p.data))
-        self.tiles[h_tuple(p)] = {nearest_p}
+        nearest_p = min(self.tiles.keys(), key=lambda t: np.linalg.norm(t - p))
+        self.tiles[p] = {nearest_p}
         self.tiles[nearest_p].add(p)
 
         # ERSTELLE TRIANGULATION ZWISCHEN p UND nearest_p
@@ -36,7 +36,11 @@ class dirichlet_tessellation:
             collisions_to_check = []
 
             for neighbour in self.tiles[nearest_p]:
-                all_collisions = [x for x in self.valid_triangulation if self._intersect(neighbour, p, *x)]
+                print(p)
+                print(neighbour)
+                if all(x == y for x, y in zip(p, neighbour)):
+                    continue
+                all_collisions = [x for x in self.valid_triangulation if self.intersect(neighbour, p, *x)]
                 if not all_collisions:
                     self.valid_triangulation.add((p, neighbour))
                     # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
@@ -87,7 +91,7 @@ class dirichlet_tessellation:
         self.valid_triangulation.add(new_pair)
 
     @staticmethod
-    def _intersect(p1: h_tuple, p2: h_tuple, p3: h_tuple, p4: h_tuple) -> bool:
+    def intersect(p1: h_tuple, p2: h_tuple, p3: h_tuple, p4: h_tuple) -> bool:
         # First we vertical stack the points in an array
         vertical_stack = np.vstack([p1, p2, p3, p4])
         # Then we transform them to homogeneous coordinates, to perform a little trick
@@ -103,6 +107,8 @@ class dirichlet_tessellation:
 
 
 if __name__ == '__main__':
+    #xs = [h_tuple.create(x) for x in ((1,2), (3,4), (1,4), (3,6)) ]
+    #print(dirichlet_tessellation.intersect(*xs))
     pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
     d = dirichlet_tessellation()
 
@@ -111,5 +117,5 @@ if __name__ == '__main__':
 
     print(d.valid_triangulation)
 
-    hash = lambda n: hash((*n))
-    np.ndarray
+    # hash = lambda n: hash(())
+    # np.ndarray
