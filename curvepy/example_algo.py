@@ -1,16 +1,15 @@
 import pprint
 import numpy as np
-from typing import List, Set, Dict, Tuple
+from typing import List, Set, Dict, Tuple, Iterable
 
-class h_tuple:
-    def __init__(self, xs):
-        self.data: np.ndarray = xs
 
+class h_tuple(np.ndarray):
     def __hash__(self):
-        return hash((self.data[0], self.data[1]))
+        return hash(tuple(self))
 
-    def __iter__(self):
-        return iter(self.data)
+    @staticmethod
+    def create(xs: Iterable):
+        return np.array(xs).view(h_tuple)
 
 
 class dirichlet_tessellation:
@@ -41,6 +40,8 @@ class dirichlet_tessellation:
                 if not all_collisions:
                     self.valid_triangulation.add((p, neighbour))
                     # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
+                    print(self.tiles)
+                    print(self.tiles.get(neighbour) is None)
                     self.tiles[neighbour].add(p)
                     self.tiles[p].add(neighbour)
                 elif len(all_collisions) == 1:
@@ -88,7 +89,7 @@ class dirichlet_tessellation:
     @staticmethod
     def _intersect(p1: h_tuple, p2: h_tuple, p3: h_tuple, p4: h_tuple) -> bool:
         # First we vertical stack the points in an array
-        vertical_stack = np.vstack([p1.data, p2.data, p3.data, p4.data])
+        vertical_stack = np.vstack([p1, p2, p3, p4])
         # Then we transform them to homogeneous coordinates, to perform a little trick
         homogeneous = np.hstack((vertical_stack, np.ones((4, 1))))
         # having our points in this form we can get the lines through the cross product
