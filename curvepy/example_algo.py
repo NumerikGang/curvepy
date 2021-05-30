@@ -37,8 +37,6 @@ class dirichlet_tessellation:
             collisions_to_check = []
 
             for neighbour in self.tiles[nearest_p]:
-                print(p)
-                print(neighbour)
                 if all(x == y for x, y in zip(p, neighbour)):
                     continue
                 print("b4")
@@ -47,8 +45,6 @@ class dirichlet_tessellation:
                 if not all_collisions:
                     self.valid_triangulation.add((p, neighbour))
                     # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
-                    print(self.tiles)
-                    print(self.tiles.get(neighbour) is None)
                     self.tiles[neighbour].add(p)
                     self.tiles[p].add(neighbour)
                 elif len(all_collisions) == 1:
@@ -60,10 +56,27 @@ class dirichlet_tessellation:
                 return
 
             for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
-                new_triangles = (self.get_all_edge_pairs(p, neighbour, e) for e in
-                                 [collision_edge_p1, collision_edge_p2])
-                old_triangles = (self.get_all_edge_pairs(collision_edge_p1, collision_edge_p2, e) for e in
-                                 [p, neighbour])
+                new_triangles = (
+                    # first triangle
+                    ((p, neighbour), (p, collision_edge_p1)),
+                    ((p, neighbour), (neighbour, collision_edge_p1)),
+                    ((p, neighbour), (neighbour, collision_edge_p1)),
+                    # second triangle
+                    ((p, neighbour), (p, collision_edge_p2)),
+                    ((p, collision_edge_p2), (neighbour, collision_edge_p2)),
+                    ((p, neighbour), (neighbour, collision_edge_p2))
+                )
+
+                old_triangles = (
+                    # first triangle
+                    ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, p)),
+                    ((collision_edge_p1, p), (collision_edge_p2, p)),
+                    ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, p)),
+                    # second triangle
+                    ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, neighbour)),
+                    ((collision_edge_p1, neighbour), (collision_edge_p2, neighbour)),
+                    ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, neighbour))
+                )
 
                 rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
                 new_is_more_equilateral = rate_tri(old_triangles) > rate_tri(new_triangles)
