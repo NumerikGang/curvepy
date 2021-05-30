@@ -103,14 +103,15 @@ class dirichlet_tessellation:
         if z == 0:
             return False
         # we divide with z to turn back to 2D space
-        return True
 
 
 if __name__ == '__main__':
-    #xs = [h_tuple.create(x) for x in ((1,2), (3,4), (1,4), (3,6)) ]
-    #print(dirichlet_tessellation.intersect(*xs))
+    # xs = [h_tuple.create(x) for x in ((1,2), (3,4), (1,4), (3,6)) ]
+    # print(dirichlet_tessellation.intersect(*xs))
     pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
     d = dirichlet_tessellation()
+
+    # print({2.0 == 2.})
 
     for p in pts:
         d.append_point(p)
