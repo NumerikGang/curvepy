@@ -4,8 +4,8 @@ import itertools
 
 
 class Triangle:
-    def __init__(self, A: np.ndarray, B: np.ndarray, C: np.ndarray):
-        self.points = [np.array(x) for x in sorted([[*A], [*B], [*C]])]
+    def __init__(self, A: Tuple[float, float], B: Tuple[float, float], C: Tuple[float, float]):
+        self.points = sorted([A, B, C])
         self.area = self.calc_area(*A, *B, *C)
         self.circumcircle = self.calculate_circumcircle()
 
@@ -23,14 +23,14 @@ class Triangle:
         yu = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d
 
         lines = [[A, B], [B, C], [A, C]]
-        c, a, b = [np.linalg.norm(x - y) for x, y in lines]
+        c, a, b = [np.linalg.norm(np.array(x) - np.array(y)) for x, y in lines]
 
         R = (a * b * c) / (4 * self.area)
         return Circle(center=np.array([xu, yu]), radius=R)
 
-    def get_farthest_point_away_and_nearest_line_to(self, pt: np.ndarray):
+    def get_farthest_point_away_and_nearest_line_to(self, pt):
         points = self.points.copy()
-        farthest_p = self.points[np.argmax([np.linalg.norm(x - pt) for x in points])]
+        farthest_p = self.points[np.argmax([np.linalg.norm(np.array(x) - np.array(pt)) for x in points])]
         points.remove(farthest_p)
         return farthest_p, points
 
@@ -65,7 +65,7 @@ class Circle:
         self.radius = radius
 
     def point_in_me(self, pt: np.ndarray) -> bool:
-        return np.linalg.norm(pt - self.center) <= self.radius
+        return np.linalg.norm(np.array(pt) - self.center) <= self.radius
 
 
 class Delaunay_triangulation:
@@ -95,11 +95,12 @@ class Delaunay_triangulation:
         self.triangle_queue = self._triangles[-3:]
         pts = self.get_all_points()
         while self.triangle_queue:
+            #print(self.triangle_queue)
             t = self.triangle_queue.pop()
             for p in pts:
-                if t.check_if_point_is_in_points(p):
+                if p in t.points:
                     continue
-                if t.circumcircle.point_in_me(p):
+                if t.circumcircle.point_in_me(np.array(p)):
                     self.handle_point_in_circumcircle(t, p)
                     break
 
@@ -132,7 +133,7 @@ class Delaunay_triangulation:
         B_supert = np.array([self.xmax + (self.xmax - self.xmin) / 2, self.ymin])
         C_supert = self.intersect_lines(A_supert, A, B_supert, D)
 
-        return Triangle(A_supert, B_supert, C_supert)
+        return Triangle(tuple(A_supert), tuple(B_supert), tuple(C_supert))
 
     def intersect_lines(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray):
         """
@@ -191,8 +192,8 @@ class Delaunay_triangulation:
 
 if __name__ == '__main__':
     pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
-    d = Delaunay_triangulation(-100, 100, -100, 100)
+    d = Delaunay_triangulation(-10, 10, -10, 10)
     for p in pts:
-        d.add_point(p)
+        d.add_point(tuple(p))
 
     print(d.triangles)
