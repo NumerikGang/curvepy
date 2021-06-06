@@ -1,6 +1,7 @@
 import numpy as np
-from typing import List
+from typing import List, Tuple
 import itertools
+
 
 class Triangle:
     def __init__(self, A: np.ndarray, B: np.ndarray, C: np.ndarray):
@@ -33,7 +34,7 @@ class Triangle:
         points.remove(farthest_p)
         return farthest_p, points
 
-    def __contains__(self, pt: np.ndarray):
+    def __contains__(self, pt: Tuple[float, float]):
         """
         See: https://www.geeksforgeeks.org/check-whether-a-given-point-lies-inside-a-triangle-or-not/
         """
@@ -51,11 +52,11 @@ class Triangle:
         """
         return abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0)
 
-    def check_if_point_is_in_points(self, pt):
-        for p in self.points:
-            if [*p] == [*pt]:
-                return True
-        return False
+    def __str__(self):
+        return str(self.points)
+
+    def __repr__(self):
+        return str(self)
 
 
 class Circle:
@@ -81,9 +82,10 @@ class Delaunay_triangulation:
         return [t for t in self._triangles if rem_if(t)]
 
     def get_all_points(self):
-        return np.unique(np.array(sum([t.points for t in self._triangles], [])), axis=0)
+        return set(sum([t.points for t in self._triangles], []))
 
-    def add_point(self, pt: np.ndarray):
+    def add_point(self, pt: Tuple[float, float]):
+        print(f"pt:{pt}")
         if not self.is_in_range(pt):
             raise AssertionError("point not in predefined range")
         t = self.find_triangle_containing(pt)
@@ -173,9 +175,12 @@ class Delaunay_triangulation:
         return self.xmin <= pt[0] <= self.xmax and self.ymin <= pt[1] <= self.ymax
 
     def add_new_triangles(self, pt, t):
-        for a, b in itertools.product(t.points, t.points):
-            if [*a] != [*b]:
-                self._triangles.append(Triangle(a, b, pt))
+        for a,b in [[0,1],[0,2],[1,2]]:
+            self._triangles.append(Triangle(t.points[a], t.points[b], pt))
+        # print([*itertools.product(t.points, t.points)])
+        # for a, b in itertools.product(t.points, t.points):
+        #     if a != b:
+        #         self._triangles.append(Triangle(a, b, pt))
 
     def find_triangle_containing(self, pt) -> Triangle:
         for t in self._triangles:
