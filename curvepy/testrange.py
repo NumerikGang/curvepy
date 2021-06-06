@@ -7,6 +7,7 @@ class Triangle:
     def __init__(self, A: Tuple[float, float], B: Tuple[float, float], C: Tuple[float, float]):
         self.points = sorted([A, B, C])
         self.area = self.calc_area(*A, *B, *C)
+        print(self)
         self.circumcircle = self.calculate_circumcircle()
 
     def calculate_circumcircle(self):
@@ -95,7 +96,7 @@ class Delaunay_triangulation:
         self.triangle_queue = self._triangles[-3:]
         pts = self.get_all_points()
         while self.triangle_queue:
-            #print(self.triangle_queue)
+            # print(self.triangle_queue)
             t = self.triangle_queue.pop()
             for p in pts:
                 if p in t.points:
@@ -104,11 +105,30 @@ class Delaunay_triangulation:
                     self.handle_point_in_circumcircle(t, p)
                     break
 
+    def flip(self, current_t, p_in_circumcircle):
+        # Finde Dreieck, was aus p_in_circumcircle und 2 Punkten aus current_t besteht
+        triangle_with_problematic_edge = None
+        for t in self._triangles:
+            if p_in_circumcircle in t and sum([x in t for x in current_t.points]) == 2:
+                triangle_with_problematic_edge = t
+                break
+
+        if not triangle_with_problematic_edge:
+            raise AssertionError("DEBUG: ich bin doof")
+
+        # Edge herausfinden die blockiert
+        edge_to_remove = [*set(triangle_with_problematic_edge.points).intersection(set(current_t.points))]
+
+        # Punkt finden zum Verbinden mit p_in_circumcircle
+        point_to_connect_to = set(current_t.points).difference(edge_to_remove).pop()
+
+        return point_to_connect_to, edge_to_remove
+
     def handle_point_in_circumcircle(self, current_t, p_in_circumcircle):
-        farthest_pt, nearest_pts = current_t.get_farthest_point_away_and_nearest_line_to(p_in_circumcircle)
-        t1 = Triangle(p_in_circumcircle, farthest_pt, nearest_pts[0])
-        t2 = Triangle(p_in_circumcircle, farthest_pt, nearest_pts[1])
-        self.update_triangle_structures(t1, t2, nearest_pts)
+        point_to_connect_to, edge_to_remove = self.flip(current_t, p_in_circumcircle)
+        t1 = Triangle(p_in_circumcircle, point_to_connect_to, edge_to_remove[0])
+        t2 = Triangle(p_in_circumcircle, point_to_connect_to, edge_to_remove[1])
+        self.update_triangle_structures(t1, t2, edge_to_remove)
 
     def update_triangle_structures(self, t1_new, t2_new, removed_line):
         triangles_to_remove = [t for t in self._triangles if
@@ -176,7 +196,7 @@ class Delaunay_triangulation:
         return self.xmin <= pt[0] <= self.xmax and self.ymin <= pt[1] <= self.ymax
 
     def add_new_triangles(self, pt, t):
-        for a,b in [[0,1],[0,2],[1,2]]:
+        for a, b in [[0, 1], [0, 2], [1, 2]]:
             self._triangles.append(Triangle(t.points[a], t.points[b], pt))
         # print([*itertools.product(t.points, t.points)])
         # for a, b in itertools.product(t.points, t.points):
