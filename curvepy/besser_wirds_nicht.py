@@ -1,16 +1,9 @@
 import numpy as np
-from math import sqrt
 import random as rd
 from functools import cached_property
 from typing import List, Tuple, Any
 from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
-
-"""
-TODO: Dimension Checks
-TODO: Tests
-TODO: Voronoi
-"""
 
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
@@ -121,7 +114,7 @@ class DelaunayTriangulation2D:
         # └────────────────────────────────┴
         # Those 2 are called the "supertriangles" in most literature
 
-        # for easier calculation
+        # np.array for easier calculation
         center = np.array(center)
         base_rectangle = [center + radius * np.array([i, j]) for i, j in [(-1, -1), (1, -1), (1, 1), (-1, 1)]]
         lower_left, lower_right, upper_right, upper_left = [tuple(x) for x in base_rectangle]
@@ -132,24 +125,31 @@ class DelaunayTriangulation2D:
     def add_point(self, p: Point2D):
         bad_triangles = [tri for tri in self._triangles if p in tri.circumcircle]
 
-        polygon = []
-        for bad_triangle in bad_triangles:
-            # An edge is part of the boundary iff it doesn't is not part of another bad triangle
-            other_bad_triangles = list(bad_triangles)
-            other_bad_triangles.remove(bad_triangle)
-            for edge in bad_triangle.edges:
-                if all(edge not in other.edges for other in other_bad_triangles):
-                    polygon.append(edge)
-
-        # set() works since all edges are ordered, we don't care about the order and tuples are hashable
-        polygon = list(set(polygon))
+        # An edge is part of the boundary iff it doesn't is not part of another bad triangle
+        boundaries = self._find_edges_only_used_by_a_single_triangle(bad_triangles)
 
         # remove all bad ones
         for tri in bad_triangles:
             self._triangles.remove(tri)
-
-        for edge in polygon:
+        # Replace the hole with the boundaries and our new point
+        for edge in boundaries:
             self._triangles.append(Triangle(p, *edge))
+
+    @staticmethod
+    def _find_edges_only_used_by_a_single_triangle(triangles, no_duplicates=True):
+        ret = []
+        for triangle in triangles:
+            others = list(triangles)
+            others.remove(triangle)
+            for edge in triangle.edges:
+                if all(edge not in other.edges for other in others):
+                    ret.append(edge)
+
+        # set() works since all edges are ordered, we don't care about the order and tuples are hashable
+        if no_duplicates:
+            ret = list(set(ret))
+
+        return ret
 
 
 if __name__ == '__main__':
@@ -170,6 +170,6 @@ if __name__ == '__main__':
     axis[1].set_title("scipy")
     points = np.array([list(x) for x in pts])
     scipy_tri = Delaunay(pts)
-    axis[1].triplot(points[:,0], points[:,1], scipy_tri.simplices)
-    axis[1].plot(points[:,0], points[:,1], 'o')
+    axis[1].triplot(points[:, 0], points[:, 1], scipy_tri.simplices)
+    axis[1].plot(points[:, 0], points[:, 1], 'o')
     plt.show()
