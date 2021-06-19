@@ -40,61 +40,15 @@ class dirichlet_tessellation:
 
         # To make a more educated guess we solve any collisions __after__ adding the trivial connections
         while True:
-            collisions_to_check = []
-            # print(f"collisions_to_check: {collisions_to_check}")
-
-            for neighbour in self.tiles[nearest_p]:
-                if all(x == y for x, y in zip(p, neighbour)):
-                    continue
-
-                all_collisions = [x for x in self.valid_triangulation if self.intersect(neighbour, p, *x)
-                                  and x not in garbage_heap and {neighbour, p} not in garbage_heap]
-                # print(f"all_collisions = {all_collisions}")
-                if (not all_collisions) and ({p, neighbour} not in garbage_heap):
-                    # print(f"p wenn keine collisions = {p}")
-                    # print(f"neighbour wenn keine collisions = {neighbour}")
-                    self.valid_triangulation.add((p, neighbour))
-                    # TODO das muss auch unten gemacht werden wenn die neuen Dreiecke cooler sind
-                    self.tiles[neighbour].add(p)
-                    self.tiles[p].add(neighbour)
-                elif len(all_collisions) == 1:
-                    # 1 collision could be still fine
-                    collisions_to_check.append([p, neighbour, *all_collisions[0]])
-                # More than 1 collision is always not the best possible triangulation TODO Is that true? Probably not ;)
+            collisions_to_check, garbage_heap = self.calculate_collisions(p, nearest_p, garbage_heap)
 
             if not collisions_to_check:
                 return
 
             for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
-                new_triangles2 = (
-                    (p, neighbour, collision_edge_p1),
-                    (p, neighbour, collision_edge_p2)
-                )
-                old_triangles2 = (
-                    (p, collision_edge_p1, collision_edge_p2),
-                    (neighbour, collision_edge_p1, collision_edge_p2)
-                )
+                new_triangles, old_triangles = self.create_triangles(p, neighbour, collision_edge_p1, collision_edge_p2)
 
-                print(f"p = {p}")
-                print(f"neighbour = {neighbour}")
-                print(f"collision_edge_p1 = {collision_edge_p1}")
-                print(f"collision_edge_p2 = {collision_edge_p2}")
-
-                angle_list_new_triangle = self._angles_in_triangle(new_triangles2[0])
-                # print(f"angle_list_new_triangle = {angle_list_new_triangle}")
-                angle_rating_new_triangle = sum(abs(60 - angle) for angle in angle_list_new_triangle)
-                angle_list_new_triangle = self._angles_in_triangle(new_triangles2[1])
-                angle_rating_new_triangle += sum(abs(60 - angle) for angle in angle_list_new_triangle)
-                # print(f"angle_rating_new_triangle = {angle_rating_new_triangle}")
-
-                angle_list_old_triangle = self._angles_in_triangle(old_triangles2[0])
-                # print(f"angle_list_old_triangle = {angle_list_old_triangle}")
-                angle_rating_old_triangle = sum(abs(60 - angle) for angle in angle_list_old_triangle)
-                angle_list_old_triangle = self._angles_in_triangle(old_triangles2[1])
-                angle_rating_old_triangle += sum(abs(60 - angle) for angle in angle_list_old_triangle)
-                # print(f"angle_rating_new_triangle = {angle_rating_old_triangle}")
-
-                new_is_more_equilateral = angle_rating_old_triangle > angle_rating_new_triangle
+                new_is_more_equilateral = self.calculate_triangle_rating(old_triangles) > self.calculate_triangle_rating(new_triangles)
 
                 if new_is_more_equilateral:
                     self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
@@ -243,8 +197,8 @@ class dirichlet_tessellation:
 if __name__ == '__main__':
     # xs = [h_tuple.create(x) for x in ((1,2), (3,4), (1,4), (3,6)) ]
     # print(dirichlet_tessellation.intersect(*xs))
-    pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
-    d = dirichlet_tessellation()
+    # pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
+    # d = dirichlet_tessellation()
 
     # print(h_tuple.create([2,1]) == h_tuple.create([1, 2]))
     # cords A, B, D, E
@@ -254,12 +208,12 @@ if __name__ == '__main__':
     # Winkel neues dreieck1 = 49.4, 70.35, 60.26
     # Winkel neues dreieck2 = 59.04, 78.69, 42.27
 
-    for p in pts:
-        d.append_point(p)
-        print(f"d.valid_triangulation = {d.valid_triangulation}")
-
-    print(f"finale d.valid_triangulation = {d.valid_triangulation}")
-    print(f"len(d.valid_triangulation = {len(d.valid_triangulation)}")
+    # for p in pts:
+    #     d.append_point(p)
+    #     print(f"d.valid_triangulation = {d.valid_triangulation}")
+    #
+    # print(f"finale d.valid_triangulation = {d.valid_triangulation}")
+    # print(f"len(d.valid_triangulation = {len(d.valid_triangulation)}")
 
     # hash = lambda n: hash(())
     # np.ndarray
