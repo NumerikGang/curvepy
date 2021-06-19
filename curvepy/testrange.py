@@ -60,6 +60,11 @@ class Triangle:
     def __repr__(self):
         return str(self)
 
+    def __eq__(self, other):
+        if not isinstance(other, Triangle):
+            return False
+        return self.points == other.points
+
 
 class Circle:
     def __init__(self, center: np.ndarray, radius: float):
@@ -68,6 +73,11 @@ class Circle:
 
     def point_in_me(self, pt: np.ndarray) -> bool:
         return np.linalg.norm(np.array(pt) - self.center) <= self.radius
+
+    def __eq__(self, other):
+        if not isinstance(other, Circle):
+            return False
+        return self.center == other.center and self.radius == other.radius
 
 
 class Delaunay_triangulation:
@@ -81,7 +91,7 @@ class Delaunay_triangulation:
     def triangles(self):
         # We have to remove everything containing vertices of the supertriangle
         rem_if = lambda t: any(pt in t.points for pt in self.supertriangle.points)
-        return [t for t in self._triangles if rem_if(t)]
+        return [t for t in self._triangles if not rem_if(t)]
 
     def get_all_points(self):
         return set(sum([t.points for t in self._triangles], []))

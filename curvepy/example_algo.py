@@ -1,4 +1,5 @@
 import pprint
+import random
 import numpy as np
 from typing import List, Set, Dict, Tuple, Iterable
 
@@ -50,12 +51,25 @@ class dirichlet_tessellation:
 
                 new_is_more_equilateral = self.calculate_triangle_rating(old_triangles) > self.calculate_triangle_rating(new_triangles)
 
-                if new_is_more_equilateral:
-                    self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
-                    self.update_neighbour(p, neighbour, collision_edge_p1, collision_edge_p2)
-                    garbage_heap.append({collision_edge_p1, collision_edge_p2})
-                else:
-                    garbage_heap.append({p, neighbour})
+                self.update(new_is_more_equilateral, garbage_heap, p, neighbour, collision_edge_p1, collision_edge_p2)
+
+    def update(self, new_is_more_equilateral, garbage_heap, p1, p2, p3, p4):
+        if new_is_more_equilateral:
+            self.replace_valid_triangulation((p3, p4), (p1, p2))
+            self.update_neighbour(p1, p2, p3, p4)
+            garbage_heap.append({p3, p4})
+        else:
+            garbage_heap.append({p1, p2})
+
+    def calculate_triangle_rating(self, triangles):
+        rating = 0
+        for t in triangles:
+            rating += sum(abs(60 - angle) for angle in self._angles_in_triangle(t))
+
+        return rating
+
+    def create_triangles(self, p1, p2, p3, p4):
+        return ((p1, p2, p3), (p1, p2, p4)), ((p1, p2, p4), (p2, p3, p4))
 
             # Kantenpaare für rate_tri
             # for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
@@ -114,12 +128,12 @@ class dirichlet_tessellation:
         # law of cosine
         # https://en.wikipedia.org/wiki/Solution_of_triangles
 
-        a = np.linalg.norm(triangle[1]-triangle[2])
-        b = np.linalg.norm(triangle[0]-triangle[1])
-        c = np.linalg.norm(triangle[2]-triangle[0])
+        a = np.linalg.norm(triangle[1] - triangle[2])
+        b = np.linalg.norm(triangle[0] - triangle[1])
+        c = np.linalg.norm(triangle[2] - triangle[0])
 
-        alpha = (180 / np.pi) * np.arccos((b**2+c**2-a**2)/(2*b*c))
-        beta = (180 / np.pi) * np.arccos((a**2+c**2-b**2)/(2*a*c))
+        alpha = (180 / np.pi) * np.arccos((b ** 2 + c ** 2 - a ** 2) / (2 * b * c))
+        beta = (180 / np.pi) * np.arccos((a ** 2 + c ** 2 - b ** 2) / (2 * a * c))
         gamma = 180 - alpha - beta
 
         return [alpha, beta, gamma]
@@ -195,6 +209,23 @@ class dirichlet_tessellation:
 
 
 if __name__ == '__main__':
+    _min, _max = -10, 10
+    n = 7
+    points = np.array([np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))])
+    np.save('last_run.npy', points)
+    tri = Delaunay(points)
+    plt.triplot(points[:, 0], points[:, 1], tri.simplices)
+    plt.plot(points[:, 0], points[:, 1], 'o')
+    plt.show()
+
+    d = dirichlet_tessellation()
+
+    for p in points:
+        d.append_point(p)
+
+    print(f"finale d.valid_triangulation = {d.valid_triangulation}")
+    print(f"len(d.valid_triangulation = {len(d.valid_triangulation)}")
+
     # xs = [h_tuple.create(x) for x in ((1,2), (3,4), (1,4), (3,6)) ]
     # print(dirichlet_tessellation.intersect(*xs))
     # pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
