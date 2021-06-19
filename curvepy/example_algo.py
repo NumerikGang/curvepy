@@ -2,6 +2,8 @@ import pprint
 import random
 import numpy as np
 from typing import List, Set, Dict, Tuple, Iterable
+from scipy.spatial import Delaunay
+import matplotlib.pyplot as plt
 
 
 class h_tuple(np.ndarray):
@@ -71,57 +73,25 @@ class dirichlet_tessellation:
     def create_triangles(self, p1, p2, p3, p4):
         return ((p1, p2, p3), (p1, p2, p4)), ((p1, p2, p4), (p2, p3, p4))
 
-            # Kantenpaare für rate_tri
-            # for p, neighbour, collision_edge_p1, collision_edge_p2 in collisions_to_check:
-            #     new_triangles = (
-            #         # first triangle
-            #         ((p, neighbour), (p, collision_edge_p1)),
-            #         # ((p, neighbour), (neighbour, collision_edge_p1)), <- HEUTE REINKOPIERT
-            #         ((p, collision_edge_p1), (neighbour, collision_edge_p1)),  # maybe jetzt die richtige kante?
-            #         ((p, neighbour), (neighbour, collision_edge_p1)),
-            #         # second triangle
-            #         ((p, neighbour), (p, collision_edge_p2)),
-            #         ((p, collision_edge_p2), (neighbour, collision_edge_p2)),
-            #         ((p, neighbour), (neighbour, collision_edge_p2))
-            #     )
-            #
-            #     old_triangles = (
-            #         # first triangle
-            #         ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, p)),
-            #         ((collision_edge_p1, p), (collision_edge_p2, p)),
-            #         ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, p)),
-            #         # second triangle
-            #         ((collision_edge_p1, collision_edge_p2), (collision_edge_p1, neighbour)),
-            #         ((collision_edge_p1, neighbour), (collision_edge_p2, neighbour)),
-            #         ((collision_edge_p1, collision_edge_p2), (collision_edge_p2, neighbour))
-            #     )
-            #
-            #     rate_tri = lambda t: sum(abs(60 - self._angle(*a)) for a in t)
-            #     a = rate_tri(old_triangles)
-            #     b = rate_tri(new_triangles)
-            #     new_is_more_equilateral = a > b
-            #     print(f"rate_tri(old_triangles) = {a}")
-            #     print(f"rate_tri(new_triangles) = {b}")
-            #     if new_is_more_equilateral:
-            #         self.replace_valid_triangulation((collision_edge_p1, collision_edge_p2), (p, neighbour))
-            #         self.update_neighbour(p, neighbour, collision_edge_p1, collision_edge_p2)
-            #         garbage_heap.append({collision_edge_p1, collision_edge_p2})
-            #     else:
-            #         garbage_heap.append({p, neighbour})
-            #     print(f"garbage_heap = {garbage_heap}")
+    def calculate_collisions(self, p, nearest_p: h_tuple, garbage_heap):
+        collisions_to_check = []
+        # print(f"collisions_to_check: {collisions_to_check}")
 
-    @staticmethod
-    def _angle(edge1, edge2):
-        print(f"edge1 = {edge1}, edge2 = {edge2}")
-        # print(f"(edge1[1][0] - edge1[0][0]) = {(edge1[1][0] - edge1[0][0])}")
-        # print(f"(edge2[1][0] - edge2[0][0]) = {(edge2[1][0] - edge2[0][0])}")
-        # print(f"_angle = {abs(180 / np.pi * (np.arctan((edge1[1][1] - edge1[0][1]) / (edge1[1][0] - edge1[0][0])) - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))}")
-        slope1 = dirichlet_tessellation.slope(edge1)
-        slope2 = dirichlet_tessellation.slope(edge2)
-        print(f"(180 / np.pi) * np.arctan(abs((slope2 - slope1)/(1 + slope1*slope2))) = {(180 / np.pi) * np.arctan(abs((slope2 - slope1)/(1 + slope1*slope2)))}")
-        return (180 / np.pi) * np.arctan(abs((slope2 - slope1)/(1 + slope1*slope2)))
-        # return abs(180 / np.pi * (np.arctan((edge1[1][1] - edge1[0][1]) / (edge1[1][0] - edge1[0][0]))
-        #                           - np.arctan((edge2[1][1] - edge2[0][1]) / (edge2[1][0] - edge2[0][0]))))
+        for neighbour in self.tiles[nearest_p]:
+            if all(x == y for x, y in zip(p, neighbour)):
+                continue
+
+            all_collisions = [x for x in self.valid_triangulation if self.intersect(neighbour, p, *x)
+                              and x not in garbage_heap and {neighbour, p} not in garbage_heap]
+
+            if (not all_collisions) and ({p, neighbour} not in garbage_heap):
+                self.valid_triangulation.add((p, neighbour))
+                self.tiles[neighbour].add(p)
+                self.tiles[p].add(neighbour)
+            elif len(all_collisions) == 1:
+                collisions_to_check.append([p, neighbour, *all_collisions[0]])
+
+        return collisions_to_check, garbage_heap
 
     @staticmethod
     def _angles_in_triangle(triangle):
@@ -186,13 +156,7 @@ class dirichlet_tessellation:
         return dirichlet_tessellation.intersection_is_between(intersection, p1, p2, p3, p4)
 
     @staticmethod
-    def intersection_is_between(intersection: h_tuple, p1: h_tuple, p2: h_tuple, p3, p4):
-        # a = np.linalg.norm(intersection - p1) + np.linalg.norm(intersection - p2)
-        # b = np.linalg.norm(p2 - p1)
-        # c = a == b
-        # print(c)
-        # return c
-        # return abs(intersection - p1) + abs(intersection - p2) == abs(p2 - p1)
+    def intersection_is_between(intersection: h_tuple, p1: h_tuple, p2: h_tuple, p3: h_tuple, p4: h_tuple):
         seg1_max_x = max(p1[0], p2[0])
         seg1_min_x = min(p1[0], p2[0])
         seg1_max_y = max(p1[1], p2[1])
@@ -204,7 +168,6 @@ class dirichlet_tessellation:
         seg2_max_y = max(p3[1], p4[1])
         seg2_min_y = min(p3[1], p4[1])
         seg2 = seg2_min_x <= intersection[0] <= seg2_max_x and seg2_min_y <= intersection[1] <= seg2_max_y
-        # print("hello")
         return seg1 and seg2
 
 

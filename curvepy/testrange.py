@@ -240,6 +240,21 @@ class Delaunay_triangulation:
         # we divide with z to turn back to 2D space
         return np.array([x / z, y / z])
 
+    @staticmethod
+    def intersection_is_between(intersection, p1, p2, p3, p4):
+        seg1_max_x = max(p1[0], p2[0])
+        seg1_min_x = min(p1[0], p2[0])
+        seg1_max_y = max(p1[1], p2[1])
+        seg1_min_y = min(p1[1], p2[1])
+        seg1 = seg1_min_x < intersection[0] < seg1_max_x and seg1_min_y < intersection[1] < seg1_max_y
+
+        seg2_max_x = max(p3[0], p4[0])
+        seg2_min_x = min(p3[0], p4[0])
+        seg2_max_y = max(p3[1], p4[1])
+        seg2_min_y = min(p3[1], p4[1])
+        seg2 = seg2_min_x <= intersection[0] <= seg2_max_x and seg2_min_y <= intersection[1] <= seg2_max_y
+        return seg1 and seg2
+
     def is_in_range(self, pt):
         return self.xmin <= pt[0] <= self.xmax and self.ymin <= pt[1] <= self.ymax
 
