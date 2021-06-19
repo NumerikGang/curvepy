@@ -1,13 +1,14 @@
 import numpy as np
 from typing import List, Tuple
 import itertools
+import matplotlib.pyplot as plt
 
 
 class Triangle:
     def __init__(self, A: Tuple[float, float], B: Tuple[float, float], C: Tuple[float, float]):
         self.points = sorted([A, B, C])
         self.area = self.calc_area(*A, *B, *C)
-        print(self)
+        # print(self)
         self.circumcircle = self.calculate_circumcircle()
 
     def calculate_circumcircle(self):
@@ -89,23 +90,58 @@ class Delaunay_triangulation:
         print(f"pt:{pt}")
         if not self.is_in_range(pt):
             raise AssertionError("point not in predefined range")
-        t = self.find_triangle_containing(pt)
+        t = self.find_triangle_containing(pt)  # FUNKTIONIERT NICHT
+        print(f"in welchem dreieck ist {pt} = {t}")
         self.add_new_triangles(pt, t)
         self._triangles.remove(t)
         # new _triangles
         self.triangle_queue = self._triangles[-3:]
         pts = self.get_all_points()
         while self.triangle_queue:
-            # print(self.triangle_queue)
+            print(f"queue = {self.triangle_queue}")
             t = self.triangle_queue.pop()
+            print(f"t = {t}")
             deine_pt_liste = [p for p in pts if (p not in t.points) and (t.circumcircle.point_in_me(np.array(p)))]
-            # for p in pts:
-            #     if p in t.points:
-            #         continue
-            #     if t.circumcircle.point_in_me(np.array(p)):
-            #         self.handle_point_in_circumcircle(t, p)
-            #         break
+            print(f"deine_pt_liste = {deine_pt_liste}")
+            if not deine_pt_liste:
+                continue
+            print(f"es geht was kaputt")
+            t_new_1 = self.create_smallest_circumcircle_triangle(pt, deine_pt_liste + t.points)
+            t_new_2 = self.get_second_new_triangle(t_new_1, t, pt)
+            print(f"t_new_1 = {t_new_1}")
+            print(f"t_new_2 = {t_new_2}")
+            print(f"bevor: {self._triangles}")
+            self.remove_triangles(t, pt, t_new_1)
+            print(f"danach: {self._triangles}")
+            self._triangles.append(t_new_1)
+            self._triangles.append(t_new_2)
+            self.triangle_queue.append(t_new_1)
+            self.triangle_queue.append(t_new_2)
 
+    def remove_triangles(self, t, pt, t_new_1):
+        self._triangles.remove(t)  # WIR ENTFERNEN NUR EIN DREIECK ABER ES GIBT NOCH EIN ZWEITES DREIECK MIT DER KANTE
+        point_not_in_org_t = list(set(t_new_1.points).difference(set(t.points)))[0]
+        print(f"point_not_in_org_t = {point_not_in_org_t}")
+        point_not_in_t_new_1 = list(set(t.points).difference((set(t_new_1.points))))[0]
+        last_point = (0, 0)
+        # Wir haben 4 punkte und suchen den letzten den wir brauchen für das andere Dreieck um das zu löschen
+        for a in t.points+t_new_1.points:
+            print(f"a = {a}")
+            if a != pt and a != point_not_in_org_t and a != point_not_in_t_new_1:
+                last_point = a
+        to_rem = Triangle(point_not_in_org_t, point_not_in_t_new_1, last_point)
+        if to_rem in self._triangles:
+            self._triangles.remove(to_rem)
+
+    def get_second_new_triangle(self, t_new_1, t, pt):
+        point_not_in_org_t = list(set(t_new_1.points).difference(set(t.points)))[0]
+        point_not_in_t_new_1 = list(set(t.points).difference((set(t_new_1.points))))[0]
+        return Triangle(pt, point_not_in_t_new_1, point_not_in_org_t)
+
+    def create_smallest_circumcircle_triangle(self, pt, in_circle_pts):
+        xs = [Triangle(pt, a, b) for a in in_circle_pts for b in in_circle_pts if a != b and a != pt and b != pt]
+        # xs = sorted(xs, key=lambda t: t.circumcircle.radius)
+        return min(xs, key=lambda t: t.circumcircle.radius)
 
     def flip(self, current_t, p_in_circumcircle):
         # Finde Dreieck, was aus p_in_circumcircle und 2 Punkten aus current_t besteht
@@ -218,4 +254,12 @@ if __name__ == '__main__':
     for p in pts:
         d.add_point(tuple(p))
 
-    print(d.triangles)
+    for tri in d.triangles:
+        points = np.ravel(tri.points)
+        plt.triplot(points[0::2], points[1::2])
+
+    plt.show()
+
+    print(f"anz Dreiecke = {len(d.triangles)}")
+
+    # print(d.triangles)
