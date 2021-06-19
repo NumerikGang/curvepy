@@ -2,6 +2,8 @@ import numpy as np
 from typing import List, Tuple
 import itertools
 import matplotlib.pyplot as plt
+import random as rd
+from scipy.spatial import Delaunay
 
 
 class Triangle:
@@ -45,7 +47,8 @@ class Triangle:
         area1 = self.calc_area(x, y, x2, y2, x3, y3)
         area2 = self.calc_area(x1, y1, x, y, x3, y3)
         area3 = self.calc_area(x1, y1, x2, y2, x, y)
-        return self.area == area1 + area2 + area3
+        delta = 0.000000000000550  # das ist neu
+        return area1 + area2 + area3 - delta <= self.area <= area1 + area2 + area3 + delta
 
     @staticmethod
     def calc_area(x1, y1, x2, y2, x3, y3):
@@ -100,7 +103,7 @@ class Delaunay_triangulation:
         print(f"pt:{pt}")
         if not self.is_in_range(pt):
             raise AssertionError("point not in predefined range")
-        t = self.find_triangle_containing(pt)  # FUNKTIONIERT NICHT
+        t = self.find_triangle_containing(pt)
         print(f"in welchem dreieck ist {pt} = {t}")
         self.add_new_triangles(pt, t)
         self._triangles.remove(t)
@@ -135,11 +138,12 @@ class Delaunay_triangulation:
         point_not_in_t_new_1 = list(set(t.points).difference((set(t_new_1.points))))[0]
         last_point = (0, 0)
         # Wir haben 4 punkte und suchen den letzten den wir brauchen für das andere Dreieck um das zu löschen
-        for a in t.points+t_new_1.points:
-            print(f"a = {a}")
+        for a in t.points + t_new_1.points:
             if a != pt and a != point_not_in_org_t and a != point_not_in_t_new_1:
                 last_point = a
+                continue
         to_rem = Triangle(point_not_in_org_t, point_not_in_t_new_1, last_point)
+        print(f"to_rem = {to_rem}")
         if to_rem in self._triangles:
             self._triangles.remove(to_rem)
 
@@ -275,7 +279,17 @@ class Delaunay_triangulation:
 
 if __name__ == '__main__':
     pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
+    dein_min, dein_max = -5, 5
+    n = 7
+    pts = np.array([[rd.uniform(dein_min, dein_max), rd.uniform(dein_min, dein_max)] for _ in range(n)])
+
+    tri = Delaunay(pts)
+    plt.triplot(pts[:, 0], pts[:, 1], tri.simplices)
+    plt.plot(pts[:, 0], pts[:, 1], 'o')
+    plt.show()
+
     d = Delaunay_triangulation(-10, 10, -10, 10)
+
     for p in pts:
         d.add_point(tuple(p))
 
