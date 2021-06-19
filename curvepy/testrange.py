@@ -98,12 +98,14 @@ class Delaunay_triangulation:
         while self.triangle_queue:
             # print(self.triangle_queue)
             t = self.triangle_queue.pop()
-            for p in pts:
-                if p in t.points:
-                    continue
-                if t.circumcircle.point_in_me(np.array(p)):
-                    self.handle_point_in_circumcircle(t, p)
-                    break
+            deine_pt_liste = [p for p in pts if (p not in t.points) and (t.circumcircle.point_in_me(np.array(p)))]
+            # for p in pts:
+            #     if p in t.points:
+            #         continue
+            #     if t.circumcircle.point_in_me(np.array(p)):
+            #         self.handle_point_in_circumcircle(t, p)
+            #         break
+
 
     def flip(self, current_t, p_in_circumcircle):
         # Finde Dreieck, was aus p_in_circumcircle und 2 Punkten aus current_t besteht
