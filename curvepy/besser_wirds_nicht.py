@@ -5,6 +5,8 @@ from typing import List, Tuple, Any
 from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 
+from curvepy.reference_implementation import Delaunay2D
+
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
 
@@ -160,7 +162,8 @@ if __name__ == '__main__':
     for p in pts:
         d.add_point(p)
 
-    figure, axis = plt.subplots(2)
+    plt.rcParams["figure.figsize"] = (10,30)
+    figure, axis = plt.subplots(3)
 
     axis[0].set_title("meins")
     for tri in d.triangles:
@@ -172,4 +175,15 @@ if __name__ == '__main__':
     scipy_tri = Delaunay(pts)
     axis[1].triplot(points[:, 0], points[:, 1], scipy_tri.simplices)
     axis[1].plot(points[:, 0], points[:, 1], 'o')
+
+    axis[2].set_title("reference implementation")
+    d2 = Delaunay2D(radius=n+5)
+    for p in pts:
+        d2.addPoint(p)
+    coord, tris = d2.exportDT()
+    my_tris = [(coord[a], coord[b], coord[c]) for a,b,c in tris]
+    for tri in my_tris:
+        points = np.ravel(tri)
+        axis[2].triplot(points[0::2], points[1::2])
+
     plt.show()
