@@ -155,10 +155,10 @@ class DelaunayTriangulation2D:
 
 
 if __name__ == '__main__':
-    n = 10
-    min, max = -10, 10
+    n = 50
+    min, max = -100, 100
     pts = [(rd.uniform(min, max), rd.uniform(min, max)) for _ in range(n)]
-    d = DelaunayTriangulation2D(radius=n + 5)  # Buffer for rounding errors
+    d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
     for p in pts:
         d.add_point(p)
 
@@ -177,7 +177,7 @@ if __name__ == '__main__':
     axis[1].plot(points[:, 0], points[:, 1], 'o')
 
     axis[2].set_title("reference implementation")
-    d2 = Delaunay2D(radius=n+5)
+    d2 = Delaunay2D(radius=max+5)
     for p in pts:
         d2.addPoint(p)
     coord, tris = d2.exportDT()
