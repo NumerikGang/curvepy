@@ -87,13 +87,13 @@ class Delaunay_triangulation:
     def __init__(self, xmin, xmax, ymin, ymax):
         self.xmin, self.xmax, self.ymin, self.ymax = xmin, xmax, ymin, ymax
         self.supertriangle = self.create_supertriangle()
-        self._triangles: List[Triangle] = [self.supertriangle]
+        self._triangles: List[Triangle] = [*self.supertriangle]
         self.triangle_queue = []
 
     @property
     def triangles(self):
         # We have to remove everything containing vertices of the supertriangle
-        rem_if = lambda t: any(pt in t.points for pt in self.supertriangle.points)
+        rem_if = lambda t: any(pt in t.points for pt in self.supertriangle[0].points+self.supertriangle[1].points)
         return [t for t in self._triangles if not rem_if(t)]
 
     def get_all_points(self):
@@ -148,7 +148,7 @@ class Delaunay_triangulation:
             self._triangles.remove(to_rem)
 
     def get_second_new_triangle(self, t_new_1, t, pt):
-        point_not_in_org_t = list(set(t_new_1.points).difference(set(t.points)))[0]
+        point_not_in_org_t = list(set(t_new_1.points).difference(set(t.points)))[0] # kann immer noch leer sein
         point_not_in_t_new_1 = list(set(t.points).difference((set(t_new_1.points))))[0]
         return Triangle(pt, point_not_in_t_new_1, point_not_in_org_t)
 
@@ -190,7 +190,7 @@ class Delaunay_triangulation:
         self._triangles += [t1_new, t2_new]
         self.triangle_queue += [t1_new, t2_new]
 
-    def create_supertriangle(self) -> Triangle:
+    def create_supertriangle(self) -> (Triangle, Triangle):
         # Rectangle CCW
         A = np.array([self.xmin, self.ymax])
         B = np.array([self.xmin, self.ymin])
@@ -205,7 +205,7 @@ class Delaunay_triangulation:
         B_supert = np.array([self.xmax + (self.xmax - self.xmin) / 2, self.ymin])
         C_supert = self.intersect_lines(A_supert, A, B_supert, D)
 
-        return Triangle(tuple(A_supert), tuple(B_supert), tuple(C_supert))
+        return Triangle(tuple(A), tuple(B), tuple(C)), Triangle(tuple(A), tuple(C), tuple(D))
 
     def intersect_lines(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray):
         """
@@ -280,7 +280,7 @@ class Delaunay_triangulation:
 if __name__ == '__main__':
     pts = [np.array(x) for x in ((2, 3), (6, 5), (3, 7), (8, 3), (5, 1), (8, 8), (-3, -2))]
     dein_min, dein_max = -5, 5
-    n = 7
+    n = 20
     pts = np.array([[rd.uniform(dein_min, dein_max), rd.uniform(dein_min, dein_max)] for _ in range(n)])
 
     tri = Delaunay(pts)
