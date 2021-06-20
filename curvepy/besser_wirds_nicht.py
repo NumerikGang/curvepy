@@ -133,7 +133,7 @@ class DelaunayTriangulation2D:
         lower_left, lower_right, upper_right, upper_left = [tuple(x) for x in base_rectangle]
         lower_triangle = Triangle(lower_left, lower_right, upper_left)
         upper_triangle = Triangle(upper_right, upper_left, lower_right)
-        neighbours = {lower_triangle: {upper_triangle}, upper_triangle: {lower_triangle}}
+        neighbours = {lower_triangle: [upper_triangle], upper_triangle: [lower_triangle]}
         return neighbours
 
     def add_point(self, p: Point2D):
