@@ -139,6 +139,17 @@ class DelaunayTriangulation2D:
     def add_point(self, p: Point2D):
         bad_triangles = [tri for tri in self._triangles if p in tri.circumcircle]
 
+        # 1. Walk through full neighbour graph, get subgraphneighburstructure of bad_triangles
+        # 2. Get boundaries like below, save which triangles the edge belonged (single tri by definition)
+        # 3. Remove bad_triangles
+        # 4.
+        # for edge in boundaries
+        #   for neighbour in neighbours_of_triangle_containing_edge: # (3)
+        #     for other_edge in neighbour:
+        #       if other_edge in bad_triangle_edges:
+        #         diese beiden neuen triangles sind
+
+
         # An edge is part of the boundary iff it doesn't is not part of another bad triangle
         boundaries = self._find_edges_only_used_by_a_single_triangle(bad_triangles)
 
