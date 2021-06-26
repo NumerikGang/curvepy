@@ -1,6 +1,5 @@
 import numpy as np
 from typing import List, Tuple
-import itertools
 import matplotlib.pyplot as plt
 import random as rd
 from scipy.spatial import Delaunay

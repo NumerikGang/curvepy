@@ -1,8 +1,6 @@
-from plistlib import Data
-
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from typing import Tuple, Callable
+from typing import Callable
 import functools
 import matplotlib.pyplot as plt
 import sys
