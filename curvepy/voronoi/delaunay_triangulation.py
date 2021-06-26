@@ -1,7 +1,7 @@
 import numpy as np
 import random as rd
 from functools import cached_property
-from typing import List, Tuple, Any
+from typing import List, Tuple, Dict, Any
 import matplotlib.pyplot as plt
 
 from curvepy.dev.reference_implementation import Delaunay2D
@@ -27,7 +27,7 @@ class Circle:
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Circle) and self.center == other.center and self.radius == other.radius
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple([*self.center, self.radius]))
 
 
@@ -87,7 +87,7 @@ class Triangle:
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Triangle) and self.points == other.points
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple(self.points))
 
 
@@ -104,11 +104,7 @@ class DelaunayTriangulation2D:
         remove_if = lambda t: any(pt in t.points for pt in all_points_in_supertriangle)
         return [t for t in self._triangles if not remove_if(t)]
 
-    @property
-    def neighbours(self):
-        raise NotImplementedError()
-
-    def _create_supertriangles(self, center: Point2D, radius):
+    def _create_supertriangles(self, center: Point2D, radius) -> Dict[Triangle, List[Triangle]]:
         # Since we have to start with a valid triangulation, we split our allowed range into 2 triangles like that:
         # x────────────────────────────────┐
         # xx                               │
@@ -151,7 +147,7 @@ class DelaunayTriangulation2D:
             self._triangles.append(Triangle(p, *edge))
 
     @staticmethod
-    def _find_edges_only_used_by_a_single_triangle(triangles, no_duplicates=True):
+    def _find_edges_only_used_by_a_single_triangle(triangles: List[Triangle], unique: bool = True) -> List[Edge2D]:
         ret = []
         for t in triangles:
             others = list(triangles)
@@ -161,33 +157,15 @@ class DelaunayTriangulation2D:
                     ret.append(e)
 
         # set() works since all edges are ordered, we don't care about the order and tuples are hashable
-        if no_duplicates:
+        if unique:
             ret = list(set(ret))
 
         return ret
-
-    @property
-    def voronoi(self):
-        xs = [(x, y) for x in self.triangles for y in self.triangles if x != y]
-        print(f"Länge xs: {len(xs)}")
-        # print("we did it :D")
-        neighbours = []
-        # print("b4 voronoi loop")
-        for tri1, tri2 in xs:
-            # Edges are sorted neighbours
-            if (tri2, tri1) not in neighbours and set(tri1.edges).intersection(tri2.edges):
-                # print("APPEND!")
-                neighbours.append((tri1, tri2))
-        print("die schleife endet")
-        neighbours = [(x.circumcircle.center, y.circumcircle.center) for (x, y) in neighbours]
-        # print("Return")
-        return neighbours
 
 
 if __name__ == '__main__':
     n = 50
     min, max = -100, 100
-    print("unseres")
     pts = [(rd.uniform(min, max), rd.uniform(min, max)) for _ in range(n)]
     d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
     for p in pts:
@@ -197,19 +175,15 @@ if __name__ == '__main__':
     figure, axis = plt.subplots(2)
 
     axis[0].set_title("meins")
-    print("b4 calc trianglos")
     trianglerinos = d.triangles
-    print("b4 print trianglos")
     for tri in trianglerinos:
         points = np.ravel(tri.points)
         axis[0].triplot(points[0::2], points[1::2])
 
-    print("ugly")
     axis[1].set_title("reference implementation")
     d2 = Delaunay2D(radius=max + 5)
     for p in pts:
         d2.addPoint(p)
-    print(f"reftris: {d2.exportTriangles()}")
     coord, tris = d2.exportDT()
     my_tris = [(coord[a], coord[b], coord[c]) for a, b, c in tris]
     for tri in my_tris:
