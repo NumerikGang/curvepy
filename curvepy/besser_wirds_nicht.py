@@ -213,14 +213,14 @@ if __name__ == '__main__':
     for tri in trianglerinos:
         points = np.ravel(tri.points)
         axis[0, 0].triplot(points[0::2], points[1::2])
-    print("b4 calc voronois")
-    print(f"rawwtf: {len(d._triangles)}")
-    print(f"wtf: {len(d.triangles)}")
-    voronois = d.voronoi
-    print("b4 print voronois")
-    axis[0, 1].set_title("Voronoi-Schmoronoi sag ich immer!")
-    for (x, y) in voronois:
-        axis[0, 1].plot([x[0], y[0]], [x[1], y[1]])
+    # print("b4 calc voronois")
+    # print(f"rawwtf: {len(d._triangles)}")
+    # print(f"wtf: {len(d.triangles)}")
+    # voronois = d.voronoi
+    # print("b4 print voronois")
+    # axis[0, 1].set_title("Voronoi-Schmoronoi sag ich immer!")
+    # for (x, y) in voronois:
+    #     axis[0, 1].plot([x[0], y[0]], [x[1], y[1]])
 
     print("scipy :)")
     axis[2, 0].set_title("scipy")
