@@ -1,7 +1,7 @@
 import numpy as np
 import random as rd
 from functools import cached_property
-from typing import List, Tuple, Any, Set, Dict
+from typing import List, Tuple, Any
 from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 
