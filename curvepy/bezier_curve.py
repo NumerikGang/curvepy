@@ -1,63 +1,18 @@
-"""
-Multiple Bézier curve implementations with different computations.
-
-The _Bézier curve_ is one of the most infamous functions in Computer Aided Geometric Design (CAGD) as well as other topics
-of computer graphics.
-
-# Definition
-
-Although there are many ways to define a bezier curve, the most common ones are as follows:
-
-## 1. Bézier curve with _Bernstein polynomial_ basis
-
-Let the \(i\)-th Bernstein polynomial of Degree \(n\) defined on the unit interval \([0,1]\) as
-\[
-B_i^n(t) := \\binom{n}{i} t^i (1-t)^{n-i}
-\]
-
-where the binomial coefficients are given by
-\[
-\\binom{n}{i} =
-\\begin{cases}
-\\frac{n!}{i!(n-i)!} & \\text{if } & 0 \\leq i \\leq n \\\\
-0                    & \\text{else}
-\\end{cases}
-\]
-
-Further let \(b_i\), \(0 \\leq i \\leq n\) denote the _Bézier points_.
-Then the Bézier curve is defined as
-\[
-b(t) := \\sum_{i=0}^n b_i B_i^n(t)
-\]
-
-## 2. Bézier curve recursion
-
-A Bézier curve can also be defined through the following recursion:
-
-Let \(b_0,\\dots,b_n \in \\mathbb{E}^3, t \in \\mathbb{R} \), and
-
-\[
-\\begin{align*}
-b_i^0(t) &:= b_i\\\\
-b_i^r(t) &:= (1-t) b_i^{r-1}(t) + t b_{i+1}^{r-1}(t)
-\\end{align*}
-\]
-
-# Properties
-The properties of a Bézier curve are explained [here](./tests/property_based_tests/test_bezier_curve.html).
-"""
 import numpy as np
 import sympy as sy
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
-from typing import Tuple, Callable, Union
+from scipy.special import comb
+from typing import Tuple, Callable, Union, Any
+
+from curvepy.utilities import csv_read
 
 
-class _Tholder:
+class Tholder:
     """
-    Helper for scheduling n equidistant values in the unit interval [0,1].
+    Class holds Array with equidistant ts in [0,1] of length n
 
     Parameters
     ----------
@@ -101,7 +56,7 @@ class CasteljauThread(th.Thread):
 
     Parameters
     ----------
-    ts_holder: _Tholder
+    ts_holder: Tholder
         Class which yields all ts
     c: np.ndarray
         Array with control points
@@ -110,7 +65,7 @@ class CasteljauThread(th.Thread):
 
     Attributes
     -------
-    _ts_holder : _Tholder
+    _ts_holder : Tholder
         instance of class Tholder so thread can get the ts for calculating the de Casteljau algorithm
     _coords: np.ndarray
         original control points
@@ -120,14 +75,14 @@ class CasteljauThread(th.Thread):
         function for transforming t
     """
 
-    def __init__(self, ts_holder: _Tholder, c: np.ndarray, f: Callable[[float], float] = lambda x: x) -> None:
+    def __init__(self, ts_holder: Tholder, c: np.ndarray, f: Callable[[float], float] = lambda x: x) -> None:
         th.Thread.__init__(self)
         self._ts_holder = ts_holder
         self._coords = c
         self.res = []
         self._func = f
 
-    def _de_caes(self, t: float, n: int) -> None:
+    def de_caes(self, t: float, n: int) -> None:
         """
         Method implementing the the De Casteljau algorithm
 
@@ -155,7 +110,7 @@ class CasteljauThread(th.Thread):
             self._ts_holder.lockMe.release()
             if t == -1:
                 break
-            self._de_caes(t, n)
+            self.de_caes(t, n)
 
 
 class AbstractBezierCurve(ABC):
@@ -178,7 +133,7 @@ class AbstractBezierCurve(ABC):
         dimension of the bezier points, therefore of the curve as well
     _cnt_ts: int
         numbers of equidistant ts to calculate
-    _func: Callable
+    func: Callable
         function computing the Bezier Curve for a single point
     _curve: list
         list containing points belonging to actual curve
@@ -190,7 +145,7 @@ class AbstractBezierCurve(ABC):
         self._bezier_points = m
         self._dimension = self._bezier_points.shape[0]
         self._cnt_ts = cnt_ts
-        self._func = self.init_func(m)
+        self.func = self.init_func(m)
         self._curve = None
         self.box = []
 
@@ -222,7 +177,7 @@ class AbstractBezierCurve(ABC):
         """
         if self._curve is None:
             ts = np.linspace(0, 1, self._cnt_ts)
-            self._curve = self._func(ts)
+            self._curve = self.func(ts)
             self.min_max_box()
         return self._curve
 
@@ -259,9 +214,9 @@ class AbstractBezierCurve(ABC):
             true if intersect otherwise false
         """
         return t2[0] <= t1[0] <= t2[1] \
-               or t2[0] <= t1[1] <= t2[1] \
-               or t1[0] <= t2[0] <= t1[1] \
-               or t1[0] <= t2[1] <= t1[1]
+            or t2[0] <= t1[1] <= t2[1] \
+            or t1[0] <= t2[0] <= t1[1] \
+            or t1[0] <= t2[1] <= t1[1]
 
     def min_max_box(self) -> None:
         """
@@ -323,7 +278,7 @@ class AbstractBezierCurve(ABC):
 
         Parameters
         ----------
-        other_curve: Union[BezierCurve2D, BezierCurve3D]
+        other_curve: Union[BezierCurve2D, BezierCurve3D] # TODO: check whether same type as everywhere
             curve to check
 
         Returns
@@ -362,6 +317,10 @@ class AbstractBezierCurve(ABC):
             list_of_curves = []
 
         self.plot()
+        # TODO: debate whether the if below should be thrown away
+        # this is possible since we would just iterate through an empty list
+        # This shouldn't be that much faster since we check if the list is empty anyways
+        # but it would reduce noise
         if not list_of_curves:
             plt.show()
             return
@@ -468,7 +427,7 @@ class BezierCurveThreaded(AbstractBezierCurve):
             array containing all ts used to calculate points
 
         """
-        ts = _Tholder(ts)
+        ts = Tholder(ts)
         threads = []
         curve = []
 
@@ -484,3 +443,15 @@ class BezierCurveThreaded(AbstractBezierCurve):
             curve = curve + tmp
 
         return curve
+
+
+def init() -> None:
+    m = csv_read('test.csv')  # reads csv file with bezier points
+    b1 = BezierCurve(m)
+    m = csv_read('test2.csv')  # reads csv file with bezier points
+    b2 = BezierCurve(m)
+    b2.show_funcs([b1])
+
+
+if __name__ == "__main__":
+    init()
