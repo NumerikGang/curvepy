@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QTa
     QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog, QFrame, QSizePolicy
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5 import QtGui
-import utilities as u
+import curvepy.utilities as u
 
 
 class MyMainApp(QMainWindow):

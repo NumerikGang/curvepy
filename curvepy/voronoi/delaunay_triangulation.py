@@ -5,7 +5,7 @@ from typing import List, Tuple, Any
 from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 
-from curvepy.reference_implementation import Delaunay2D
+from curvepy.dev.reference_implementation import Delaunay2D
 
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
