@@ -36,8 +36,8 @@ before_script:
 #     Since we are all adults with big HD monitors we conform with JetBrains standard of 120 characters.
 flake8:
   stage: static-analysis
-  script: # TODO: remove exit-zero once merge is done
-    flake8 --version && flake8 --count --statistics --max-line-length=120 --exit-zero curvepy
+  script:
+    flake8 --version && flake8 --count --statistics --max-line-length=120 curvepy
   only:
     - master
     - merge_requests
@@ -45,7 +45,7 @@ flake8:
 mypy:
   stage: static-analysis
   script:
-    mypy --ignore-missing-imports -p curvepy || true # TODO: remove true once the merge is done
+    mypy --ignore-missing-imports -p curvepy
   only:
     - master
     - merge_requests
@@ -69,7 +69,7 @@ property-based-tests:
 pages:
   stage: deploy
   script:
-    - pdoc3 --html --output-dir public curvepy && mv public/curvepy/* public/ && rm -d public/curvepy
+    - pdoc3 --html --config latex_math=True --force --output-dir public curvepy && mv public/curvepy/* public/ && rm -d public/curvepy
   artifacts:
     paths:
       - public
