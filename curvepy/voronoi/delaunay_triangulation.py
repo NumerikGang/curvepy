@@ -4,8 +4,6 @@ from functools import cached_property
 from typing import List, Tuple, Dict, Set, Any, Optional
 import matplotlib.pyplot as plt
 
-from collections.abc import MutableMapping
-
 from curvepy.dev.reference_implementation import Delaunay2D
 
 Point2D = Tuple[float, float]
@@ -24,7 +22,7 @@ class Circle:
         return f"(CENTER: {self.center}, RADIUS: {self.radius})"
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}: {str(self)}>"
+        return f"<CIRCLE: {str(self)}>"
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Circle) and self.center == other.center and self.radius == other.radius
@@ -84,7 +82,7 @@ class Triangle:
         return str(self.points)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}: {str(self)}>"
+        return f"<TRIANLGE: {str(self)}>"
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Triangle) and self.points == other.points
@@ -92,52 +90,55 @@ class Triangle:
     def __hash__(self) -> int:
         return hash(tuple(self.points))
 
-# TODO: If it works, replace me with a simple dict
-class TriangleDict(MutableMapping):
-    def __init__(self, t1: Triangle, t2: Triangle):
-        self._neighbours = {
-            t1: {t2},
-            t2: {t1}
-        }
 
-    def __getitem__(self, key: Triangle) -> Set[Triangle]:
-        """Normal Getter"""
-        return self._neighbours[key]
+# TODO: Minimize my overhead
+# TODO: Replace add/remove with operands?
+class NeighbourStructure:
+    def __init__(self, starting_triangles: List[Triangle] = []):
+        self.edge_lookup: Dict[Edge2D, Set[Triangle]] = dict()
+        for triangle in starting_triangles:
+            self.add_triangle(triangle)
 
-    def __setitem__(self, key: Triangle, value: Set[Triangle]):
-        """Normal Setter"""
-        self._neighbours[key] = value
+    def add_triangle(self, triangle: Triangle):
+        for edge in triangle.edges:
+            # new key
+            if edge not in self.edge_lookup:
+                self.edge_lookup[edge] = {triangle}
+                continue
+            # old key
+            # since we have a set we can add even if it already contains it (if this could ever happen?)
+            self.edge_lookup[edge].add(triangle)
+            # TODO: Remove me after debugging
+            assert 0 < len(self.edge_lookup[edge]) < 3
 
-    def __delitem__(self, key: Triangle):
-        """This removes a Triangle logically, __not__ like a dict.
-        If we interpret the dict as a graph, we save each directed graph edge 2 times.
-        This removes __both__ directions.
-        """
-        # Remove all outgoing edges
-        del self._neighbours[key]
+    def remove_triangle(self, triangle: Triangle):
+        for key in self.edge_lookup:
+            self.edge_lookup[key].discard(triangle)
 
-        # Remove all ingoing edges
-        for _, neighbours in self.items():
-            neighbours.discard(key)
+    def get_neighbours(self, triangle: Triangle):
+        ret = []
+        for e in triangle.edges:
+            both_triangles_connected_to = list(self.edge_lookup[e])
+            both_triangles_connected_to.remove(triangle)
+            # Es kann nun entweder sein dass es noch einen Nachbar gibt oder es ein Randdreieck war...
+            if len(both_triangles_connected_to):
+                ret.append(both_triangles_connected_to[0])
 
-    def __iter__(self):
-        """Iterator over all unique triangles"""
-        return iter(self._neighbours)
+        # TODO: Remove me after debugging
+        assert 0 < len(ret) < 4
 
-    def __len__(self) -> int:
-        """Normal dict length"""
-        return len(self._neighbours)
+        return ret
 
-    def __repr__(self) -> str:
-        """Internal representation of TriangleDict"""
-        return f"<{self.__class__.__name__}: {str(self._neighbours)}"
-
-
+    def replace_neighbour(self, neighbour: Triangle, old: Triangle, new: Triangle):
+        edge_connecting = list(set(neighbour.edges).intersection(old.edges))[0]
+        self.edge_lookup[edge_connecting].discard(old)
+        self.edge_lookup[edge_connecting].add(new)
 
 class DelaunayTriangulation2D:
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
         self.supertriangles: List[Triangle] = self._create_supertriangles(center, radius)
-        self._neighbours: TriangleDict = TriangleDict(*self.supertriangles)
+        self._triangles: List[Triangle] = [*self.supertriangles]
+        self._neighbour_structure = NeighbourStructure(self.supertriangles)
 
 
     @property
@@ -145,7 +146,7 @@ class DelaunayTriangulation2D:
         # We have to remove everything containing vertices of the supertriangle
         all_points_in_supertriangle = sum([x.points for x in self.supertriangles], [])
         remove_if = lambda t: any(pt in t.points for pt in all_points_in_supertriangle)
-        return [t for t in self._neighbours.keys() if not remove_if(t)]
+        return [t for t in self._triangles if not remove_if(t)]
 
     @property
     def neighbours(self):
@@ -180,31 +181,33 @@ class DelaunayTriangulation2D:
         return [lower_triangle, upper_triangle]
 
     def add_point(self, p: Point2D):
-        bad_triangles = [tri for tri in self._neighbours.keys() if p in tri.circumcircle]
+        bad_triangles = [tri for tri in self._triangles if p in tri.circumcircle]
         # An edge is part of the boundary iff it doesn't is not part of another bad triangle
         boundary = self._find_edges_only_used_by_a_single_triangle(bad_triangles)
 
         for bad in bad_triangles:
+            self._triangles.remove(bad)
+
             b_edge = self._boundary_edge_of_triangle(bad, boundary)
             if not b_edge:
-                # Dann haben wir eins in der Mitte, d.h. alle Nachbarn kommen auch weg, also kann der Key komplett weg
-                del self._neighbours[bad]
+                # We have a bad triangle which is not connected to any good triangle.
+                # This means that all its neighbours will get deleted as well, therefore we
+                # don't need it anymore
+                self._neighbour_structure.remove_triangle(bad)
                 continue
 
             good = Triangle(*b_edge, p)
-            self._neighbours[good] = set()
 
-            for neighbour in self._neighbours[bad]:
-                if not self._boundary_edge_of_triangle(neighbour, boundary):
-                    # Der Nachbar ist in der Mitte, somit müssen wir den gar nicht erst einpflegen
-                    # Wir müssen ihn aber auch nicht entfernen, da das irgendwann später im outer loop passiert
+            for neighbour in self._neighbour_structure.get_neighbours(bad):
+                b_edge_neighbour = self._boundary_edge_of_triangle(neighbour, boundary)
+                if not b_edge_neighbour:
+                    # This can't be a good triangle, otherwise it would have a boundary edge
+                    # (since its a neighbour of a bad triangle)
+                    # Therefore, it is a bad triangle with all its neighbours getting deleted soon
+                    # We will remove it in the next few iterations, we for now we leave it alone
                     continue
 
-                # Beachte: Wir wissen hier nicht ob es ein bad neighbour oder bereits ein neuer ist
-                self._neighbours[good].add(neighbour)
-                self._neighbours[neighbour].add(good)
-
-
+                self._neighbour_structure.replace_neighbour(neighbour, bad, good)
 
     @staticmethod
     def _find_edges_only_used_by_a_single_triangle(triangles: List[Triangle]) -> Set[Edge2D]:
@@ -226,10 +229,10 @@ class DelaunayTriangulation2D:
 
 
 if __name__ == '__main__':
-    n = 10
+    n = 50
     min, max = -100, 100
     pts = [(rd.uniform(min, max), rd.uniform(min, max)) for _ in range(n)]
-    d = DelaunayTriangulation2D(radius=500)  # Buffer for rounding errors
+    d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
     for p in pts:
         d.add_point(p)
 
