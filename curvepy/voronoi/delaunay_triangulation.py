@@ -1,7 +1,7 @@
 import numpy as np
 import random as rd
 from functools import cached_property
-from typing import List, Tuple, Dict, Set, Any, Optional
+from typing import List, Tuple, Dict, Any
 import matplotlib.pyplot as plt
 
 from curvepy.dev.reference_implementation import Delaunay2D
@@ -91,55 +91,11 @@ class Triangle:
         return hash(tuple(self.points))
 
 
-# TODO: Minimize my overhead
-# TODO: Replace add/remove with operands?
-class NeighbourStructure:
-    def __init__(self, starting_triangles: List[Triangle] = []):
-        self.edge_lookup: Dict[Edge2D, Set[Triangle]] = dict()
-        for triangle in starting_triangles:
-            self.add_triangle(triangle)
-
-    def add_triangle(self, triangle: Triangle):
-        for edge in triangle.edges:
-            # new key
-            if edge not in self.edge_lookup:
-                self.edge_lookup[edge] = {triangle}
-                continue
-            # old key
-            # since we have a set we can add even if it already contains it (if this could ever happen?)
-            self.edge_lookup[edge].add(triangle)
-            # TODO: Remove me after debugging
-            assert 0 < len(self.edge_lookup[edge]) < 3
-
-    def remove_triangle(self, triangle: Triangle):
-        for key in self.edge_lookup:
-            self.edge_lookup[key].discard(triangle)
-
-    def get_neighbours(self, triangle: Triangle):
-        ret = []
-        for e in triangle.edges:
-            both_triangles_connected_to = list(self.edge_lookup[e])
-            both_triangles_connected_to.remove(triangle)
-            # Es kann nun entweder sein dass es noch einen Nachbar gibt oder es ein Randdreieck war...
-            if len(both_triangles_connected_to):
-                ret.append(both_triangles_connected_to[0])
-
-        # TODO: Remove me after debugging
-        assert 0 < len(ret) < 4
-
-        return ret
-
-    def replace_neighbour(self, neighbour: Triangle, old: Triangle, new: Triangle):
-        edge_connecting = list(set(neighbour.edges).intersection(old.edges))[0]
-        self.edge_lookup[edge_connecting].discard(old)
-        self.edge_lookup[edge_connecting].add(new)
-
 class DelaunayTriangulation2D:
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
-        self.supertriangles: List[Triangle] = self._create_supertriangles(center, radius)
+        self._neighbours = self._create_supertriangles(center, radius)
+        self.supertriangles: List[Triangle] = [*self._neighbours.keys()]
         self._triangles: List[Triangle] = [*self.supertriangles]
-        self._neighbour_structure = NeighbourStructure(self.supertriangles)
-
 
     @property
     def triangles(self) -> List[Triangle]:
@@ -148,11 +104,7 @@ class DelaunayTriangulation2D:
         remove_if = lambda t: any(pt in t.points for pt in all_points_in_supertriangle)
         return [t for t in self._triangles if not remove_if(t)]
 
-    @property
-    def neighbours(self):
-        return NotImplementedError()
-
-    def _create_supertriangles(self, center: Point2D, radius) -> List[Triangle]:
+    def _create_supertriangles(self, center: Point2D, radius) -> Dict[Triangle, List[Triangle]]:
         # Since we have to start with a valid triangulation, we split our allowed range into 2 triangles like that:
         # x────────────────────────────────┐
         # xx                               │
@@ -178,54 +130,37 @@ class DelaunayTriangulation2D:
         lower_left, lower_right, upper_right, upper_left = [tuple(x) for x in base_rectangle]
         lower_triangle = Triangle(lower_left, lower_right, upper_left)
         upper_triangle = Triangle(upper_right, upper_left, lower_right)
-        return [lower_triangle, upper_triangle]
+        neighbours = {lower_triangle: [upper_triangle], upper_triangle: [lower_triangle]}
+        return neighbours
 
     def add_point(self, p: Point2D):
         bad_triangles = [tri for tri in self._triangles if p in tri.circumcircle]
+
         # An edge is part of the boundary iff it doesn't is not part of another bad triangle
-        boundary = self._find_edges_only_used_by_a_single_triangle(bad_triangles)
+        boundaries = self._find_edges_only_used_by_a_single_triangle(bad_triangles)
 
-        for bad in bad_triangles:
-            self._triangles.remove(bad)
-
-            b_edge = self._boundary_edge_of_triangle(bad, boundary)
-            if not b_edge:
-                # We have a bad triangle which is not connected to any good triangle.
-                # This means that all its neighbours will get deleted as well, therefore we
-                # don't need it anymore
-                self._neighbour_structure.remove_triangle(bad)
-                continue
-
-            good = Triangle(*b_edge, p)
-
-            for neighbour in self._neighbour_structure.get_neighbours(bad):
-                b_edge_neighbour = self._boundary_edge_of_triangle(neighbour, boundary)
-                if not b_edge_neighbour:
-                    # This can't be a good triangle, otherwise it would have a boundary edge
-                    # (since its a neighbour of a bad triangle)
-                    # Therefore, it is a bad triangle with all its neighbours getting deleted soon
-                    # We will remove it in the next few iterations, we for now we leave it alone
-                    continue
-
-                self._neighbour_structure.replace_neighbour(neighbour, bad, good)
+        # remove all bad ones
+        for tri in bad_triangles:
+            self._triangles.remove(tri)
+        # Replace the hole with the boundaries and our new point
+        for edge in boundaries:
+            self._triangles.append(Triangle(p, *edge))
 
     @staticmethod
-    def _find_edges_only_used_by_a_single_triangle(triangles: List[Triangle]) -> Set[Edge2D]:
-        ret = set()
+    def _find_edges_only_used_by_a_single_triangle(triangles: List[Triangle], unique: bool = True) -> List[Edge2D]:
+        ret = []
         for t in triangles:
             others = list(triangles)
             others.remove(t)
             for e in t.edges:
                 if all(e not in o.edges for o in others):
-                    ret.add(e)
-        return ret
+                    ret.append(e)
 
-    @staticmethod
-    def _boundary_edge_of_triangle(triangle: Triangle, boundary: Set[Edge2D]) -> Optional[Edge2D]:
-        for e in triangle.edges:
-            if e in boundary:
-                return e
-        return None
+        # set() works since all edges are ordered, we don't care about the order and tuples are hashable
+        if unique:
+            ret = list(set(ret))
+
+        return ret
 
 
 if __name__ == '__main__':
