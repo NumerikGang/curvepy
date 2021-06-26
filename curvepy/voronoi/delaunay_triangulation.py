@@ -2,7 +2,6 @@ import numpy as np
 import random as rd
 from functools import cached_property
 from typing import List, Tuple, Any
-from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 
 from curvepy.dev.reference_implementation import Delaunay2D
@@ -27,6 +26,9 @@ class Circle:
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Circle) and self.center == other.center and self.radius == other.radius
+
+    def __hash__(self):
+        return hash(tuple([*self.center, self.radius]))
 
 
 class Triangle:
@@ -54,10 +56,6 @@ class Triangle:
         A, B, C = self.points
         [x1, y1], [x2, y2], [x3, y3] = A, B, C
         d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
-        # xu = (x1 * x1 + y1 * y1) / d * ((y2 - y3) + (x2 * x2 + y2 * y2)) / d * ((y3 - y1) + (x3 * x3 + y3 * y3)) / d * (
-        # y1 - y2) / d
-        # yu = (x1 * x1 + y1 * y1) / d * ((x3 - x2) + (x2 * x2 + y2 * y2)) / d * ((x1 - x3) + (x3 * x3 + y3 * y3)) / d * (
-        # x2 - x1) / d
 
         xu = ((x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2)) / d
         yu = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d
@@ -94,13 +92,13 @@ class Triangle:
 
 
 class DelaunayTriangulation2D:
-    def __init__(self, center: Point2D = (0, 0), radius: float = 1000):
+    def __init__(self, center: Point2D = (0, 0), radius: float = 500):
         self._neighbours = self._create_supertriangles(center, radius)
         self.supertriangles: List[Triangle] = [*self._neighbours.keys()]
         self._triangles: List[Triangle] = [*self.supertriangles]
 
     @property
-    def triangles(self):
+    def triangles(self) -> List[Triangle]:
         # We have to remove everything containing vertices of the supertriangle
         all_points_in_supertriangle = sum([x.points for x in self.supertriangles], [])
         remove_if = lambda t: any(pt in t.points for pt in all_points_in_supertriangle)
@@ -141,9 +139,6 @@ class DelaunayTriangulation2D:
 
     def add_point(self, p: Point2D):
         bad_triangles = [tri for tri in self._triangles if p in tri.circumcircle]
-
-
-
 
         # An edge is part of the boundary iff it doesn't is not part of another bad triangle
         boundaries = self._find_edges_only_used_by_a_single_triangle(bad_triangles)
@@ -198,34 +193,19 @@ if __name__ == '__main__':
     for p in pts:
         d.add_point(p)
 
-    plt.rcParams["figure.figsize"] = (20, 30)
-    figure, axis = plt.subplots(3, 2)
+    plt.rcParams["figure.figsize"] = (5, 10)
+    figure, axis = plt.subplots(2)
 
-    axis[0, 0].set_title("meins")
+    axis[0].set_title("meins")
     print("b4 calc trianglos")
     trianglerinos = d.triangles
     print("b4 print trianglos")
     for tri in trianglerinos:
         points = np.ravel(tri.points)
-        axis[0, 0].triplot(points[0::2], points[1::2])
-    # print("b4 calc voronois")
-    # print(f"rawwtf: {len(d._triangles)}")
-    # print(f"wtf: {len(d.triangles)}")
-    # voronois = d.voronoi
-    # print("b4 print voronois")
-    # axis[0, 1].set_title("Voronoi-Schmoronoi sag ich immer!")
-    # for (x, y) in voronois:
-    #     axis[0, 1].plot([x[0], y[0]], [x[1], y[1]])
-
-    print("scipy :)")
-    axis[2, 0].set_title("scipy")
-    points = np.array([list(x) for x in pts])
-    scipy_tri = Delaunay(pts)
-    axis[2, 0].triplot(points[:, 0], points[:, 1], scipy_tri.simplices)
-    axis[2, 0].plot(points[:, 0], points[:, 1], 'o')
+        axis[0].triplot(points[0::2], points[1::2])
 
     print("ugly")
-    axis[1, 0].set_title("reference implementation")
+    axis[1].set_title("reference implementation")
     d2 = Delaunay2D(radius=max + 5)
     for p in pts:
         d2.addPoint(p)
@@ -234,8 +214,5 @@ if __name__ == '__main__':
     my_tris = [(coord[a], coord[b], coord[c]) for a, b, c in tris]
     for tri in my_tris:
         points = np.ravel(tri)
-        axis[1, 0].triplot(points[0::2], points[1::2])
-
-    axis[1, 1].set_title("ugly but working voronois >:(")
-
+        axis[1].triplot(points[0::2], points[1::2])
     plt.show()
