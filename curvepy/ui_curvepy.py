@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QTabWidget, QVBoxLayout, \
-    QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog, QFrame
+    QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog, QFrame, QSizePolicy
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5 import QtGui
 import utilities as u
@@ -12,7 +12,7 @@ import utilities as u
 class MyMainApp(QMainWindow):
 
     def __init__(self, height: int = 600, width: int = 800):
-        super().__init__()
+        QWidget.__init__(self)
         # set the starting position of the window
         self.left = 0
         self.top = 0
@@ -61,7 +61,7 @@ class MyPlotCanvas(FigureCanvas):
 
 class MyOptionWidget(QWidget):
     def __init__(self, parent,  curve_type: u.CurveTypes, plot_canvas):
-        super(QWidget, self).__init__(parent)
+        QWidget.__init__(self)
 
         self.plot_canvas = plot_canvas
 
@@ -73,9 +73,11 @@ class MyOptionWidget(QWidget):
 
         self.btn_file_select = QPushButton('select file')
         self.btn_file_select.setToolTip('Select file containing points which can be used to calculate curve')
+        self.btn_file_select.setFixedSize(225, 35)
         self.btn_file_select.clicked.connect(self.on_click_file_select)
         self.btn_calculate_curve = QPushButton('Calculate  ' + self.names[curve_type.value])
         self.btn_calculate_curve.setToolTip('Initiate curve calculation using the algorithm')
+        self.btn_calculate_curve.setFixedSize(225, 35)
         self.btn_calculate_curve.clicked.connect(self.on_click_calculate_curve)
 
         self.lbl_selected_file = QLabel('No file selected')
@@ -144,7 +146,7 @@ class MyOptionWidget(QWidget):
 class MyTableWidget(QWidget):
 
     def __init__(self, parent):
-        super(QWidget, self).__init__(parent)
+        QWidget.__init__(self)
         self.layout = QVBoxLayout(self)
         self.tabs_cnt = 4
         self.tabs_titles = ['Welcome', 'BezierCurve', 'BezierCurveThreaded', 'BezierCurveBlossoms']
@@ -179,7 +181,7 @@ class MyTableWidget(QWidget):
         line.setLineWidth(1)
         line.setMidLineWidth(3)
         tab.layout.addWidget(line, 1, 2)
-        
+
         tab.setLayout(tab.layout)
 
     @pyqtSlot()
@@ -192,5 +194,5 @@ class MyTableWidget(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyMainApp()
-    sys.exit(app.exec_())
+    app.exec_()
 
