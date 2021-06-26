@@ -1,5 +1,4 @@
 import numpy as np
-from math import sqrt
 from typing import Tuple, List, Dict, Optional
 
 PointIndex = int

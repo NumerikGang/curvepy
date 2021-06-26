@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
-from scipy.special import comb
-from typing import Tuple, Callable, Union, Any
+from typing import Tuple, Callable, Union
 
 from curvepy.utilities import csv_read
 

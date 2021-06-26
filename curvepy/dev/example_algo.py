@@ -1,7 +1,5 @@
-import pprint
-import random
 import numpy as np
-from typing import List, Set, Dict, Tuple, Iterable
+from typing import Set, Dict, Tuple, Iterable
 from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 

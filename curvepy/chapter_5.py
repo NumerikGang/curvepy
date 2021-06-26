@@ -2,7 +2,7 @@ import numpy as np
 import scipy.special as scs
 import sympy as sy
 import sys as s
-from src.utilities import csv_read
+from curvepy.utilities import csv_read
 from typing import Tuple, Callable, Union
 from functools import reduce
 
