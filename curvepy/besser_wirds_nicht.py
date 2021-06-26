@@ -89,11 +89,14 @@ class Triangle:
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Triangle) and self.points == other.points
 
+    def __hash__(self):
+        return hash(tuple(self.points))
+
 
 class DelaunayTriangulation2D:
     def __init__(self, center: Point2D = (0, 0), radius: float = 1000):
         self._neighbours = self._create_supertriangles(center, radius)
-        self.supertriangles: List[Triangle] = [*self.neighbours.keys()]
+        self.supertriangles: List[Triangle] = [*self._neighbours.keys()]
         self._triangles: List[Triangle] = [*self.supertriangles]
 
     @property
@@ -139,15 +142,7 @@ class DelaunayTriangulation2D:
     def add_point(self, p: Point2D):
         bad_triangles = [tri for tri in self._triangles if p in tri.circumcircle]
 
-        # 1. Walk through full neighbour graph, get subgraphneighburstructure of bad_triangles
-        # 2. Get boundaries like below, save which triangles the edge belonged (single tri by definition)
-        # 3. Remove bad_triangles
-        # 4.
-        # for edge in boundaries
-        #   for neighbour in neighbours_of_triangle_containing_edge: # (3)
-        #     for other_edge in neighbour:
-        #       if other_edge in bad_triangle_edges:
-        #         diese beiden neuen triangles sind
+
 
 
         # An edge is part of the boundary iff it doesn't is not part of another bad triangle
