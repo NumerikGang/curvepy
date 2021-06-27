@@ -3,7 +3,7 @@ import random as rd
 from functools import cached_property
 from typing import List, Tuple, Any, NamedTuple
 import matplotlib.pyplot as plt
-
+from scipy.spatial import Voronoi, voronoi_plot_2d
 from curvepy.dev.reference_implementation import Delaunay2D
 
 Point2D = Tuple[float, float]
@@ -179,31 +179,65 @@ class DelaunayTriangulation2D:
             if boundary[0].connecting_edge[0] == boundary[-1].connecting_edge[1]:
                 return boundary
 
+    def voronoi(self):
+        neighbour_pairs = set()
+
+        for tri in self.triangles:
+            for n in self._neighbours[tri]:
+                if n is not None and (n, tri) not in neighbour_pairs:
+                    neighbour_pairs.add((tri, n))
+
+        for a, b in neighbour_pairs:
+            edge = np.ravel([a.circumcircle.center, b.circumcircle.center])
+            plt.plot(edge[0::2], edge[1::2], color='red')
+
+        all_triangle_points = set()
+        for tri in self.triangles:
+            for p in tri.points:
+                all_triangle_points.add(p)
+
+        for p in all_triangle_points:
+            # @Timo kannst du bitte die Punkte plotten XOXO
+            plt.scatter(p[0], p[1], marker=".")
+
+        for tri in self.triangles:
+            x,y,z = tri.points
+            points = [*x,*y,*z]
+            plt.triplot(points[0::2], points[1::2], linestyle='dashed', color="blue")
+
+        plt.show()
+
 
 if __name__ == '__main__':
     n = 50
     min, max = -100, 100
     pts = [(rd.uniform(min, max), rd.uniform(min, max)) for _ in range(n)]
-    d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
+
+    d = DelaunayTriangulation2D(radius=max + 5)
     for p in pts:
         d.add_point(p)
+    d.voronoi()
 
-    plt.rcParams["figure.figsize"] = (5, 10)
-    figure, axis = plt.subplots(2)
-
-    axis[0].set_title("meins")
-    trianglerinos = d.triangles
-    for tri in trianglerinos:
-        points = np.ravel(tri.points)
-        axis[0].triplot(points[0::2], points[1::2])
-
-    axis[1].set_title("reference implementation")
-    d2 = Delaunay2D(radius=max + 5)
-    for p in pts:
-        d2.addPoint(p)
-    coord, tris = d2.exportDT()
-    my_tris = [(coord[a], coord[b], coord[c]) for a, b, c in tris]
-    for tri in my_tris:
-        points = np.ravel(tri)
-        axis[1].triplot(points[0::2], points[1::2])
+    # d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
+    # for p in pts:
+    #     d.add_point(p)
+    #
+    # plt.rcParams["figure.figsize"] = (5, 10)
+    # figure, axis = plt.subplots(2)
+    #
+    # axis[0].set_title("meins")
+    # trianglerinos = d.triangles
+    # for tri in trianglerinos:
+    #     points = np.ravel(tri.points)
+    #     axis[0].triplot(points[0::2], points[1::2])
+    #
+    # axis[1].set_title("reference implementation")
+    # d2 = Delaunay2D(radius=max + 5)
+    # for p in pts:
+    #     d2.addPoint(p)
+    # coord, tris = d2.exportDT()
+    # my_tris = [(coord[a], coord[b], coord[c]) for a, b, c in tris]
+    # for tri in my_tris:
+    #     points = np.ravel(tri)
+    #     axis[1].triplot(points[0::2], points[1::2])
     plt.show()
