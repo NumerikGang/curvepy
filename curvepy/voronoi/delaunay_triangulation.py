@@ -1,7 +1,7 @@
 import numpy as np
 import random as rd
 from functools import cached_property
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Any, NamedTuple
 import matplotlib.pyplot as plt
 
 from curvepy.dev.reference_implementation import Delaunay2D
@@ -33,10 +33,10 @@ class Circle:
 
 class Triangle:
     def __init__(self, a: Point2D, b: Point2D, c: Point2D):
-        self._points: List[Point2D] = sorted([a, b, c])
+        self._points: Tuple[Point2D, Point2D, Point2D] = (a, b, c)
 
     @property
-    def points(self) -> List[Point2D]:
+    def points(self) -> Tuple[Point2D, Point2D, Point2D]:
         # If it was mutable caching would break
         return self._points
 
@@ -66,17 +66,13 @@ class Triangle:
         R = (a * b * c) / (4 * self.area)
         return Circle(center=(xu, yu), radius=R)
 
-    @cached_property
-    def edges(self) -> List[Edge2D]:
-        # (<) not only removes same elements but also duplicates in different order
-        return [(x, y) for x in self.points for y in self.points if x < y]
-
     @staticmethod
     def calc_area(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float) -> float:
         """
         See: https://www.mathopenref.com/coordtrianglearea.html
         """
         return abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0)
+
 
     def __str__(self) -> str:
         return str(self.points)
@@ -85,26 +81,35 @@ class Triangle:
         return f"<TRIANLGE: {str(self)}>"
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Triangle) and self.points == other.points
+        return isinstance(other, Triangle) and sorted(self.points) == sorted(other.points)
 
     def __hash__(self) -> int:
-        return hash(tuple(self.points))
-
+        return hash(tuple(sorted(self.points)))
 
 class DelaunayTriangulation2D:
+
+    class _BoundaryNode(NamedTuple):
+        new_triangle: Triangle
+        connecting_edge: Edge2D
+        opposite_triangle: Triangle
+
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
-        self._neighbours = self._create_supertriangles(center, radius)
-        self.supertriangles: List[Triangle] = [*self._neighbours.keys()]
-        self._triangles: List[Triangle] = [*self.supertriangles]
+        t1, t2 = self._create_supertriangles(center, radius)
+        self.supertriangles: List[Triangle] = [t1, t2]
+        self._neighbours = {
+            t1: [t2, None, None],
+            t2: [t1, None, None]
+        }
 
     @property
     def triangles(self) -> List[Triangle]:
         # We have to remove everything containing vertices of the supertriangle
-        all_points_in_supertriangle = sum([x.points for x in self.supertriangles], [])
+        all_points_in_supertriangle = sum([list(x.points) for x in self.supertriangles], [])
         remove_if = lambda t: any(pt in t.points for pt in all_points_in_supertriangle)
-        return [t for t in self._triangles if not remove_if(t)]
+        return [t for t in self._neighbours.keys() if not remove_if(t)]
 
-    def _create_supertriangles(self, center: Point2D, radius) -> Dict[Triangle, List[Triangle]]:
+    @staticmethod
+    def _create_supertriangles(center: Point2D, radius: float) -> List[Triangle]:
         # Since we have to start with a valid triangulation, we split our allowed range into 2 triangles like that:
         # x────────────────────────────────┐
         # xx                               │
@@ -130,37 +135,50 @@ class DelaunayTriangulation2D:
         lower_left, lower_right, upper_right, upper_left = [tuple(x) for x in base_rectangle]
         lower_triangle = Triangle(lower_left, lower_right, upper_left)
         upper_triangle = Triangle(upper_right, upper_left, lower_right)
-        neighbours = {lower_triangle: [upper_triangle], upper_triangle: [lower_triangle]}
-        return neighbours
+        return [lower_triangle, upper_triangle]
 
     def add_point(self, p: Point2D):
-        bad_triangles = [tri for tri in self._triangles if p in tri.circumcircle]
+        bad_triangles = [bad for bad in self._neighbours.keys() if p in bad.circumcircle]
 
-        # An edge is part of the boundary iff it doesn't is not part of another bad triangle
-        boundaries = self._find_edges_only_used_by_a_single_triangle(bad_triangles)
+        boundary = self.do_boundary_walk(p, bad_triangles)
 
-        # remove all bad ones
-        for tri in bad_triangles:
-            self._triangles.remove(tri)
-        # Replace the hole with the boundaries and our new point
-        for edge in boundaries:
-            self._triangles.append(Triangle(p, *edge))
+        for bad in bad_triangles:
+            del self._neighbours[bad]
 
-    @staticmethod
-    def _find_edges_only_used_by_a_single_triangle(triangles: List[Triangle], unique: bool = True) -> List[Edge2D]:
-        ret = []
-        for t in triangles:
-            others = list(triangles)
-            others.remove(t)
-            for e in t.edges:
-                if all(e not in o.edges for o in others):
-                    ret.append(e)
+        # Add new Triangle Entries
+        n = len(boundary)
+        for i, b in enumerate(boundary):
+            triangle_before, triangle_after = boundary[(i - 1) % n][0], boundary[(i + 1) % n][0]
+            # other way around to ensure CCW
+            self._neighbours[b.new_triangle] = [b.opposite_triangle, triangle_after, triangle_before]
 
-        # set() works since all edges are ordered, we don't care about the order and tuples are hashable
-        if unique:
-            ret = list(set(ret))
+        # Add new triangles to the opposite side
+        for b in boundary:
+            if not b.opposite_triangle:
+                continue
 
-        return ret
+            for i, neigh in enumerate(self._neighbours[b.opposite_triangle]):
+                if neigh and set(b.connecting_edge).issubset(set(neigh.points)):
+                    self._neighbours[b.opposite_triangle][i] = b.new_triangle
+
+    def do_boundary_walk(self, p, bad_triangles):
+        boundary = []
+        current_triangle, i = bad_triangles[0], 0
+
+        while True:
+            opposite_triangle = self._neighbours[current_triangle][i]
+            if opposite_triangle in bad_triangles:
+                i = (self._neighbours[opposite_triangle].index(current_triangle) + 1) % 3
+                current_triangle = opposite_triangle
+                continue
+
+            # remember, CCW
+            edge = (current_triangle.points[(i + 1) % 3], current_triangle.points[(i - 1) % 3])
+            self._BoundaryNode(Triangle(p, *edge), edge, opposite_triangle)
+            boundary.append(self._BoundaryNode(Triangle(p, *edge), edge, opposite_triangle))
+            i = (i + 1) % 3
+            if boundary[0].connecting_edge[0] == boundary[-1].connecting_edge[1]:
+                return boundary
 
 
 if __name__ == '__main__':
