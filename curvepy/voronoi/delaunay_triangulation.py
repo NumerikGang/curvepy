@@ -73,7 +73,6 @@ class Triangle:
         """
         return abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0)
 
-
     def __str__(self) -> str:
         return str(self.points)
 
@@ -86,8 +85,8 @@ class Triangle:
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.points)))
 
-class DelaunayTriangulation2D:
 
+class DelaunayTriangulation2D:
     class _BoundaryNode(NamedTuple):
         new_triangle: Triangle
         connecting_edge: Edge2D
@@ -154,11 +153,11 @@ class DelaunayTriangulation2D:
 
         # Add new triangles to the opposite side
         for b in boundary:
-            if not b.opposite_triangle:
+            if b.opposite_triangle is None:
                 continue
 
             for i, neigh in enumerate(self._neighbours[b.opposite_triangle]):
-                if neigh and set(b.connecting_edge).issubset(set(neigh.points)):
+                if neigh is not None and set(b.connecting_edge).issubset(set(neigh.points)):
                     self._neighbours[b.opposite_triangle][i] = b.new_triangle
 
     def do_boundary_walk(self, p, bad_triangles):
