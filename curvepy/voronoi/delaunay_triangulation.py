@@ -2,6 +2,7 @@ import numpy as np
 import random as rd
 from functools import cached_property
 from typing import List, Tuple, Any, NamedTuple
+from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from curvepy.dev.reference_implementation import Delaunay2D
@@ -91,6 +92,13 @@ class DelaunayTriangulation2D:
         new_triangle: Triangle
         connecting_edge: Edge2D
         opposite_triangle: Triangle
+
+    @dataclass
+    class _Plotbox:
+        min_x: float = float('Inf')
+        min_y: float = float('Inf')
+        max_x: float = -float('Inf')
+        max_y: float = -float('Inf')
 
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
         t1, t2 = self._create_supertriangles(center, radius)
@@ -190,6 +198,11 @@ class DelaunayTriangulation2D:
         for a, b in neighbour_pairs:
             edge = np.ravel([a.circumcircle.center, b.circumcircle.center])
             plt.plot(edge[0::2], edge[1::2], color='red')
+
+        delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
+        delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
+        plt.xlim(self._plotbox.min_x - delta_x, self._plotbox.max_x + delta_x)
+        plt.ylim(self._plotbox.min_y - delta_y, self._plotbox.max_y + delta_y)
 
         all_triangle_points = set()
         for tri in self.triangles:
