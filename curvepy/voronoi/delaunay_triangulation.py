@@ -211,39 +211,6 @@ class DelaunayTriangulation2D:
                 return boundary
 
     def voronoi(self):
-        neighbour_pairs = set()
-
-        for tri in self.triangles:
-            for n in self._neighbours[tri]:
-                if n is not None and (n, tri) not in neighbour_pairs:
-                    neighbour_pairs.add((tri, n))
-
-        for a, b in neighbour_pairs:
-            edge = np.ravel([a.circumcircle.center, b.circumcircle.center])
-            plt.plot(edge[0::2], edge[1::2], color='red')
-
-        delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
-        delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
-        plt.xlim(self._plotbox.min_x - delta_x, self._plotbox.max_x + delta_x)
-        plt.ylim(self._plotbox.min_y - delta_y, self._plotbox.max_y + delta_y)
-
-        all_triangle_points = set()
-        for tri in self.triangles:
-            for p in tri.points:
-                all_triangle_points.add(p)
-
-        for p in all_triangle_points:
-            # @Timo kannst du bitte die Punkte plotten XOXO
-            plt.scatter(p[0], p[1], marker=".")
-
-        for tri in self.triangles:
-            x, y, z = tri.points
-            points = [*x, *y, *z]
-            plt.triplot(points[0::2], points[1::2], linestyle='dashed', color="blue")
-
-        plt.show()
-
-    def voronoi2(self):
         use_vertex = {p: [] for p in self.points}
 
         TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
@@ -282,6 +249,11 @@ class DelaunayTriangulation2D:
                     break
                 tri = new_t
 
+        delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
+        delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
+        plt.xlim(self._plotbox.min_x - delta_x, self._plotbox.max_x + delta_x)
+        plt.ylim(self._plotbox.min_y - delta_y, self._plotbox.max_y + delta_y)
+
         for p in regions:
             polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
             plt.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
@@ -291,8 +263,12 @@ class DelaunayTriangulation2D:
             polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
             plt.plot(*zip(*polygon), color="red")  # Plot polygon edges in red
 
-        plt.show()
+        for tri in self.triangles:
+            x, y, z = tri.points
+            points = [*x, *y, *z]
+            plt.triplot(points[0::2], points[1::2], linestyle='dashed', color="blue")
 
+        plt.show()
 
 
 if __name__ == '__main__':
@@ -303,7 +279,7 @@ if __name__ == '__main__':
     d = DelaunayTriangulation2D(radius=max + 5)
     for p in pts:
         d.add_point(p)
-    d.voronoi2()
+    d.voronoi()
     #
     # d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
     # for p in pts:
