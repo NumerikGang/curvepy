@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from curvepy.dev.reference_implementation import Delaunay2D
+from collections import namedtuple
 
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
@@ -115,6 +116,14 @@ class DelaunayTriangulation2D:
         all_points_in_supertriangle = sum([list(x.points) for x in self.supertriangles], [])
         remove_if = lambda t: any(pt in t.points for pt in all_points_in_supertriangle)
         return [t for t in self._neighbours.keys() if not remove_if(t)]
+
+    @property
+    def points(self) -> List[Point2D]:
+        ret = set()
+        for t in self.triangles:
+            for p in t.points:
+                ret.add(p)
+        return list(ret)
 
     @staticmethod
     def _create_supertriangles(center: Point2D, radius: float) -> List[Triangle]:
@@ -235,7 +244,55 @@ class DelaunayTriangulation2D:
         plt.show()
 
     def voronoi2(self):
-        ...
+        use_vertex = {p: [] for p in self.points}
+
+        TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
+
+        for t in self.triangles:
+            a, b, c = t.points
+            use_vertex[a].append(TriangleTuple(ccw=b, cw=c, pt=a, ccc=t.circumcircle.center))
+            use_vertex[b].append(TriangleTuple(ccw=c, cw=a, pt=b, ccc=t.circumcircle.center))
+            use_vertex[c].append(TriangleTuple(ccw=a, cw=b, pt=c, ccc=t.circumcircle.center))
+
+        regions = {}
+
+        for p in use_vertex:
+            # Walk Backwards
+            tri = use_vertex[p][0]
+            first_encountered_tri = tri
+            while True:
+                new_t = None
+                for t in use_vertex[p]:
+                    if tri.cw == t.ccw:
+                        new_t = t
+                if new_t is None or new_t == first_encountered_tri:
+                    break
+                tri = new_t
+
+            # Collect forwards
+            regions[p] = []
+            first_encountered_tri = tri
+            while True:
+                regions[p] += [tri]
+                new_t = None
+                for t in use_vertex[p]:
+                    if tri.ccw == t.cw:
+                        new_t = t
+                if new_t is None or new_t == first_encountered_tri:
+                    break
+                tri = new_t
+
+        for p in regions:
+            polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
+            plt.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
+
+            # Plot voronoi diagram edges (in red)
+        for p in regions:
+            polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
+            plt.plot(*zip(*polygon), color="red")  # Plot polygon edges in red
+
+        plt.show()
+
 
 
 if __name__ == '__main__':
@@ -246,8 +303,8 @@ if __name__ == '__main__':
     d = DelaunayTriangulation2D(radius=max + 5)
     for p in pts:
         d.add_point(p)
-    d.voronoi()
-
+    d.voronoi2()
+    #
     # d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
     # for p in pts:
     #     d.add_point(p)
@@ -270,4 +327,4 @@ if __name__ == '__main__':
     # for tri in my_tris:
     #     points = np.ravel(tri)
     #     axis[1].triplot(points[0::2], points[1::2])
-    plt.show()
+    # plt.show()
