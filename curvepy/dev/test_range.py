@@ -154,7 +154,7 @@ class Delaunay_triangulation:
     def create_smallest_circumcircle_triangle(self, pt, in_circle_pts):
         xs = [Triangle(pt, a, b) for a in in_circle_pts for b in in_circle_pts if a != b and a != pt and b != pt]
         # xs = sorted(xs, key=lambda t: t.circumcircle.radius)
-        return min(xs, key=lambda t: t.circumcircle.radius)
+        return min(xs, key=lambda t: t.circumcircle.diameter)
 
     def flip(self, current_t, p_in_circumcircle):
         # Finde Dreieck, was aus p_in_circumcircle und 2 Punkten aus current_t besteht

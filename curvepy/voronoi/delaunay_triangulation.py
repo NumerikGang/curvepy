@@ -279,22 +279,29 @@ class DelaunayTriangulation2D:
 
 
 if __name__ == '__main__':
-    n = 24
-    min, max = -100, 100
-    pts = [(rd.uniform(min, max), rd.uniform(min, max)) for _ in range(n)]
+    numSeeds = 24
+    diameter = 100
+    seeds = np.array([np.array(
+        [rd.uniform(-diameter/2, diameter/2),
+         rd.uniform(-diameter/2,diameter/2)]
+        )
+        for _ in range(numSeeds)
+    ])
+    center = np.mean(seeds, axis=0)
+    dt = Delaunay2D(center, 50 * diameter)
+    for s in seeds:
+        dt.addPoint(s)
 
+    d = DelaunayTriangulation2D(tuple(center), 50 * diameter)
+    for s in seeds:
+        d.add_point(tuple(s))
 
-    d = DelaunayTriangulation2D(radius=max + 5)  # Buffer for rounding errors
-    for p in pts:
-        d.add_point(p)
+    plt.rcParams["figure.figsize"] = (5, 10)
+    fig, axis = plt.subplots(2)
 
-    plt.rcParams["figure.figsize"] = (5, 15)
-    figure, axis = plt.subplots(3)
-
-    # ---
+    axis[0].axis([-diameter/2-1, diameter/2 + 1, -diameter/2-1, diameter/2 + 1])
     axis[0].set_title("meins")
     regions, (dx, dy) = d.voronoi()
-    axis[0].axis([d._plotbox.min_x - dx, d._plotbox.max_x + dx, d._plotbox.min_y - dy, d._plotbox.max_y + dx])
     for p in regions:
         polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
         axis[0].fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
@@ -308,42 +315,13 @@ if __name__ == '__main__':
         x, y, z = tri.points
         points = [*x, *y, *z]
         axis[0].triplot(points[0::2], points[1::2], linestyle='dashed', color="blue")
-    # ---
-    axis[1].set_title("reference implementation")
-    pts = [np.array(p) for p in pts]
-    center = np.mean(pts, axis=0)
-    d2 = Delaunay2D(center=center, radius=max + 5)
-    for p in pts:
-        d2.addPoint(p)
-    coord, tris = d2.exportDT()
-    my_tris = [(coord[a], coord[b], coord[c]) for a, b, c in tris]
-
-    #axis[1].axis([-1, max + 6, -1, max + 6])
-    axis[1].axis([d._plotbox.min_x - dx, d._plotbox.max_x + dx, d._plotbox.min_y - dy, d._plotbox.max_y + dx])
-
-    for tri in my_tris:
-        points = np.ravel(tri)
-        axis[1].triplot(points[0::2], points[1::2])
-
-    coords, reg = d2.exportVoronoiRegions()
-    # Plot annotated voronoi regions as filled polygons
-
-    for r in reg:
-        polygon = [coords[i] for i in reg[r]]  # Build polygon for each region
-        axis[1].fill(*zip(*polygon), alpha=0.2)  # Plot filled pol
-
-    # Plot voronoi diagram edges (in red)
-    for r in reg:
-        polygon = [coords[i] for i in reg[r]]  # Build polygon for each region
-        axis[1].plot(*zip(*polygon), color="red")  # Plot polygon edges in red
 
     # ---
 
-    import matplotlib.pyplot as plt
 
-    axis[2].axis([-1, max + 1, -1, max + 1])
-    vc, vr = d2.exportVoronoiRegions()
+    axis[1].axis([-diameter/2-1, diameter/2 + 1, -diameter/2-1, diameter/2 + 1])
+    vc, vr = dt.exportVoronoiRegions()
     for r in vr:
         polygon = [vc[i] for i in vr[r]]  # Build polygon for each region
-        axis[2].fill(*zip(*polygon))  # Plot filled polygon
+        axis[1].fill(*zip(*polygon))  # Plot filled polygon
     plt.show()
