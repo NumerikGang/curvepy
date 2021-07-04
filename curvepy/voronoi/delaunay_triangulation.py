@@ -107,6 +107,7 @@ class DelaunayTriangulation2D:
             t1: [t2, None, None],
             t2: [t1, None, None]
         }
+        self._plotbox = self._Plotbox()
 
     @property
     def triangles(self) -> List[Triangle]:
@@ -144,7 +145,20 @@ class DelaunayTriangulation2D:
         upper_triangle = Triangle(upper_right, upper_left, lower_right)
         return [lower_triangle, upper_triangle]
 
+    def change_plotbox(self, p: Point2D):
+        if p[0] < self._plotbox.min_x:
+            self._plotbox.min_x = p[0]
+        if p[0] > self._plotbox.max_x:
+            self._plotbox.max_x = p[0]
+        if p[1] < self._plotbox.min_y:
+            self._plotbox.min_y = p[1]
+        if p[1] > self._plotbox.max_y:
+            self._plotbox.max_y = p[1]
+
     def add_point(self, p: Point2D):
+
+        self.change_plotbox(p)
+
         bad_triangles = [bad for bad in self._neighbours.keys() if p in bad.circumcircle]
 
         boundary = self.do_boundary_walk(p, bad_triangles)
@@ -214,11 +228,14 @@ class DelaunayTriangulation2D:
             plt.scatter(p[0], p[1], marker=".")
 
         for tri in self.triangles:
-            x,y,z = tri.points
-            points = [*x,*y,*z]
+            x, y, z = tri.points
+            points = [*x, *y, *z]
             plt.triplot(points[0::2], points[1::2], linestyle='dashed', color="blue")
 
         plt.show()
+
+    def voronoi2(self):
+        ...
 
 
 if __name__ == '__main__':
