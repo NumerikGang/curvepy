@@ -1,91 +1,12 @@
 import numpy as np
 import random as rd
-from functools import cached_property
-from typing import List, Tuple, Any, NamedTuple
+from typing import List, NamedTuple
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
-from curvepy.dev.reference_implementation import Delaunay2D
 from collections import namedtuple, deque
 
-Point2D = Tuple[float, float]
-Edge2D = Tuple[Point2D, Point2D]
-
-
-class Circle:
-    def __init__(self, center: Point2D, radius: float):
-        self.center = np.array(center)
-        self.radius = radius
-
-    def __contains__(self, pt: Point2D) -> bool:
-        return np.linalg.norm(np.array(pt) - self.center) <= self.radius
-
-    def __str__(self) -> str:
-        return f"(CENTER: {self.center}, RADIUS: {self.radius})"
-
-    def __repr__(self) -> str:
-        return f"<CIRCLE: {str(self)}>"
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Circle) and self.center == other.center and self.radius == other.radius
-
-    def __hash__(self) -> int:
-        return hash(tuple([*self.center, self.radius]))
-
-
-class Triangle:
-    def __init__(self, a: Point2D, b: Point2D, c: Point2D):
-        self._points: Tuple[Point2D, Point2D, Point2D] = (a, b, c)
-
-    @property
-    def points(self) -> Tuple[Point2D, Point2D, Point2D]:
-        # If it was mutable caching would break
-        return self._points
-
-    @cached_property
-    def area(self) -> float:
-        a, b, c = self.points
-        return self.calc_area(*a, *b, *c)
-
-    @cached_property
-    def circumcircle(self) -> Circle:
-        """
-        :return:
-
-        See: https://de.wikipedia.org/wiki/Umkreis#Koordinaten
-        See: https://de.wikipedia.org/wiki/Umkreis#Radius
-        """
-        A, B, C = self.points
-        [x1, y1], [x2, y2], [x3, y3] = A, B, C
-        d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
-
-        xu = ((x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2)) / d
-        yu = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d
-
-        lines = [[A, B], [B, C], [A, C]]
-        c, a, b = [np.linalg.norm(np.array(x) - np.array(y)) for x, y in lines]
-
-        R = (a * b * c) / (4 * self.area)
-        return Circle(center=(xu, yu), radius=R)
-
-    @staticmethod
-    def calc_area(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float) -> float:
-        """
-        See: https://www.mathopenref.com/coordtrianglearea.html
-        """
-        return abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0)
-
-    def __str__(self) -> str:
-        return str(self.points)
-
-    def __repr__(self) -> str:
-        return f"<TRIANLGE: {str(self)}>"
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Triangle) and sorted(self.points) == sorted(other.points)
-
-    def __hash__(self) -> int:
-        return hash(tuple(sorted(self.points)))
-
+from curvepy.voronoi.types import *
+from curvepy.voronoi import Voronoi
 
 class DelaunayTriangulation2D:
     class _BoundaryNode(NamedTuple):
@@ -93,16 +14,9 @@ class DelaunayTriangulation2D:
         connecting_edge: Edge2D
         opposite_triangle: Triangle
 
-    @dataclass
-    class _Plotbox:
-        min_x: float = float('Inf')
-        min_y: float = float('Inf')
-        max_x: float = -float('Inf')
-        max_y: float = -float('Inf')
-
     _TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
 
-    def __init__(self, center: Point2D = (0, 0), radius: float = 500):
+    def __init__(self, center: Point2D = (0, 0), radius: float = 9999):
         t1, t2 = self._create_supertriangles(center, radius)
         self.supertriangles: List[Triangle] = [t1, t2]
         self._neighbours = {
@@ -110,6 +24,18 @@ class DelaunayTriangulation2D:
             t2: [t1, None, None]
         }
         self._plotbox = self._Plotbox()
+
+
+    @classmethod
+    def from_pointlist(cls, points: List[Point2D]):
+        pts = np.array([np.array(p) for p in points])
+        center = tuple(np.mean(pts, axis=0))
+        radius = abs(max(pts[0, :].max() - pts[0, :].min(), pts[1, :].max() - pts[1, :].min()))
+        ret = cls(center=center, radius=radius)
+        for p in points:
+            ret.add_point(p)
+        return ret
+
 
     @property
     def triangles(self) -> List[Triangle]:
@@ -147,6 +73,9 @@ class DelaunayTriangulation2D:
         # │                             xxx│
         # └────────────────────────────────┴
         # Those 2 are called the "supertriangles" in most literature
+
+        # To have "infinite" spaces
+        radius *= 5
 
         # np.array for easier calculation
         center = np.array(center)
@@ -206,13 +135,15 @@ class DelaunayTriangulation2D:
 
             # remember, CCW
             edge = (current_triangle.points[(i + 1) % 3], current_triangle.points[(i - 1) % 3])
-            self._BoundaryNode(Triangle(p, *edge), edge, opposite_triangle)
-            boundary.append(self._BoundaryNode(Triangle(p, *edge), edge, opposite_triangle))
+            boundary.append(self._BoundaryNode(new_triangle=Triangle(p, *edge),
+                                               connecting_edge=edge,
+                                               opposite_triangle=opposite_triangle))
             i = (i + 1) % 3
             if boundary[0].connecting_edge[0] == boundary[-1].connecting_edge[1]:
                 return boundary
 
-    def voronoi(self):
+
+    def voronoi_regions(self):
         triangles_containing = {p: [] for p in self.points}
 
         # Add all triangles to their vertices
@@ -231,10 +162,15 @@ class DelaunayTriangulation2D:
 
             regions[p] = self.do_triangle_walk(p, triangles_containing)
 
-        delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
-        delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
+        # delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
+        #delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
 
-        return regions, (delta_x, delta_y)
+        return regions#, (delta_x, delta_y)
+
+    @property
+    def voronoi(self):
+        return Voronoi(self)
+
 
     def do_triangle_walk(self, p, triangles_containing):
         tris = triangles_containing[p]
@@ -262,9 +198,6 @@ class DelaunayTriangulation2D:
             regions.append(cw)
 
     def _find_neighbour(self, tri, others, cw):
-        if tri is None:
-            return None
-
         is_ccw_neighbour = lambda tri, other: tri.cw == other.ccw
         is_cw_neighbour = lambda tri, other: tri.ccw == other.cw
         is_neighbour = is_cw_neighbour if cw else is_ccw_neighbour
@@ -273,6 +206,7 @@ class DelaunayTriangulation2D:
             if is_neighbour(tri, t):
                 return t
         return None
+
 
 if __name__ == '__main__':
     numSeeds = 24
@@ -284,9 +218,6 @@ if __name__ == '__main__':
         for _ in range(numSeeds)
     ])
     center = np.mean(seeds, axis=0)
-    dt = Delaunay2D(center, 50 * diameter)
-    for s in seeds:
-        dt.addPoint(s)
 
     d = DelaunayTriangulation2D(tuple(center), 50 * diameter)
     for s in seeds:
@@ -311,12 +242,4 @@ if __name__ == '__main__':
         x, y, z = tri.points
         points = [*x, *y, *z]
         axis[0].triplot(points[0::2], points[1::2], linestyle='dashed', color="blue")
-
-    # ---
-
-    axis[1].axis([-diameter / 2 - 1, diameter / 2 + 1, -diameter / 2 - 1, diameter / 2 + 1])
-    vc, vr = dt.exportVoronoiRegions()
-    for r in vr:
-        polygon = [vc[i] for i in vr[r]]  # Build polygon for each region
-        axis[1].fill(*zip(*polygon))  # Plot filled polygon
     plt.show()
