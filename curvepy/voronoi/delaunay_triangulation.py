@@ -4,9 +4,8 @@ from functools import cached_property
 from typing import List, Tuple, Any, NamedTuple
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
-from scipy.spatial import Voronoi, voronoi_plot_2d
 from curvepy.dev.reference_implementation import Delaunay2D
-from collections import namedtuple
+from collections import namedtuple, deque
 
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
@@ -100,6 +99,8 @@ class DelaunayTriangulation2D:
         min_y: float = float('Inf')
         max_x: float = -float('Inf')
         max_y: float = -float('Inf')
+
+    _TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
 
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
         t1, t2 = self._create_supertriangles(center, radius)
@@ -212,47 +213,23 @@ class DelaunayTriangulation2D:
                 return boundary
 
     def voronoi(self):
-        use_vertex = {p: [] for p in self.points}
+        triangles_containing = {p: [] for p in self.points}
 
-        TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
-
+        # Add all triangles to their vertices
         for t in self._neighbours:
             a, b, c = t.points
-            use_vertex[a].append(TriangleTuple(ccw=b, cw=c, pt=a, ccc=t.circumcircle.center))
-            use_vertex[b].append(TriangleTuple(ccw=c, cw=a, pt=b, ccc=t.circumcircle.center))
-            use_vertex[c].append(TriangleTuple(ccw=a, cw=b, pt=c, ccc=t.circumcircle.center))
+            triangles_containing[a].append(self._TriangleTuple(ccw=b, cw=c, pt=a, ccc=t.circumcircle.center))
+            triangles_containing[b].append(self._TriangleTuple(ccw=c, cw=a, pt=b, ccc=t.circumcircle.center))
+            triangles_containing[c].append(self._TriangleTuple(ccw=a, cw=b, pt=c, ccc=t.circumcircle.center))
 
         regions = {}
         supertriangle_points = sum([[*t.points] for t in self.supertriangles], [])
-        for p in use_vertex:
+        for p in triangles_containing:
             # if part of supertriangle, we don't care
             if p in supertriangle_points:
                 continue
 
-            # Walk Backwards to find left most triangle
-            tri = use_vertex[p][0]
-            first_encountered_tri = tri
-            while True:
-                new_t = None
-                for t in use_vertex[p]:
-                    if tri.cw == t.ccw:
-                        new_t = t
-                if new_t is None or new_t == first_encountered_tri:
-                    break
-                tri = new_t
-
-            # Collect forwards
-            regions[p] = []
-            first_encountered_tri = tri
-            while True:
-                regions[p] += [tri]
-                new_t = None
-                for t in use_vertex[p]:
-                    if tri.ccw == t.cw:
-                        new_t = t
-                if new_t is None or new_t == first_encountered_tri:
-                    break
-                tri = new_t
+            regions[p] = self.do_triangle_walk(p, triangles_containing)
 
         delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
         delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
@@ -261,22 +238,44 @@ class DelaunayTriangulation2D:
 
 
         return regions, (delta_x, delta_y)
-        # for p in regions:
-        #     polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
-        #     plt.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
-        #
-        #     # Plot voronoi diagram edges (in red)
-        # for p in regions:
-        #     polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
-        #     plt.plot(*zip(*polygon), color="red")  # Plot polygon edges in red
-        #
-        # for tri in self.triangles:
-        #     x, y, z = tri.points
-        #     points = [*x, *y, *z]
-        #     plt.triplot(points[0::2], points[1::2], linestyle='dashed', color="blue")
-        #
-        # plt.show()
 
+    def do_triangle_walk(self, p, triangles_containing):
+        tris = triangles_containing[p]
+
+        # Starting at "random" point
+        ccw = tris[0]
+        cw = ccw
+
+        regions = deque([cw])
+
+        # walk ccw until we have no tris left or we have circle
+        while True:
+            ccw = self._find_neighbour(ccw, tris, False)
+            if ccw is None:
+                break
+            if ccw == regions[-1]:
+                return regions
+            regions.appendleft(ccw)
+
+        # walk cw to get the remaining tris
+        while True:
+            cw = self._find_neighbour(cw, tris, True)
+            if cw is None:
+                return regions
+            regions.append(cw)
+
+    def _find_neighbour(self, tri, others, cw):
+        if tri is None:
+            return None
+
+        is_ccw_neighbour = lambda tri, other: tri.cw == other.ccw
+        is_cw_neighbour = lambda tri, other: tri.ccw == other.cw
+        is_neighbour = is_cw_neighbour if cw else is_ccw_neighbour
+
+        for t in others:
+            if is_neighbour(tri, t):
+                return t
+        return None
 
 if __name__ == '__main__':
     numSeeds = 24
