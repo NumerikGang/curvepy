@@ -233,9 +233,6 @@ class DelaunayTriangulation2D:
 
         delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
         delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
-        # plt.xlim(self._plotbox.min_x - delta_x, self._plotbox.max_x + delta_x)
-        # plt.ylim(self._plotbox.min_y - delta_y, self._plotbox.max_y + delta_y)
-
 
         return regions, (delta_x, delta_y)
 
@@ -281,9 +278,9 @@ if __name__ == '__main__':
     numSeeds = 24
     diameter = 100
     seeds = np.array([np.array(
-        [rd.uniform(-diameter/2, diameter/2),
-         rd.uniform(-diameter/2,diameter/2)]
-        )
+        [rd.uniform(-diameter / 2, diameter / 2),
+         rd.uniform(-diameter / 2, diameter / 2)]
+    )
         for _ in range(numSeeds)
     ])
     center = np.mean(seeds, axis=0)
@@ -298,7 +295,7 @@ if __name__ == '__main__':
     plt.rcParams["figure.figsize"] = (5, 10)
     fig, axis = plt.subplots(2)
 
-    axis[0].axis([-diameter/2-1, diameter/2 + 1, -diameter/2-1, diameter/2 + 1])
+    axis[0].axis([-diameter / 2 - 1, diameter / 2 + 1, -diameter / 2 - 1, diameter / 2 + 1])
     axis[0].set_title("meins")
     regions, (dx, dy) = d.voronoi()
     for p in regions:
@@ -317,8 +314,7 @@ if __name__ == '__main__':
 
     # ---
 
-
-    axis[1].axis([-diameter/2-1, diameter/2 + 1, -diameter/2-1, diameter/2 + 1])
+    axis[1].axis([-diameter / 2 - 1, diameter / 2 + 1, -diameter / 2 - 1, diameter / 2 + 1])
     vc, vr = dt.exportVoronoiRegions()
     for r in vr:
         polygon = [vc[i] for i in vr[r]]  # Build polygon for each region
