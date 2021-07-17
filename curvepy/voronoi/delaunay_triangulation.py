@@ -3,6 +3,7 @@ import random as rd
 from functools import cached_property
 from typing import List, Tuple, Any, NamedTuple
 from dataclasses import dataclass
+from matplotlib.tri import Triangulation
 import matplotlib.pyplot as plt
 from curvepy.dev.reference_implementation import Delaunay2D
 from collections import namedtuple, deque
@@ -302,7 +303,7 @@ if __name__ == '__main__':
         polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
         axis[0].fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
 
-        # Plot voronoi diagram edges (in red)
+    # Plot voronoi diagram edges (in red)
     for p in regions:
         polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
         axis[0].plot(*zip(*polygon), color="red")  # Plot polygon edges in red
@@ -316,7 +317,12 @@ if __name__ == '__main__':
 
     axis[1].axis([-diameter / 2 - 1, diameter / 2 + 1, -diameter / 2 - 1, diameter / 2 + 1])
     vc, vr = dt.exportVoronoiRegions()
+    cx, cy = zip(*seeds)
+    dt_tris = dt.exportTriangles()
+    axis[1].triplot(Triangulation(cx, cy, dt_tris), linestyle='dashed', color='blue')
+    dt_tris = dt.exportTriangles()
     for r in vr:
         polygon = [vc[i] for i in vr[r]]  # Build polygon for each region
-        axis[1].fill(*zip(*polygon))  # Plot filled polygon
+        axis[1].plot(*zip(*polygon), color="red")  # Plot polygon edges in red
+        axis[1].fill(*zip(*polygon), alpha=0.2)
     plt.show()
