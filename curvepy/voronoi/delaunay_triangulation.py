@@ -14,11 +14,15 @@ Edge2D = Tuple[Point2D, Point2D]
 
 class Circle:
     def __init__(self, center: Point2D, radius: float):
-        self.center = np.array(center)
+        self._center = np.array(center)
         self.radius = radius
 
+    @property
+    def center(self):
+        return tuple(self._center)
+
     def __contains__(self, pt: Point2D) -> bool:
-        return np.linalg.norm(np.array(pt) - self.center) <= self.radius
+        return np.linalg.norm(np.array(pt) - self._center) <= self.radius
 
     def __str__(self) -> str:
         return f"(CENTER: {self.center}, RADIUS: {self.radius})"
@@ -87,6 +91,7 @@ class Triangle:
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.points)))
 
+TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
 
 class DelaunayTriangulation2D:
     class _BoundaryNode(NamedTuple):
@@ -101,7 +106,7 @@ class DelaunayTriangulation2D:
         max_x: float = -float('Inf')
         max_y: float = -float('Inf')
 
-    _TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
+
 
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
         t1, t2 = self._create_supertriangles(center, radius)
@@ -219,9 +224,9 @@ class DelaunayTriangulation2D:
         # Add all triangles to their vertices
         for t in self._neighbours:
             a, b, c = t.points
-            triangles_containing[a].append(self._TriangleTuple(ccw=b, cw=c, pt=a, ccc=t.circumcircle.center))
-            triangles_containing[b].append(self._TriangleTuple(ccw=c, cw=a, pt=b, ccc=t.circumcircle.center))
-            triangles_containing[c].append(self._TriangleTuple(ccw=a, cw=b, pt=c, ccc=t.circumcircle.center))
+            triangles_containing[a].append(TriangleTuple(ccw=b, cw=c, pt=a, ccc=t.circumcircle.center))
+            triangles_containing[b].append(TriangleTuple(ccw=c, cw=a, pt=b, ccc=t.circumcircle.center))
+            triangles_containing[c].append(TriangleTuple(ccw=a, cw=b, pt=c, ccc=t.circumcircle.center))
 
         regions = {}
         supertriangle_points = sum([[*t.points] for t in self.supertriangles], [])
@@ -232,6 +237,7 @@ class DelaunayTriangulation2D:
 
             regions[p] = self.do_triangle_walk(p, triangles_containing)
 
+        # TODO: Comment me
         delta_x = (self._plotbox.max_x - self._plotbox.min_x) * 0.05
         delta_y = (self._plotbox.max_y - self._plotbox.min_y) * 0.05
 

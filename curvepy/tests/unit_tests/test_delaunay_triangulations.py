@@ -2,11 +2,6 @@
 
 """
 
-# TODO: All Positve
-# TODO: All Negative
-# TODO: Big Numbers
-# TODO: n=0, n=1, n=2
-
 import pytest
 
 from typing import List, Set
