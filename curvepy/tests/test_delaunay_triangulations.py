@@ -339,7 +339,7 @@ def generate_output_from_input(list_of_inputs_outputs, radius=500):
 
 @pytest.mark.parametrize('input, expected', RANDOMLY_UNIFORMLY_DISTRIBUTED)
 def test_random_uniform_distribution(input: List[Point2D], expected: Set[Triangle]):
-    d = DelaunayTriangulation2D(radius=500)
+    d = DelaunayTriangulation2D(radius=10)
     for pt in input:
         d.add_point(pt)
     assert set(d.triangles) == expected

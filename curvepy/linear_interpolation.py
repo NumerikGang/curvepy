@@ -212,7 +212,7 @@ class Triangle(Polygon):
     def bary_plane_point(self, bary_coords: np.ndarray) -> np.ndarray:
         """
         Given the barycentric coordinates and three points this method will calculate a new point as a barycentric
-        combination of the triangle points.
+        combination of the Triangle points.
 
         Parameters
         ----------
@@ -233,41 +233,41 @@ class Triangle(Polygon):
     @staticmethod
     def area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
         """
-        Calculates the "area" of a triangle defined by the parameters. All three points have to be on a plane parallel
+        Calculates the "calc_area" of a Triangle defined by the parameters. All three points have to be on a plane parallel
         to an axis-plane!
 
         Parameters
         ----------
         a: np.ndarray
-            First point of the triangle.
+            First point of the Triangle.
         b: np.ndarray
-            Second point of the triangle.
+            Second point of the Triangle.
         c: np.ndarray
-            Third point of the triangle.
+            Third point of the Triangle.
 
         Returns
         -------
         float:
-            "Area" of the triangle.
+            "Area" of the Triangle.
         """
         return 1 / 2 * np.linalg.det(np.array([a, b, c]))
 
     def squash_parallel_to_axis_plane(self, p: np.ndarray):
         """
-        This method projects p and the points of the triangle on a plane, for example the y-plane with distance 1 for
-        all points of the triangle to the plane, so that cramer's rule can easily be applied to them
-        in order to calculate the area of the triangle corresponding to every 3 out of the 4 points.
+        This method projects p and the points of the Triangle on a plane, for example the y-plane with distance 1 for
+        all points of the Triangle to the plane, so that cramer's rule can easily be applied to them
+        in order to calculate the calc_area of the Triangle corresponding to every 3 out of the 4 points.
         But this method does not overwrite the self._points.
 
         Parameters
         ----------
         p: np.ndarray
-            Additional point that should be on the same plane as the triangle.
+            Additional point that should be on the same plane as the Triangle.
 
         Returns
         -------
         np.ndarray:
-            Copy of p and the triangle points now mapped on to a plane.
+            Copy of p and the Triangle points now mapped on to a plane.
         """
         p_copy, a, b, c = p.copy(), self._points[0].copy(), self._points[1].copy(), self._points[2].copy()
         for i in range(len(self._points)):
@@ -279,18 +279,18 @@ class Triangle(Polygon):
 
     def check_points_for_area_calc(self, p):
         """
-        This method checks if the point p and the points of the triangle have the right dimension and will make them so
+        This method checks if the point p and the points of the Triangle have the right dimension and will make them so
         that cramer's rule can be applied to them.
 
         Parameters
         ----------
         p: np.ndarray
-            Additional point that has to be on the same plane as the triangle.
+            Additional point that has to be on the same plane as the Triangle.
 
         Returns
         -------
         np.ndarrays:
-            The triangle points and p so that cramer's rule can be used.
+            The Triangle points and p so that cramer's rule can be used.
         """
         if self._dim == 3:
             return self.squash_parallel_to_axis_plane(p)
@@ -302,7 +302,7 @@ class Triangle(Polygon):
 
     def get_bary_coords(self, p: np.ndarray) -> np.ndarray:
         """
-        Calculates the barycentric coordinates of p with respect to the points defining the triangle.
+        Calculates the barycentric coordinates of p with respect to the points defining the Triangle.
 
         Parameters
         ----------
@@ -318,7 +318,7 @@ class Triangle(Polygon):
 
         abc_area = self.area(a, b, c)
         if abc_area == 0:
-            raise Exception("The area of the triangle defined by a, b, c has to be greater than 0!")
+            raise Exception("The calc_area of the Triangle defined by a, b, c has to be greater than 0!")
 
         return np.array([self.area(p_copy, b, c) / abc_area, self.area(a, p_copy, c) / abc_area,
                          self.area(a, b, p_copy) / abc_area])
@@ -421,7 +421,7 @@ def init() -> None:
     # Blossom testing
     # blossom_testing()
 
-    # triangle test
+    # Triangle test
     # t = Triangle(np.array([a, b, c]))
 
     # barycentric coords test

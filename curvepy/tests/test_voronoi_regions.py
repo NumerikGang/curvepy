@@ -5,13 +5,6 @@ from curvepy.voronoi.delaunay_triangulation import DelaunayTriangulation2D, Tria
 
 DIAMETER = 100
 
-RANDOMLY_UNIFORMLY_DISTRIBUTED = [
-	# n=24 2D-Points each
-	# Mean calculated via np.mean()
-	# diameter=100
-
-]
-
 SEEDS = [
 	[(-17.020293131128206, 2.9405194178956577), (12.554031229156756, -35.343633947158104),
 	 (-39.87508424531031, 8.678881100115788), (-31.082623818162414, 34.38790194724238),
@@ -5513,8 +5506,8 @@ REGIONS = [
 
 @pytest.mark.parametrize('seed, mean, expected', [*zip(SEEDS, MEANS, REGIONS)])
 def test_random_uniform_distribution(seed, mean, expected):
-	d = DelaunayTriangulation2D(mean, 50*DIAMETER)
-	for s in seed:
-		d.add_point(s)
-	regions, _ = d.voronoi()
-	assert regions == expected
+    d = DelaunayTriangulation2D(mean, DIAMETER)
+    for s in seed:
+        d.add_point(s)
+    regions, _ = d.voronoi()
+    assert regions == expected

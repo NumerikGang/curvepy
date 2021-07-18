@@ -109,7 +109,7 @@ class DelaunayTriangulation2D:
 
 
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
-        t1, t2 = self._create_supertriangles(center, radius)
+        t1, t2 = self._create_supertriangles(center, 50*radius)
         self.supertriangles: List[Triangle] = [t1, t2]
         self._neighbours = {
             t1: [t2, None, None],
@@ -295,7 +295,7 @@ if __name__ == '__main__':
     for s in seeds:
         dt.addPoint(s)
 
-    d = DelaunayTriangulation2D(tuple(center), 50 * diameter)
+    d = DelaunayTriangulation2D(tuple(center), diameter)
     for s in seeds:
         d.add_point(tuple(s))
 
