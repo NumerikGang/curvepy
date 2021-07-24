@@ -10,7 +10,6 @@ from curvepy.voronoi.delaunay_triangulation import DelaunayTriangulation2D, Tria
 # Needed for Debug Functions
 import matplotlib.pyplot as plt
 import numpy as np
-from curvepy.dev.reference_implementation import Delaunay2D
 
 RANDOMLY_UNIFORMLY_DISTRIBUTED = [
     # n=10 2D-points each
@@ -287,54 +286,6 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          ]}
     )
 ]
-
-
-def compare_to_reference_implementation(list_of_inputs_outputs, radius=500):
-    """Debugging helper for visualizing the Delaunay Triangulation compared to the reference implementation"""
-    j = 0
-    for i, _ in list_of_inputs_outputs:
-        d = DelaunayTriangulation2D(radius=radius)
-        for pt in i:
-            d.add_point(pt)
-
-        plt.rcParams["figure.figsize"] = (5, 10)
-        figure, axis = plt.subplots(2)
-
-        axis[0].set_title(f"meins {j}")
-        trianglerinos = d.triangles
-        for tri in trianglerinos:
-            points = np.ravel(tri.points)
-            axis[0].triplot(points[0::2], points[1::2])
-
-        axis[1].set_title("reference implementation")
-        d2 = Delaunay2D(radius=1000)
-        for pt in i:
-            d2.addPoint(pt)
-        coord, tris = d2.exportDT()
-        my_tris = [(coord[a], coord[b], coord[c]) for a, b, c in tris]
-        for tri in my_tris:
-            points = np.ravel(tri)
-            axis[1].triplot(points[0::2], points[1::2])
-        plt.show()
-        j += 1
-
-
-def generate_output_from_input(list_of_inputs_outputs, radius=500):
-    ret = []
-    for i, _ in list_of_inputs_outputs:
-        current = "{Triangle(*pts) for pts in \n["
-        d = DelaunayTriangulation2D(radius=radius)
-        for pt in i:
-            d.add_point(pt)
-        tris = d.triangles
-        pts = [t.points for t in tris]
-        for t in pts:
-            current += f"\n{t},"
-        # remove last comma
-        current = current[:-1]
-        current += "\n]}"
-        ret.append(current)
-    return ret
 
 
 @pytest.mark.parametrize('input, expected', RANDOMLY_UNIFORMLY_DISTRIBUTED)

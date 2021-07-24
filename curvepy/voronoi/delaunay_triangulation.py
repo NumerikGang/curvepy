@@ -3,9 +3,7 @@ import random as rd
 from functools import cached_property
 from typing import List, Tuple, Any, NamedTuple, Optional
 from dataclasses import dataclass
-from matplotlib.tri import Triangulation
 import matplotlib.pyplot as plt
-from curvepy.dev.reference_implementation import Delaunay2D
 from collections import namedtuple, deque
 
 Point2D = Tuple[float, float]
@@ -314,33 +312,29 @@ class Voronoi:
     def plot(self, with_delauny=True):
         fig, axis = self.d.plot() if with_delauny else plt.subplots()
         axis.axis([-self.d.radius / 2 - 1, self.d.radius / 2 + 1, -self.d.radius / 2 - 1, self.d.radius / 2 + 1])
-        regions, (delta_x, delta_y) = self.d.voronoi()
+        regions = self.d.voronoi()
         for p in regions:
             polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
             axis.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
-
-        # Plot voronoi diagram edges (in red)
-        for p in regions:
-            polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
-            axis.plot(*zip(*polygon), color="red")  # Plot polygon edges in red
-
+            axis.plot(*zip(*polygon), color="red")
         return fig, axis
 
 
 if __name__ == '__main__':
-    numSeeds = 24
-    diameter = 100
-    seeds = np.array([np.array(
-        [rd.uniform(-diameter / 2, diameter / 2),
-         rd.uniform(-diameter / 2, diameter / 2)]
+    main_num_seeds = 24
+    main_diameter = 100
+    main_seeds = np.array([np.array(
+        [rd.uniform(-main_diameter / 2, main_diameter / 2),
+         rd.uniform(-main_diameter / 2, main_diameter / 2)]
     )
-        for _ in range(numSeeds)
+        for _ in range(main_num_seeds)
     ])
-    center = np.mean(seeds, axis=0)
+    _center = np.mean(main_seeds, axis=0)
 
-    d = DelaunayTriangulation2D(tuple(center), diameter)
-    for s in seeds:
+    d = DelaunayTriangulation2D(tuple(_center), main_diameter)
+    for s in main_seeds:
         d.add_point(tuple(s))
 
-    _, axis = d.plot()
+    v = Voronoi(d)
+    _, axis = v.plot()
     plt.show()
