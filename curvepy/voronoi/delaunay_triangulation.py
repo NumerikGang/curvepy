@@ -117,21 +117,23 @@ class DelaunayTriangulation2D:
         }
         self._plotbox = self._Plotbox()
 
+    @cached_property
+    def _points_of_supertriangles(self):
+        return sum([list(x.points) for x in self.supertriangles], [])
+
     @property
     def triangles(self) -> List[Triangle]:
-        # We have to remove everything containing vertices of the supertriangle
-        all_points_in_supertriangle = sum([list(x.points) for x in self.supertriangles], [])
-        remove_if = lambda t: any(pt in t.points for pt in all_points_in_supertriangle)
+        remove_if = lambda t: any(pt in t.points for pt in self._points_of_supertriangles)
         return [t for t in self._neighbours.keys() if not remove_if(t)]
 
-    # TODO: Exclude supertriangle because its inconsistent with triangles property
     @property
     def points(self) -> List[Point2D]:
-        ret = set()
-        for t in self._neighbours:
-            for p in t.points:
-                ret.add(p)
-        return list(ret)
+        return self._get_points()
+
+    def _get_points(self, exclude_supertriangle = True):
+        ret = set([p for t in self._neighbours for p in t.points])
+        return list(ret.difference(set(self._points_of_supertriangles))) if exclude_supertriangle else list(ret)
+
 
     @staticmethod
     def _create_supertriangles(center: Point2D, radius: float) -> List[Triangle]:
@@ -219,7 +221,7 @@ class DelaunayTriangulation2D:
                 return boundary
 
     def voronoi(self):
-        triangles_containing = {p: [] for p in self.points}
+        triangles_containing = {p: [] for p in self._get_points(exclude_supertriangle=False)}
 
         # Add all triangles to their vertices
         for t in self._neighbours:
