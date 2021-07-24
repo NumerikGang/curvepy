@@ -5511,5 +5511,4 @@ def test_random_uniform_distribution(seed, mean, expected):
     d = DelaunayTriangulation2D(mean, DIAMETER)
     for s in seed:
         d.add_point(s)
-    regions, _ = d.voronoi()
-    assert regions == expected
+    assert d.voronoi() == expected
