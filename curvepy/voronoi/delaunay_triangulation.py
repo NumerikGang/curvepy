@@ -1,7 +1,7 @@
 import numpy as np
 import random as rd
 from functools import cached_property
-from typing import List, Tuple, Any, NamedTuple
+from typing import List, Tuple, Any, NamedTuple, Optional
 from dataclasses import dataclass
 from matplotlib.tri import Triangulation
 import matplotlib.pyplot as plt
@@ -91,7 +91,9 @@ class Triangle:
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.points)))
 
+
 TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
+
 
 class DelaunayTriangulation2D:
     class _BoundaryNode(NamedTuple):
@@ -106,10 +108,9 @@ class DelaunayTriangulation2D:
         max_x: float = -float('Inf')
         max_y: float = -float('Inf')
 
-
-
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
-        t1, t2 = self._create_supertriangles(center, 50*radius)
+        t1, t2 = self._create_supertriangles(center, 50 * radius)
+        self.radius = radius
         self.supertriangles: List[Triangle] = [t1, t2]
         self._neighbours = {
             t1: [t2, None, None],
@@ -130,10 +131,9 @@ class DelaunayTriangulation2D:
     def points(self) -> List[Point2D]:
         return self._get_points()
 
-    def _get_points(self, exclude_supertriangle = True):
+    def _get_points(self, exclude_supertriangle=True):
         ret = set([p for t in self._neighbours for p in t.points])
         return list(ret.difference(set(self._points_of_supertriangles))) if exclude_supertriangle else list(ret)
-
 
     @staticmethod
     def _create_supertriangles(center: Point2D, radius: float) -> List[Triangle]:
@@ -285,12 +285,42 @@ class DelaunayTriangulation2D:
 
     # TODO: die Linien nicht mehrfach übereinander drucken
     def plot(self, linestyle='dashed', color='blue'):
-        _, axis = plt.subplots()
+        fig, axis = plt.subplots()
+        axis.axis([-self.radius / 2 - 1, self.radius / 2 + 1, -self.radius / 2 - 1, self.radius / 2 + 1])
         for tri in self.triangles:
             x, y, z = tri.points
             points = [*x, *y, *z]
             axis.triplot(points[0::2], points[1::2], linestyle=linestyle, color=color)
-        return axis
+        return fig, axis
+
+
+class Voronoi:
+    def __init__(self, d: Optional[DelaunayTriangulation2D] = None):
+        self.d = DelaunayTriangulation2D() if d is None else d
+
+    @classmethod
+    def from_points(cls, seeds):
+        center = np.mean(seeds, axis=0)
+        d = DelaunayTriangulation2D(tuple(center))
+        for s in seeds:
+            d.add_point(s)
+        return cls(d)
+
+    def plot(self, with_delauny=True):
+        fig, axis = self.d.plot() if with_delauny else plt.subplots()
+        axis.axis([-self.d.radius / 2 - 1, self.d.radius / 2 + 1, -self.d.radius / 2 - 1, self.d.radius / 2 + 1])
+        regions, (delta_x, delta_y) = self.d.voronoi()
+        for p in regions:
+            polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
+            axis.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
+
+        # Plot voronoi diagram edges (in red)
+        for p in regions:
+            polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
+            axis.plot(*zip(*polygon), color="red")  # Plot polygon edges in red
+
+        return fig, axis
+
 
 if __name__ == '__main__':
     numSeeds = 24
@@ -306,12 +336,12 @@ if __name__ == '__main__':
     for s in seeds:
         dt.addPoint(s)
 
-
     d = DelaunayTriangulation2D(tuple(center), diameter)
     for s in seeds:
         d.add_point(tuple(s))
 
-    axis = d.plot()
+    v = Voronoi(d)
+    _, axis = v.plot(False)
     plt.show()
     #
     # plt.rcParams["figure.figsize"] = (5, 10)
