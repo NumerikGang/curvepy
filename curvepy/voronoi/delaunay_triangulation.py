@@ -41,7 +41,12 @@ class Triangle:
     def __init__(self, a: Point2D, b: Point2D, c: Point2D):
         self._points: Tuple[Point2D, Point2D, Point2D] = (a, b, c)
 
-    @property
+    @cached_property
+    def lines(self):
+        a, b, c = self.points
+        return [(a, b), (b, c), (a, c)]
+
+    @cached_property
     def points(self) -> Tuple[Point2D, Point2D, Point2D]:
         # If it was mutable caching would break
         return self._points
@@ -126,6 +131,14 @@ class DelaunayTriangulation2D:
     def triangles(self) -> List[Triangle]:
         remove_if = lambda t: any(pt in t.points for pt in self._points_of_supertriangles)
         return [t for t in self._neighbours.keys() if not remove_if(t)]
+
+    @property
+    def lines(self) -> List[Edge2D]:
+        ret = set()
+        for lines in [t.lines for t in self.triangles]:
+            for (a, b) in lines:
+                ret.add((a, b) if a < b else (b, a))
+        return list(ret)
 
     @property
     def points(self) -> List[Point2D]:
@@ -261,9 +274,6 @@ class DelaunayTriangulation2D:
             regions.append(cw)
 
     def _find_neighbour(self, tri, others, cw):
-        if tri is None:
-            return None
-
         is_ccw_neighbour = lambda tri, other: tri.cw == other.ccw
         is_cw_neighbour = lambda tri, other: tri.ccw == other.cw
         is_neighbour = is_cw_neighbour if cw else is_ccw_neighbour
@@ -273,14 +283,11 @@ class DelaunayTriangulation2D:
                 return t
         return None
 
-    # TODO: die Linien nicht mehrfach übereinander drucken
     def plot(self, linestyle='dashed', color='blue'):
         fig, axis = plt.subplots()
         axis.axis([-self.radius / 2 - 1, self.radius / 2 + 1, -self.radius / 2 - 1, self.radius / 2 + 1])
-        for tri in self.triangles:
-            x, y, z = tri.points
-            points = [*x, *y, *z]
-            axis.triplot(points[0::2], points[1::2], linestyle=linestyle, color=color)
+        for (a, b) in self.lines:
+            axis.plot([a[0], b[0]], [a[1], b[1]], linestyle=linestyle, color=color)
         return fig, axis
 
 
@@ -318,3 +325,22 @@ class Voronoi:
             axis.plot(*zip(*polygon), color="red")  # Plot polygon edges in red
 
         return fig, axis
+
+
+if __name__ == '__main__':
+    numSeeds = 24
+    diameter = 100
+    seeds = np.array([np.array(
+        [rd.uniform(-diameter / 2, diameter / 2),
+         rd.uniform(-diameter / 2, diameter / 2)]
+    )
+        for _ in range(numSeeds)
+    ])
+    center = np.mean(seeds, axis=0)
+
+    d = DelaunayTriangulation2D(tuple(center), diameter)
+    for s in seeds:
+        d.add_point(tuple(s))
+
+    _, axis = d.plot()
+    plt.show()
