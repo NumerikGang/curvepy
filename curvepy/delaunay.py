@@ -271,21 +271,4 @@ class DelaunayTriangulation2D:
 
 
 
-if __name__ == '__main__':
-    main_num_seeds = 24
-    main_diameter = 100
-    main_seeds = np.array([np.array(
-        [rd.uniform(-main_diameter / 2, main_diameter / 2),
-         rd.uniform(-main_diameter / 2, main_diameter / 2)]
-    )
-        for _ in range(main_num_seeds)
-    ])
-    _center = np.mean(main_seeds, axis=0)
 
-    d = DelaunayTriangulation2D(tuple(_center), main_diameter)
-    for s in main_seeds:
-        d.add_point(tuple(s))
-
-    v = Voronoi(d)
-    _, axis = v.plot()
-    plt.show()
