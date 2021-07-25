@@ -2,10 +2,6 @@ import numpy as np
 import enum
 
 
-class CurveTypes(enum.Enum):
-    bezier_curve = 0
-    bezier_curve_threaded = 1
-    bezier_curve_blossoms = 2
 
 
 def csv_read(file_path: str) -> np.ndarray:

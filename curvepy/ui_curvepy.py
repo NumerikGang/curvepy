@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QTabWidget, QVBoxLayout, \
-    QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog, QFrame, QSizePolicy
+    QGridLayout, QSlider, QGroupBox, QLabel, QFileDialog, QFrame
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5 import QtGui
-import curvepy.utilities as u
+from curvepy.types import CurveTypes
 
 
 class MyMainApp(QMainWindow):
@@ -60,7 +60,7 @@ class MyPlotCanvas(FigureCanvas):
 
 
 class MyOptionWidget(QWidget):
-    def __init__(self, parent,  curve_type: u.CurveTypes, plot_canvas):
+    def __init__(self, parent,  curve_type: CurveTypes, plot_canvas):
         QWidget.__init__(self)
 
         self.plot_canvas = plot_canvas
@@ -92,7 +92,7 @@ class MyOptionWidget(QWidget):
         self.layout.addWidget(self.btn_file_select)
         self.layout.addWidget(self.lbl_selected_file)
         self.layout.addWidget(self.create_group(self.sld_points_cnt, 'Number of Points', 100, 1000, 100))
-        if self.type == u.CurveTypes.bezier_curve_threaded:
+        if self.type == CurveTypes.bezier_curve_threaded:
             self.layout.addWidget(self.create_group(self.sld_thread_cnt, 'Number of Threads', 1, 4, 1))
         self.layout.addWidget(self.btn_calculate_curve)
 
@@ -160,7 +160,7 @@ class MyTableWidget(QWidget):
             self.tabs.addTab(tab, title)
 
         # Create Tabs
-        for i, t in zip(range(1, self.tabs_cnt), u.CurveTypes):
+        for i, t in zip(range(1, self.tabs_cnt), CurveTypes):
             print(t)
             self.create_tab(self.tab_list[i], t)
 
@@ -168,7 +168,7 @@ class MyTableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
-    def create_tab(self, tab, tab_type: u.CurveTypes):
+    def create_tab(self, tab, tab_type: CurveTypes):
         tab.layout = QGridLayout()
         plot = MyPlotCanvas(tab, tab_type.name)
         option_window = MyOptionWidget(tab, tab_type, plot)
