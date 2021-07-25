@@ -104,13 +104,6 @@ class DelaunayTriangulation2D:
         connecting_edge: Edge2D
         opposite_triangle: Triangle
 
-    @dataclass
-    class _Plotbox:
-        min_x: float = float('Inf')
-        min_y: float = float('Inf')
-        max_x: float = -float('Inf')
-        max_y: float = -float('Inf')
-
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
         t1, t2 = self._create_supertriangles(center, 50 * radius)
         self.radius = radius
@@ -119,7 +112,6 @@ class DelaunayTriangulation2D:
             t1: [t2, None, None],
             t2: [t1, None, None]
         }
-        self._plotbox = self._Plotbox()
 
     @cached_property
     def _points_of_supertriangles(self):
@@ -175,19 +167,7 @@ class DelaunayTriangulation2D:
         upper_triangle = Triangle(upper_right, upper_left, lower_right)
         return [lower_triangle, upper_triangle]
 
-    def change_plotbox(self, p: Point2D):
-        if p[0] < self._plotbox.min_x:
-            self._plotbox.min_x = p[0]
-        if p[0] > self._plotbox.max_x:
-            self._plotbox.max_x = p[0]
-        if p[1] < self._plotbox.min_y:
-            self._plotbox.min_y = p[1]
-        if p[1] > self._plotbox.max_y:
-            self._plotbox.max_y = p[1]
-
     def add_point(self, p: Point2D):
-
-        self.change_plotbox(p)
 
         bad_triangles = [bad for bad in self._neighbours.keys() if p in bad.circumcircle]
 
