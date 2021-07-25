@@ -58,14 +58,6 @@ unit-tests:
     - master
     - merge_requests
 
-property-based-tests:
-  stage: test
-  script:
-    python -m pytest -s -v --hypothesis-show-statistics curvepy/tests/property_based_tests
-  only:
-    - master
-    - merge_requests
-
 pages:
   stage: deploy
   script:
