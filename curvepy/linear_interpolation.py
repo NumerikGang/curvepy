@@ -88,7 +88,8 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     """
     if not collinear_check(left, col_point, right):
         raise Exception("The points are not collinear!")
-
+    # TODO: check if all points have the same dimension
+    # TODO: zip it
     for i in range(len(left)):
         if left[i] == right[i]:
             continue
@@ -113,8 +114,9 @@ class Polygon:
 
     """
 
-    def __init__(self, points: np.ndarray) -> None:
-        self._points = points.copy()
+    # TODO: Dim Check
+    def __init__(self, points: np.ndarray, make_copy=True) -> None:
+        self._points = points.copy() if make_copy else points
         self._dim = points.shape[1]
         self._piece_funcs = self.create_polygon()
 
@@ -127,9 +129,14 @@ class Polygon:
         np.ndarray:
             the array with all straight_line_functions
         """
+        # TODO: zip it
         return np.array([straight_line_function(self._points[i],
                                                 self._points[i + 1]) for i in range(len(self._points) - 1)])
 
+    # TODO: Implement __getitem__
+    # TODO (for real chads): Let it inherit from collections.abc.Sequence
+    # https://docs.python.org/3/library/collections.abc.html#collections-abstract-base-classes
+    # TODO: Afterwards, remove evaluate
     def evaluate(self, index: int, t: float) -> np.ndarray:
         """
         Evaluates the polygon on the index function with the given t.
@@ -152,6 +159,7 @@ class Polygon:
             return self._piece_funcs[len(self._piece_funcs) - 1](1)
         return self._piece_funcs[int(index)](t)
 
+    # TODO: Use real typing (typing.List[Type_Of])
     def blossom(self, ts: list) -> np.ndarray:
         """
         Recursive calculation of a blossom with parameters ts and the polygon.
@@ -172,42 +180,14 @@ class Polygon:
             return self.evaluate(0, ts[0])
         return Polygon(np.array([self._piece_funcs[i](ts[0]) for i in range(len(ts))])).blossom(ts[1:])
 
-    # # CURRENTLY OUT OF ORDER!
-    # def plot_polygon(self, xs: np.ndarray = np.array([0])) -> None:
-    #     """
-    #     Plots the polygon using matplotlib, either in 2D or 3D. Two Plots are given first one with a given number
-    #     of points which will be highlighted on the function, and second is the function as a whole.
-    #
-    #     Parameters
-    #     ----------
-    #     xs: np.ndArray
-    #         the points that may be plotted
-    #     """
-    #     ep = np.array([self.evaluate(x) for x in xs])
-    #     np.append(ep, self._points)
-    #     ravel_points = self._points.ravel()  # the corner points to plot the function
-    #     if self._dim == 2:
-    #         tmp = ep.ravel()
-    #         xs, ys = tmp[0::2], tmp[1::2]
-    #         func_x, func_y = ravel_points[0::2], ravel_points[1::2]
-    #         plt.plot(func_x, func_y)
-    #         plt.plot(xs, ys, 'o', markersize=3)
-    #     if self._dim == 3:
-    #         tmp = ep.ravel()
-    #         xs, ys, zs = tmp[0::3], tmp[1::3], tmp[2::3]
-    #         func_x, func_y, func_z = ravel_points[0::3], ravel_points[1::3], ravel_points[2::3]
-    #         ax = plt.axes(projection='3d')
-    #         ax.plot(func_x, func_y, func_z)
-    #         ax.plot(xs, ys, zs, 'o', markersize=3)
-    #     plt.show()
 
-
+# TODO: "merge" with other triangle class
 class Triangle(Polygon):
 
-    def __init__(self, points: np.ndarray) -> None:
-        points_copy = points.copy()
+    def __init__(self, points: np.ndarray, make_copy=True) -> None:
+        points_copy = points.copy() if make_copy else points
         points_copy = np.append(points_copy, [points_copy[0]], axis=0)
-        super().__init__(points_copy)
+        super().__init__(points_copy, make_copy=False)
 
     def bary_plane_point(self, bary_coords: np.ndarray) -> np.ndarray:
         """
@@ -224,17 +204,15 @@ class Triangle(Polygon):
         np.ndarray:
             Barycentric combination of a, b, c with given coordinates.
         """
-        eps = sys.float_info.epsilon
-        if np.sum(bary_coords) - eps != 1 and np.sum(bary_coords) + eps != 1:
+        if abs(1 - np.sum(bary_coords)) < sys.float_info.epsilon:
             raise Exception("The barycentric coordinates don't sum up to 1!")
-        return np.array((bary_coords[0] * self._points[0] + bary_coords[1] * self._points[1]
-                         + bary_coords[2] * self._points[2]))
+        return np.sum(bary_coords.reshape((3, 1)) * self._points, axis=0)
 
     @staticmethod
     def area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
         """
-        Calculates the "calc_area" of a Triangle defined by the parameters. All three points have to be on a plane parallel
-        to an axis-plane!
+        Calculates the "calc_area" of a Triangle defined by the parameters. All three points have to be on a plane
+        parallel to an axis-plane!
 
         Parameters
         ----------
@@ -250,8 +228,9 @@ class Triangle(Polygon):
         float:
             "Area" of the Triangle.
         """
-        return 1 / 2 * np.linalg.det(np.array([a, b, c]))
+        return np.linalg.det(np.array([a, b, c])) / 2
 
+    # TODO: Write shorter
     def squash_parallel_to_axis_plane(self, p: np.ndarray):
         """
         This method projects p and the points of the Triangle on a plane, for example the y-plane with distance 1 for
@@ -269,7 +248,7 @@ class Triangle(Polygon):
         np.ndarray:
             Copy of p and the Triangle points now mapped on to a plane.
         """
-        p_copy, a, b, c = p.copy(), self._points[0].copy(), self._points[1].copy(), self._points[2].copy()
+        p_copy, a, b, c = [x.copy() for x in [p, *self._points]]
         for i in range(len(self._points)):
             if self._points[0][i] != self._points[1][i] != self._points[2][i] \
                     and self._points[0][i - 1] != self._points[1][i - 1] != self._points[2][i - 1]:
@@ -277,6 +256,9 @@ class Triangle(Polygon):
                 break
         return p_copy, a, b, c
 
+    # TODO: Remove exception (checked at constructor)
+    # TODO: Type hinting
+    # TODO: Optional make_copy parameter
     def check_points_for_area_calc(self, p):
         """
         This method checks if the point p and the points of the Triangle have the right dimension and will make them so
@@ -294,12 +276,10 @@ class Triangle(Polygon):
         """
         if self._dim == 3:
             return self.squash_parallel_to_axis_plane(p)
-        elif self._dim == 2:
-            return np.append(p.copy(), [1]), np.append(self._points[0].copy(), [1]), \
-                   np.append(self._points[1].copy(), [1]), np.append(self._points[2].copy(), [1])
-        else:
-            raise Exception("Dimension has to be 2 or 3!")
+        return (np.append(x.copy(), [1]) for x in [p, *self._points])
 
+    # TODO: If 3D: Check if the 3D-Point lies on the 2D-Hyperplane defined by the bary coordinates
+    # TODO: If not, throw an exception
     def get_bary_coords(self, p: np.ndarray) -> np.ndarray:
         """
         Calculates the barycentric coordinates of p with respect to the points defining the Triangle.
@@ -324,61 +304,7 @@ class Triangle(Polygon):
                          self.area(a, b, p_copy) / abc_area])
 
 
-class tile_edge:
-
-    def __init__(self) -> None:
-        """
-        start: np.ndarray
-            start point
-        end: np.ndarray
-            end point
-        """
-        self.start = None
-        self.end = None
-
-
-class tile:
-
-    def __init__(self, center: np.ndarray) -> None:
-        self.center = center
-        self.edges = []
-
-    def add_edge(self, edge: tile_edge):
-        self.edges.append(edge)
-
-
-class Dirichlet_tessellation:
-
-    def __init__(self, points: np.ndarray) -> None:
-        self.points_copy = points.copy()
-        self.tessellation = []
-        self.iterative_dirichlet_tessellation()
-
-    def iterative_dirichlet_tessellation(self) -> None:
-        for p in self.points_copy:
-            print(f"Punkt zum Einfügen: {p}")
-            if not self.tessellation:
-                self.tessellation.append(tile(p))
-                continue
-
-            print(f"Liste: {[t.center for t in self.tessellation]}")
-            min_idx = np.argmin([np.linalg.norm(p - t.center) for t in self.tessellation])
-
-            print(f"mindinmaler Index: {min_idx}")
-            self.tessellation.append(tile(p))
-
-            # das muss eig unter tiles dann können wir uns die schleifen sparen und updaten einfach immer nur die nachbarn
-            # aber maxi, WaNn siNd TiLeS keInE nAcHbArN MeHR?
-
-            neighbours = []
-            for e in self.tessellation[min_idx].edges:
-                for t in self.tessellation:
-                    if e in t.edges:
-                        neighbours.append(t)
-
-            # hier kommt totaler schwachsinn
-
-
+# TODO: Replace with "real" pytests
 def ratio_test() -> None:
     left = np.array([0, 0, 0])
     right = np.array([1, 1, 1])
@@ -405,6 +331,7 @@ def blossom_testing() -> None:
 
 
 def init() -> None:
+    ...
     # coords = np.array([2 / 3, 1 / 6, 1 / 6])
     # a, b, c = np.array([2, 1]), np.array([4, 3]), np.array([5, 1])
 
@@ -428,8 +355,6 @@ def init() -> None:
     # print(t.bary_plane_point(coords))
     # print(np.linalg.det(np.array([a, b, c])))
     # print(t.get_bary_coords(t.bary_plane_point(coords)))
-
-    test_tes = Dirichlet_tessellation(np.array([[0, 0], [1, 2], [-2, -3], [-3, -3]]))
 
 
 if __name__ == "__main__":
