@@ -5,11 +5,9 @@
 import pytest
 
 from typing import List, Set
-from curvepy.voronoi.delaunay_triangulation import DelaunayTriangulation2D, Triangle, Point2D
+from curvepy.delaunay import DelaunayTriangulation2D, Triangle, Point2D
 
 # Needed for Debug Functions
-import matplotlib.pyplot as plt
-import numpy as np
 
 RANDOMLY_UNIFORMLY_DISTRIBUTED = [
     # n=10 2D-points each

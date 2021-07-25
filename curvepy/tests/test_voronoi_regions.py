@@ -1,7 +1,7 @@
 import pytest
 
 from collections import deque
-from curvepy.voronoi.delaunay_triangulation import DelaunayTriangulation2D, TriangleTuple
+from curvepy.delaunay import DelaunayTriangulation2D, TriangleTuple
 
 DIAMETER = 100
 
