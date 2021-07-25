@@ -22,6 +22,14 @@ class DelaunayTriangulation2D:
             t2: [t1, None, None]
         }
 
+    @classmethod
+    def from_points(cls, seeds):
+        center = np.mean(seeds, axis=0)
+        d = cls(tuple(center))
+        for s in seeds:
+            d.add_point(s)
+        return d
+
     @cached_property
     def _points_of_supertriangles(self):
         return sum([list(x.points) for x in self.supertriangles], [])
