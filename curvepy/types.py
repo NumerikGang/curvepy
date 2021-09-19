@@ -102,4 +102,4 @@ class Triangle:
         return hash(tuple(sorted(self.points)))
 
 
-VoronoiRegions2D = Dict[Point2D, Deque[Triangle]]
+VoronoiRegions2D = Dict[Point2D, Deque[TriangleTuple]]
