@@ -1,5 +1,3 @@
-# TODO: restrict to master only (and merge requests)
-
 image: python:latest
 
 # Change pip's cache directory to be inside the project directory since we can
@@ -26,7 +24,7 @@ before_script:
   - apt update && apt upgrade -y && apt install -y libgl1 # Needed for PyQT5
   - python -m venv venv && source venv/bin/activate && python --version
   - pip install --upgrade pip && pip install -r requirements.txt
-  - pip install pdoc3 pytest hypothesis flake8 flake8-bugbear pep8-naming flake8-builtins flake8-comprehensions mypy
+  - pip install pdoc3 pytest flake8 flake8-bugbear pep8-naming flake8-builtins flake8-comprehensions
 
 # We decide to not comply with PEP 8 on the following standards:
 #
@@ -34,18 +32,14 @@ before_script:
 #     Limiting the required editor window width makes it possible to have several files open side-by-side,
 #     and works well when using code review tools that present the two versions in adjacent columns.
 #     Since we are all adults with big HD monitors we conform with JetBrains standard of 120 characters.
+# - Do not assign a lambda expression, use a def (E731): I think most of pythons beauty comes from the conciseness
+#     of the language. On the one hand, if a function is a one_liner, which is neither semantically part of the class
+#     nor used outside of single function, I don't want to assign it to another function. On the other hand,
+#     some predicates (a -> Bool) can be nontrivial. A variable name can fill the semantics gap.
 flake8:
   stage: static-analysis
   script:
-    flake8 --version && flake8 --count --statistics --max-line-length=120 curvepy
-  only:
-    - master
-    - merge_requests
-
-mypy:
-  stage: static-analysis
-  script:
-    mypy --ignore-missing-imports -p curvepy
+    flake8 --version && flake8 --count --statistics --max-line-length=120 --ignore=E731 curvepy
   only:
     - master
     - merge_requests
