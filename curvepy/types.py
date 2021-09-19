@@ -1,6 +1,6 @@
 from enum import Enum
 import numpy as np
-from typing import Any, Dict, Deque, List, NamedTuple, Tuple
+from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Callable
 from functools import cached_property
 
 
@@ -12,6 +12,7 @@ class CurveTypes(Enum):
 
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
+StraightLineFunction = Callable[[float], np.ndarray]
 
 
 class TriangleTuple(NamedTuple):

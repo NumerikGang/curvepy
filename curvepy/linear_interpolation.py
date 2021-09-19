@@ -1,10 +1,12 @@
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from typing import Callable, List
+from typing import Callable, List, Any
 import functools
 import matplotlib.pyplot as plt
 import sys
+from collections.abc import Sequence
 
+from curvepy.types import StraightLineFunction
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
     """
@@ -27,7 +29,7 @@ def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndar
     return (1 - t) * a + t * b
 
 
-def straight_line_function(a: np.ndarray, b: np.ndarray) -> Callable:
+def create_straight_line_function(a: np.ndarray, b: np.ndarray) -> StraightLineFunction:
     """
     Method to get the function of a straight line through a and b.
 
@@ -40,7 +42,7 @@ def straight_line_function(a: np.ndarray, b: np.ndarray) -> Callable:
 
     Returns
     -------
-    Callable:
+    StraightLineFunction:
         function for the straight line through a and b
     """
     return functools.partial(straight_line_point, a, b)
@@ -101,7 +103,7 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     return 0
 
 
-class Polygon:
+class Polygon(Sequence):
     """
     Class for creating a 2D or 3D Polygon.
 
@@ -127,7 +129,7 @@ class Polygon:
         self._points = points.copy() if make_copy else points
         self._piece_funcs = self.create_polygon()
 
-    def create_polygon(self) -> List[Callable]:
+    def create_polygon(self) -> List[StraightLineFunction]:
         """
         Creates the polygon by creating an array with all straight_line_functions needed.
 
@@ -136,33 +138,18 @@ class Polygon:
         np.ndarray:
             the array with all straight_line_functions
         """
-        return [straight_line_function(a, b) for a, b in zip(self._points[:-1], self._points[1:])]
+        return [create_straight_line_function(a, b) for a, b in zip(self._points[:-1], self._points[1:])]
 
-    # TODO: Implement __getitem__
-    # TODO (for real chads): Let it inherit from collections.abc.Sequence
-    # https://docs.python.org/3/library/collections.abc.html#collections-abstract-base-classes
-    # TODO: Afterwards, remove evaluate
-    def evaluate(self, index: int, t: float) -> np.ndarray:
+    def __getitem__(self, item: Any) -> StraightLineFunction:
         """
-        Evaluates the polygon on the index function with the given t.
-
-        Parameters
-        ----------
-        index: int
-            Which piece of the function to use for given t.
-        t: float
-            For the weights (a-t) and t to calculate the point on the polygon piece.
-
-        Returns
-        -------
-        np.ndArray:
-            evaluated point
+        Throws ValueError when casting to int.
+        Throws IndexError when out of bounds.
+        And probably something else.
         """
-        if int(index) > len(self._piece_funcs) or int(index) < 0:
-            raise Exception("Not defined!")
-        if int(index) == len(self._piece_funcs):
-            return self._piece_funcs[len(self._piece_funcs) - 1](1)
-        return self._piece_funcs[int(index)](t)
+        return self._piece_funcs[int(item)]
+
+    def __len__(self) -> int:
+        return len(self._points)
 
     def blossom(self, ts: List[float]) -> np.ndarray:
         """
@@ -181,8 +168,8 @@ class Polygon:
         if len(ts) > len(self._piece_funcs):
             raise Exception("The polygon is not long enough for all the ts!")
         if len(ts) == 1:
-            return self.evaluate(0, ts[0])
-        return Polygon([self._piece_funcs[i](ts[0]) for i in range(len(ts))]).blossom(ts[1:])
+            return self[0](ts[0])
+        return Polygon([self[i](ts[0]) for i in range(len(ts))]).blossom(ts[1:])
 
 
 # TODO: "merge" with other triangle class
