@@ -117,6 +117,8 @@ class Polygon:
     """
 
     def __init__(self, points: List[np.ndarray], make_copy: bool = True) -> None:
+        if len(points) < 2:
+            raise ValueError("Unsupported Dimension")
         if any([points[0].shape != x.shape for x in points]):
             raise Exception("The points don't have the same dimension!")
         self._dim = points[0].shape[1]
@@ -162,8 +164,7 @@ class Polygon:
             return self._piece_funcs[len(self._piece_funcs) - 1](1)
         return self._piece_funcs[int(index)](t)
 
-    # TODO: Use real typing (typing.List[Type_Of])
-    def blossom(self, ts: list) -> np.ndarray:
+    def blossom(self, ts: List[float]) -> np.ndarray:
         """
         Recursive calculation of a blossom with parameters ts and the polygon.
 
@@ -181,16 +182,15 @@ class Polygon:
             raise Exception("The polygon is not long enough for all the ts!")
         if len(ts) == 1:
             return self.evaluate(0, ts[0])
-        return Polygon(np.array([self._piece_funcs[i](ts[0]) for i in range(len(ts))])).blossom(ts[1:])
+        return Polygon([self._piece_funcs[i](ts[0]) for i in range(len(ts))]).blossom(ts[1:])
 
 
 # TODO: "merge" with other triangle class
 class Triangle(Polygon):
 
-    def __init__(self, points: np.ndarray, make_copy=True) -> None:
-        points_copy = points.copy() if make_copy else points
-        points_copy = np.append(points_copy, [points_copy[0]], axis=0)
-        super().__init__(points_copy, make_copy=False)
+    def __init__(self, points: List[np.ndarray], make_copy: bool = True) -> None:
+        points.append(points[0])
+        super().__init__(points, make_copy)
 
     def bary_plane_point(self, bary_coords: np.ndarray) -> np.ndarray:
         """
