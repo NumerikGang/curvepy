@@ -54,4 +54,5 @@ def plot_it(seeds, means):
 
 
 if __name__ == '__main__':
-    plot_it([SEEDS[1], SEEDS[5], SEEDS[6]], [MEANS[1], MEANS[2], MEANS[3]])
+    plot_it(SEEDS, MEANS)
+    #plot_it([SEEDS[1], SEEDS[5], SEEDS[6]], [MEANS[1], MEANS[2], MEANS[3]])
