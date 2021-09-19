@@ -66,21 +66,17 @@ class Triangle:
         """
         :return:
 
-        See: https://de.wikipedia.org/wiki/Umkreis#Koordinaten
-        See: https://de.wikipedia.org/wiki/Umkreis#Radius
         """
-        A, B, C = self.points
-        [x1, y1], [x2, y2], [x3, y3] = A, B, C
-        d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
 
-        xu = ((x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2)) / d
-        yu = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d
+        a, b, c = self.points
 
-        lines = [[A, B], [B, C], [A, C]]
-        c, a, b = [np.linalg.norm(np.array(x) - np.array(y)) for x, y in lines]
+        tmp_pts_1 = np.array([np.array(x - np.array(a)) for x in [b, c]])
+        tmp_pts_2 = np.sum(tmp_pts_1 ** 2, axis=1)
+        tmp_pts_3 = np.array([np.linalg.det([x, tmp_pts_2]) / (2 * np.linalg.det(tmp_pts_1)) for x in tmp_pts_1.T])
+        center = a[0] - tmp_pts_3[1], a[1] + tmp_pts_3[0]
+        radius = np.linalg.norm(np.array(a) - np.array(center))
 
-        R = (a * b * c) / (4 * self.area)
-        return Circle(center=(xu, yu), radius=R)
+        return Circle(center=center, radius=radius)
 
     @staticmethod
     def calc_area(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float) -> float:
