@@ -68,10 +68,10 @@ class Triangle:
     @cached_property
     def circumcircle(self) -> Circle:
         """
+        see: https://www.ics.uci.edu/~eppstein/junkyard/circumcenter.html
         :return:
 
         """
-
         a, b, c = self.points
 
         tmp_pts_1 = np.array([np.array(x - np.array(a)) for x in [b, c]])

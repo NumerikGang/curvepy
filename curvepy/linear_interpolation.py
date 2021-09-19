@@ -1,6 +1,6 @@
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from typing import Callable, List, Tuple
+from typing import Callable, List
 import functools
 import matplotlib.pyplot as plt
 import sys
