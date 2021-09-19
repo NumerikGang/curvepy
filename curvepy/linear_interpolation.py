@@ -233,7 +233,6 @@ class Triangle(Polygon):
         """
         return np.linalg.det(np.array([a, b, c])) / 2
 
-    # TODO: Write shorter
     def squash_parallel_to_axis_plane(self, p: np.ndarray) -> List[np.ndarray]:
         """
         This method projects p and the points of the Triangle on a plane, for example the y-plane with distance 1 for
@@ -248,20 +247,17 @@ class Triangle(Polygon):
 
         Returns
         -------
-        np.ndarray:
+        List[np.ndarray]:
             Copy of p and the Triangle points now mapped on to a plane.
         """
         p_copy, a, b, c = [x.copy() for x in [p, *self._points]]
-        for i in range(len(self._points)):
-            if self._points[0][i] != self._points[1][i] != self._points[2][i] \
-                    and self._points[0][i - 1] != self._points[1][i - 1] != self._points[2][i - 1]:
+        for i, _ in enumerate(self._points):
+            if a[i] != b[i] != c[i] and a[i - 1] != b[i - 1] != c[i - 1]:
                 p_copy[i - 2], a[i - 2], b[i - 2], c[i - 2] = 1, 1, 1, 1
                 break
+
         return [p_copy, a, b, c]
 
-    # TODO: Remove exception (checked at constructor)
-    # TODO: Type hinting
-    # TODO: Optional make_copy parameter
     def check_points_for_area_calc(self, p: np.ndarray) -> List[np.ndarray]:
         """
         This method checks if the point p and the points of the Triangle have the right dimension and will make them so
@@ -274,7 +270,7 @@ class Triangle(Polygon):
 
         Returns
         -------
-        np.ndarrays:
+        List[np.ndarrays]:
             The Triangle points and p so that cramer's rule can be used.
         """
         if self._dim == 3:
