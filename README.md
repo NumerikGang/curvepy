@@ -19,4 +19,4 @@ Full Documentation is found [here](https://numerikgang.pages.gwdg.de/curvepy/).
 
 ## License
 
-MIT Copyright 2020 Lars Quentin, Maximilian Winkler, Timo Specht
+MIT 2020-2021 Lars Quentin, Maximilian Winkler, Timo Specht
