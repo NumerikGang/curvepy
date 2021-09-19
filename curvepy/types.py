@@ -1,6 +1,6 @@
 from enum import Enum
 import numpy as np
-from typing import Tuple, Any
+from typing import Any, NamedTuple, Tuple
 from functools import cached_property
 from collections import namedtuple
 
@@ -14,7 +14,11 @@ class CurveTypes(Enum):
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
 
-TriangleTuple = namedtuple('TriangleTuple', 'ccw cw pt ccc')
+class TriangleTuple(NamedTuple):
+    ccw: Point2D
+    cw: Point2D
+    pt: Point2D
+    ccc: Point2D
 
 
 class Circle:
