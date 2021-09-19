@@ -1,3 +1,4 @@
+# flake8: noqa
 from collections import deque
 from curvepy.delaunay import DelaunayTriangulation2D, TriangleNode
 from curvepy.tests.test_voronoi_regions import *

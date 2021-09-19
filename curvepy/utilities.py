@@ -64,7 +64,7 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     return np.count_nonzero(np.cross(b - a, c - a)) == 0
 
 
-def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
+def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray) -> float:
     """
     Method to calculate the ratio of the three collinear points from the parameters.
     Throws an exception if the points are not collinear.
@@ -72,11 +72,11 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
 
     Parameters
     ----------
-    left: np.ndArray
+    left_point: np.ndArray
         left point that defines the straight line
     col_point: np.ndArray
         collinear point to left and right, could be the most left or most right point or between left and right
-    right: np.ndArray
+    right_point: np.ndArray
         right point that defines the straight line
 
     Returns
@@ -84,16 +84,16 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     np.ndArray:
         the ratio of the three collinear points from the parameters
     """
-    if not collinear_check(left, col_point, right):
+    if not collinear_check(left_point, col_point, right_point):
         raise Exception("The points are not collinear!")
 
-    if left.shape != col_point.shape != right.shape:
+    if left_point.shape != col_point.shape != right_point.shape:
         raise Exception("The points don't have the same dimension!")
 
-    for l, r, c in zip(left, right, col_point):
-        if l != r and r - c != 0:
-            return (c - l) / (r - c)
-        elif r - c == 0:
+    for left, right, col in zip(left_point, right_point, col_point):
+        if left != right and right - col != 0:
+            return (col - left) / (right - col)
+        elif right - col == 0:
             return np.NINF
     return 0
 

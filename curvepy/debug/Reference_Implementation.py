@@ -1,3 +1,4 @@
+# flake8: noqa
 # -*- coding: ascii -*-
 """
 Simple structured Delaunay triangulation in 2D with Bowyer-Watson algorithm.

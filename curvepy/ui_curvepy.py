@@ -60,7 +60,7 @@ class MyPlotCanvas(FigureCanvas):
 
 
 class MyOptionWidget(QWidget):
-    def __init__(self, parent,  curve_type: CurveTypes, plot_canvas):
+    def __init__(self, parent, curve_type: CurveTypes, plot_canvas):
         QWidget.__init__(self)
 
         self.plot_canvas = plot_canvas
@@ -187,12 +187,15 @@ class MyTableWidget(QWidget):
     @pyqtSlot()
     def on_click(self):
         print("\n")
-        for currentQTableWidgetItem in self.tableWidget.selectedItems():
-            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
+        for current_q_table_widget_item in self.tableWidget.selectedItems():
+            print(
+                current_q_table_widget_item.row(),
+                current_q_table_widget_item.column(),
+                current_q_table_widget_item.text()
+            )
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyMainApp()
     app.exec_()
-
