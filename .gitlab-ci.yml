@@ -49,7 +49,7 @@ flake8:
 unit-tests:
   stage: test
   script:
-    python -m pytest -s -v curvepy/tests/unit_tests
+    python -m pytest -s -v curvepy/tests
   only:
     - master
     - merge_requests
