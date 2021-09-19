@@ -14,7 +14,7 @@ if __name__ == '__main__':
         v = Voronoi(d)
 
         # their
-        dt = Delaunay2D(np.array(mean),100) # TODO: Maybe *50
+        dt = Delaunay2D(np.array(mean),100*50)
         for s in seed:
             dt.addPoint(np.array(s))
 
