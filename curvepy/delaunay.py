@@ -53,7 +53,7 @@ class DelaunayTriangulation2D:
         return self._get_points()
 
     def _get_points(self, exclude_supertriangle: bool = True) -> List[Point2D]:
-        ret = set([p for t in self._neighbours for p in t.points])
+        ret = {p for t in self._neighbours for p in t.points}
         return list(ret.difference(set(self._points_of_supertriangles))) if exclude_supertriangle else list(ret)
 
     @staticmethod

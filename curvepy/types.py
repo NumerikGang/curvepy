@@ -43,7 +43,7 @@ class Circle:
         return isinstance(other, Circle) and self.center == other.center and self.radius == other.radius
 
     def __hash__(self) -> int:
-        return hash(tuple([*self.center, self.radius]))
+        return hash((*self.center, self.radius))
 
 
 class Triangle:

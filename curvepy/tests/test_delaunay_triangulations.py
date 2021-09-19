@@ -7,6 +7,13 @@ import pytest
 from typing import List, Set
 from curvepy.delaunay import DelaunayTriangulation2D, Triangle, Point2D
 
+# Jetbrains Formatter doesn't comply with PEP8, but those data lists are
+# not well formattable anyways.
+# Therefore we ignore the following:
+# E121 continuation line under-indented for hanging indent
+#
+# flake8: noqa: E121
+
 # Needed for Debug Functions
 
 RANDOMLY_UNIFORMLY_DISTRIBUTED = [

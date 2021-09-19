@@ -3,6 +3,13 @@ import pytest
 from collections import deque
 from curvepy.delaunay import DelaunayTriangulation2D, TriangleTuple
 
+# Jetbrains Formatter doesn't comply with PEP8, but those data lists are
+# not well formattable anyways.
+# Therefore we ignore the following:
+# E121 continuation line under-indented for hanging indent
+#
+# flake8: noqa: E121
+
 DIAMETER = 100
 
 SEEDS = [
