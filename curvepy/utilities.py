@@ -1,5 +1,4 @@
 import numpy as np
-import enum
 
 
 def csv_read(file_path: str) -> np.ndarray:
