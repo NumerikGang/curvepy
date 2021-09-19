@@ -1,12 +1,13 @@
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from typing import Callable, List, Any
+from typing import List, Any
 import functools
 import matplotlib.pyplot as plt
 import sys
 from collections.abc import Sequence
 
 from curvepy.types import StraightLineFunction
+
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
     """
@@ -311,7 +312,7 @@ def straight_line_point_test() -> None:
 
 
 def blossom_testing() -> None:
-    b_test_points = np.array([[0, 0], [1, 1], [2, 1], [3, 0]])
+    b_test_points = [np.array(x) for x in ([0, 0], [1, 1], [2, 1], [3, 0])]
     b_test_poly = Polygon(b_test_points)
     print(b_test_poly.blossom([0.3, 0.6, 0.5]))
 
