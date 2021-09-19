@@ -1,10 +1,11 @@
+from __future__ import annotations  # Needed until Py3.10, see PEP 563
 import numpy as np
 from functools import cached_property
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Dict, Deque, Optional
 import matplotlib.pyplot as plt
 from collections import deque
 
-from curvepy.types import Triangle, Edge2D, Point2D, TriangleTuple
+from curvepy.types import Triangle, Edge2D, Point2D, TriangleTuple, VoronoiRegions2D
 
 
 class DelaunayTriangulation2D:
@@ -23,7 +24,7 @@ class DelaunayTriangulation2D:
         }
 
     @classmethod
-    def from_points(cls, seeds):
+    def from_points(cls, seeds: np.ndarray) -> DelaunayTriangulation2D:
         center = np.mean(seeds, axis=0)
         d = cls(tuple(center))
         for s in seeds:
@@ -31,7 +32,7 @@ class DelaunayTriangulation2D:
         return d
 
     @cached_property
-    def _points_of_supertriangles(self):
+    def _points_of_supertriangles(self) -> List[Point2D]:
         return sum([list(x.points) for x in self.supertriangles], [])
 
     @property
@@ -51,7 +52,7 @@ class DelaunayTriangulation2D:
     def points(self) -> List[Point2D]:
         return self._get_points()
 
-    def _get_points(self, exclude_supertriangle=True):
+    def _get_points(self, exclude_supertriangle: bool = True) -> List[Point2D]:
         ret = set([p for t in self._neighbours for p in t.points])
         return list(ret.difference(set(self._points_of_supertriangles))) if exclude_supertriangle else list(ret)
 
@@ -109,7 +110,8 @@ class DelaunayTriangulation2D:
                 if neigh is not None and set(b.connecting_edge).issubset(set(neigh.points)):
                     self._neighbours[b.opposite_triangle][i] = b.new_triangle
 
-    def do_boundary_walk(self, p, bad_triangles):
+    def do_boundary_walk(self, p: Point2D, bad_triangles: List[Triangle]) -> List[
+        DelaunayTriangulation2D._BoundaryNode]:
         boundary = []
         current_triangle, i = bad_triangles[0], 0
 
@@ -128,7 +130,7 @@ class DelaunayTriangulation2D:
             if boundary[0].connecting_edge[0] == boundary[-1].connecting_edge[1]:
                 return boundary
 
-    def voronoi(self):
+    def voronoi(self) -> VoronoiRegions2D:
         triangles_containing = {p: [] for p in self._get_points(exclude_supertriangle=False)}
 
         # Add all triangles to their vertices
@@ -143,7 +145,8 @@ class DelaunayTriangulation2D:
 
         return regions
 
-    def do_triangle_walk(self, p, triangles_containing):
+    def do_triangle_walk(self, p: Point2D, triangles_containing: Dict[Point2D, List[TriangleTuple]]) -> Deque[
+        TriangleTuple]:
         tris = triangles_containing[p]
 
         # Starting at "random" point
@@ -168,17 +171,18 @@ class DelaunayTriangulation2D:
                 return regions
             regions.append(cw)
 
-    def _find_neighbour(self, tri, others, cw):
+    @staticmethod
+    def _find_neighbour(tri: TriangleTuple, others: List[TriangleTuple], go_cw: bool) -> Optional[TriangleTuple]:
         is_ccw_neighbour = lambda tri, other: tri.cw == other.ccw
         is_cw_neighbour = lambda tri, other: tri.ccw == other.cw
-        is_neighbour = is_cw_neighbour if cw else is_ccw_neighbour
+        is_neighbour = is_cw_neighbour if go_cw else is_ccw_neighbour
 
         for t in others:
             if is_neighbour(tri, t):
                 return t
         return None
 
-    def plot(self, linestyle='dashed', color='blue'):
+    def plot(self, linestyle: str = 'dashed', color: str = 'blue'):
         fig, axis = plt.subplots()
         axis.axis([-self.radius / 2 - 1, self.radius / 2 + 1, -self.radius / 2 - 1, self.radius / 2 + 1])
         for (a, b) in self.lines:
