@@ -16,7 +16,7 @@ Edge2D = Tuple[Point2D, Point2D]
 StraightLineFunction = Callable[[float], np.ndarray]
 
 
-class TriangleTuple(NamedTuple):
+class TriangleNode(NamedTuple):
     ccw: Point2D
     cw: Point2D
     pt: Point2D
@@ -63,7 +63,6 @@ class AbstractTriangle(ABC):
     @cached_property
     def points(self) -> Union[Tuple[Point2D, Point2D, Point2D], List[np.ndarray]]:
         # If it was mutable caching would break
-        # TODO: Make flake8 exception
         return self._points
 
     @cached_property
@@ -74,22 +73,22 @@ class AbstractTriangle(ABC):
     @staticmethod
     def calc_area(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
         """
-        Calculates the "calc_area" of a Triangle defined by the parameters. All three points have to be on a plane
+        Calculates the "calc_area" of a TupleTriangle defined by the parameters. All three points have to be on a plane
         parallel to an axis-plane!
 
         Parameters
         ----------
         a: np.ndarray
-            First point of the Triangle.
+            First point of the TupleTriangle.
         b: np.ndarray
-            Second point of the Triangle.
+            Second point of the TupleTriangle.
         c: np.ndarray
-            Third point of the Triangle.
+            Third point of the TupleTriangle.
 
         Returns
         -------
         float:
-            "Area" of the Triangle.
+            "Area" of the TupleTriangle.
         """
         return np.linalg.det(np.array([a, b, c])) / 2
 
@@ -117,14 +116,25 @@ class AbstractTriangle(ABC):
         return f"<TRIANLGE: {str(self)}>"
 
 
-class Triangle(AbstractTriangle):
+class TupleTriangle(AbstractTriangle):
     def __init__(self, a: Point2D, b: Point2D, c: Point2D):
         self._points: Tuple[Point2D, Point2D, Point2D] = (a, b, c)
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Triangle) and sorted(self.points) == sorted(other.points)
+        return isinstance(other, TupleTriangle) and sorted(self.points) == sorted(other.points)
 
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.points)))
 
-VoronoiRegions2D = Dict[Point2D, Deque[TriangleTuple]]
+
+class Triangle:
+    def __call__(self, a, b, c):
+        if isinstance(a, tuple):
+            return TupleTriangle(a, b, c)
+        elif isinstance(a, np.ndarray):
+            return ...
+        else:
+            raise TypeError("Unexpected Datatype")
+
+
+VoronoiRegions2D = Dict[Point2D, Deque[TriangleNode]]

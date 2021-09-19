@@ -1,5 +1,5 @@
 from collections import deque
-from curvepy.delaunay import DelaunayTriangulation2D, TriangleTuple
+from curvepy.delaunay import DelaunayTriangulation2D, TriangleNode
 from curvepy.tests.test_voronoi_regions import *
 
 if __name__ == '__main__':

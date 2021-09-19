@@ -5,19 +5,19 @@ from typing import List, NamedTuple, Dict, Deque, Optional
 import matplotlib.pyplot as plt
 from collections import deque
 
-from curvepy.types import Triangle, Edge2D, Point2D, TriangleTuple, VoronoiRegions2D
+from curvepy.types import TupleTriangle, Edge2D, Point2D, TriangleNode, VoronoiRegions2D
 
 
 class DelaunayTriangulation2D:
     class _BoundaryNode(NamedTuple):
-        new_triangle: Triangle
+        new_triangle: TupleTriangle
         connecting_edge: Edge2D
-        opposite_triangle: Triangle
+        opposite_triangle: TupleTriangle
 
     def __init__(self, center: Point2D = (0, 0), radius: float = 500):
         t1, t2 = self._create_supertriangles(center, 50 * radius)
         self.radius = radius
-        self.supertriangles: List[Triangle] = [t1, t2]
+        self.supertriangles: List[TupleTriangle] = [t1, t2]
         self._neighbours = {
             t1: [t2, None, None],
             t2: [t1, None, None]
@@ -36,7 +36,7 @@ class DelaunayTriangulation2D:
         return sum([list(x.points) for x in self.supertriangles], [])
 
     @property
-    def triangles(self) -> List[Triangle]:
+    def triangles(self) -> List[TupleTriangle]:
         remove_if = lambda t: any(pt in t.points for pt in self._points_of_supertriangles)
         return [t for t in self._neighbours.keys() if not remove_if(t)]
 
@@ -57,7 +57,7 @@ class DelaunayTriangulation2D:
         return list(ret.difference(set(self._points_of_supertriangles))) if exclude_supertriangle else list(ret)
 
     @staticmethod
-    def _create_supertriangles(center: Point2D, radius: float) -> List[Triangle]:
+    def _create_supertriangles(center: Point2D, radius: float) -> List[TupleTriangle]:
         # Since we have to start with a valid triangulation, we split our allowed range into 2 triangles like that:
         # x────────────────────────────────┐
         # xx                               │
@@ -81,8 +81,8 @@ class DelaunayTriangulation2D:
         center = np.array(center)
         base_rectangle = [center + radius * np.array([i, j]) for i, j in [(-1, -1), (1, -1), (1, 1), (-1, 1)]]
         lower_left, lower_right, upper_right, upper_left = [tuple(x) for x in base_rectangle]
-        lower_triangle = Triangle(lower_left, lower_right, upper_left)
-        upper_triangle = Triangle(upper_right, upper_left, lower_right)
+        lower_triangle = TupleTriangle(lower_left, lower_right, upper_left)
+        upper_triangle = TupleTriangle(upper_right, upper_left, lower_right)
         return [lower_triangle, upper_triangle]
 
     def add_point(self, p: Point2D):
@@ -94,7 +94,7 @@ class DelaunayTriangulation2D:
         for bad in bad_triangles:
             del self._neighbours[bad]
 
-        # Add new Triangle Entries
+        # Add new TupleTriangle Entries
         n = len(boundary)
         for i, b in enumerate(boundary):
             triangle_before, triangle_after = boundary[(i - 1) % n][0], boundary[(i + 1) % n][0]
@@ -110,7 +110,7 @@ class DelaunayTriangulation2D:
                 if neigh is not None and set(b.connecting_edge).issubset(set(neigh.points)):
                     self._neighbours[b.opposite_triangle][i] = b.new_triangle
 
-    def do_boundary_walk(self, p: Point2D, bad_triangles: List[Triangle]) -> List[
+    def do_boundary_walk(self, p: Point2D, bad_triangles: List[TupleTriangle]) -> List[
         DelaunayTriangulation2D._BoundaryNode]:
         boundary = []
         current_triangle, i = bad_triangles[0], 0
@@ -124,8 +124,8 @@ class DelaunayTriangulation2D:
 
             # remember, CCW
             edge = (current_triangle.points[(i + 1) % 3], current_triangle.points[(i - 1) % 3])
-            self._BoundaryNode(Triangle(p, *edge), edge, opposite_triangle)
-            boundary.append(self._BoundaryNode(Triangle(p, *edge), edge, opposite_triangle))
+            self._BoundaryNode(TupleTriangle(p, *edge), edge, opposite_triangle)
+            boundary.append(self._BoundaryNode(TupleTriangle(p, *edge), edge, opposite_triangle))
             i = (i + 1) % 3
             if boundary[0].connecting_edge[0] == boundary[-1].connecting_edge[1]:
                 return boundary
@@ -136,17 +136,17 @@ class DelaunayTriangulation2D:
         # Add all triangles to their vertices
         for t in self._neighbours:
             a, b, c = t.points
-            triangles_containing[a].append(TriangleTuple(ccw=b, cw=c, pt=a, ccc=t.circumcircle.center))
-            triangles_containing[b].append(TriangleTuple(ccw=c, cw=a, pt=b, ccc=t.circumcircle.center))
-            triangles_containing[c].append(TriangleTuple(ccw=a, cw=b, pt=c, ccc=t.circumcircle.center))
+            triangles_containing[a].append(TriangleNode(ccw=b, cw=c, pt=a, ccc=t.circumcircle.center))
+            triangles_containing[b].append(TriangleNode(ccw=c, cw=a, pt=b, ccc=t.circumcircle.center))
+            triangles_containing[c].append(TriangleNode(ccw=a, cw=b, pt=c, ccc=t.circumcircle.center))
 
         regions = {p: self.do_triangle_walk(p, triangles_containing) for p in triangles_containing
                    if p not in self._points_of_supertriangles}
 
         return regions
 
-    def do_triangle_walk(self, p: Point2D, triangles_containing: Dict[Point2D, List[TriangleTuple]]) -> Deque[
-        TriangleTuple]:
+    def do_triangle_walk(self, p: Point2D, triangles_containing: Dict[Point2D, List[TriangleNode]]) -> Deque[
+        TriangleNode]:
         tris = triangles_containing[p]
 
         # Starting at "random" point
@@ -172,7 +172,7 @@ class DelaunayTriangulation2D:
             regions.append(cw)
 
     @staticmethod
-    def _find_neighbour(tri: TriangleTuple, others: List[TriangleTuple], go_cw: bool) -> Optional[TriangleTuple]:
+    def _find_neighbour(tri: TriangleNode, others: List[TriangleNode], go_cw: bool) -> Optional[TriangleNode]:
         is_ccw_neighbour = lambda tri, other: tri.cw == other.ccw
         is_cw_neighbour = lambda tri, other: tri.ccw == other.cw
         is_neighbour = is_cw_neighbour if go_cw else is_ccw_neighbour
