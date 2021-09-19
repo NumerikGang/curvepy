@@ -125,7 +125,7 @@ class Polygon:
         self._points = points.copy() if make_copy else points
         self._piece_funcs = self.create_polygon()
 
-    def create_polygon(self) -> np.ndarray:
+    def create_polygon(self) -> List[Callable]:
         """
         Creates the polygon by creating an array with all straight_line_functions needed.
 
@@ -134,9 +134,7 @@ class Polygon:
         np.ndarray:
             the array with all straight_line_functions
         """
-        # TODO: zip it
-        return np.array([straight_line_function(self._points[i],
-                                                self._points[i + 1]) for i in range(len(self._points) - 1)])
+        return [straight_line_function(a, b) for a, b in zip(self._points[:-1], self._points[1:])]
 
     # TODO: Implement __getitem__
     # TODO (for real chads): Let it inherit from collections.abc.Sequence
