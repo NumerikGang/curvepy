@@ -5,12 +5,16 @@
 import pytest
 
 from typing import List, Set
-from curvepy.voronoi.delaunay_triangulation import DelaunayTriangulation2D, Triangle, Point2D
+from curvepy.delaunay import DelaunayTriangulation2D, TupleTriangle, Point2D
+
+# Jetbrains Formatter doesn't comply with PEP8, but those data lists are
+# not well formattable anyways.
+# Therefore we ignore the following:
+# E121 continuation line under-indented for hanging indent
+#
+# flake8: noqa: E121
 
 # Needed for Debug Functions
-import matplotlib.pyplot as plt
-import numpy as np
-from curvepy.dev.reference_implementation import Delaunay2D
 
 RANDOMLY_UNIFORMLY_DISTRIBUTED = [
     # n=10 2D-points each
@@ -24,7 +28,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (-6.319057044766186, -8.16828294254587), (-2.5259795771588074, -13.179931595424787),
          (-0.3737640303519605, -18.238919912136975), (1.3013870199730668, -14.477058193138745),
          (-12.14983214210029, 0.9243564544804386), (7.702281083060289, 9.752314067467044)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(-2.464519260333624, -3.5339998292951194), (-0.773689051649832, 11.295002309487042),
               (-0.660124558197829, -4.014126033623352)],
@@ -58,7 +62,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (19.252809957165027, -19.71697400344937), (8.295958070872409, -8.12657050313788),
          (19.68272710229777, 15.578598823155218), (-2.53925788979819, -12.51095640931419),
          (-1.5353477514257285, 0.9295432949623716), (7.070138216749619, -16.996919905921004)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(8.295958070872409, -8.12657050313788), (17.642366397536748, 2.031134906608436),
               (19.252809957165027, -19.71697400344937)],
@@ -92,7 +96,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (18.029424193400317, 14.633852320866517), (-5.633722740810336, -5.770315302104553),
          (-18.084033983439546, 6.37692972415509), (-10.604956231769481, -1.5925760516756249),
          (-0.4061097121198678, -14.681782596355927), (-13.793300803424131, -19.69388707032671)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(1.665357039403034, -9.08129597424689), (3.594542826868757, 7.33901439793997),
               (18.029424193400317, 14.633852320866517)],
@@ -128,7 +132,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (-19.874842348052148, 2.532995781099995), (-0.15778198203077665, 18.75826722719114),
          (-19.635296339870763, 9.512647094148775), (-5.191889786603493, 7.235283487422741),
          (-16.57338447485341, -13.289565043397022), (-2.042829987787151, -12.806353294202726)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(-1.3162600263586128, 6.780277246556196), (1.4732576347808148, 17.09278333425069),
               (4.7275782170697696, 17.99986515382742)],
@@ -160,7 +164,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (-13.794499341700487, 16.700748666983998), (10.074784709479442, 7.790914767646939),
          (-19.64676174578036, -3.7000647695745386), (-12.345380559563734, -6.948393502524093),
          (14.286858908479253, -10.628140311249673), (-19.697242836581022, -4.49505652037284)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(-13.794499341700487, 16.700748666983998), (2.57560948079346, 7.261488888907806),
               (10.074784709479442, 7.790914767646939)],
@@ -190,7 +194,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (3.2022861215688323, -2.8755786085711286), (-18.369693884794863, 3.4904403180721104),
          (-8.149659140060258, -11.087730077350058), (2.116975317653594, 19.739395932307488),
          (16.933548895106142, 9.576472306543998), (-14.24574896223072, 6.59662253528078)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(3.2022861215688323, -2.8755786085711286), (3.3134575840174563, -1.132290192495109),
               (10.59309970082063, -2.176975103803123)],
@@ -224,7 +228,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (-5.689270894254413, 2.6947287504807846), (2.9891927242286087, -4.201745962700887),
          (2.5138364469879804, -0.2256329232360912), (7.737828051210691, 13.454266082018016),
          (-7.132790008685026, -15.939539810247997), (2.4844492758430192, -3.788825561645087)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(-14.594882405343235, -16.984670236598024), (-6.884089723062674, -6.054428139055933),
               (-5.689270894254413, 2.6947287504807846)],
@@ -258,7 +262,7 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          (-15.000959157490591, 8.634235873045991), (17.550338884578473, -3.296212989852286),
          (2.472319234147765, 12.432083120603302), (-17.194679401098398, 12.383072326622383),
          (-8.936431957113381, -3.9564331246693882), (-12.455966667386345, 14.334822277277247)],
-        {Triangle(*pts) for pts in
+        {TupleTriangle(*pts) for pts in
          [
              [(11.865187343967595, -6.065834689396944), (14.528590922531443, -7.75549896434792),
               (17.550338884578473, -3.296212989852286)],
@@ -289,56 +293,8 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
 ]
 
 
-def compare_to_reference_implementation(list_of_inputs_outputs, radius=500):
-    """Debugging helper for visualizing the Delaunay Triangulation compared to the reference implementation"""
-    j = 0
-    for i, _ in list_of_inputs_outputs:
-        d = DelaunayTriangulation2D(radius=radius)
-        for pt in i:
-            d.add_point(pt)
-
-        plt.rcParams["figure.figsize"] = (5, 10)
-        figure, axis = plt.subplots(2)
-
-        axis[0].set_title(f"meins {j}")
-        trianglerinos = d.triangles
-        for tri in trianglerinos:
-            points = np.ravel(tri.points)
-            axis[0].triplot(points[0::2], points[1::2])
-
-        axis[1].set_title("reference implementation")
-        d2 = Delaunay2D(radius=1000)
-        for pt in i:
-            d2.addPoint(pt)
-        coord, tris = d2.exportDT()
-        my_tris = [(coord[a], coord[b], coord[c]) for a, b, c in tris]
-        for tri in my_tris:
-            points = np.ravel(tri)
-            axis[1].triplot(points[0::2], points[1::2])
-        plt.show()
-        j += 1
-
-
-def generate_output_from_input(list_of_inputs_outputs, radius=500):
-    ret = []
-    for i, _ in list_of_inputs_outputs:
-        current = "{Triangle(*pts) for pts in \n["
-        d = DelaunayTriangulation2D(radius=radius)
-        for pt in i:
-            d.add_point(pt)
-        tris = d.triangles
-        pts = [t.points for t in tris]
-        for t in pts:
-            current += f"\n{t},"
-        # remove last comma
-        current = current[:-1]
-        current += "\n]}"
-        ret.append(current)
-    return ret
-
-
 @pytest.mark.parametrize('input, expected', RANDOMLY_UNIFORMLY_DISTRIBUTED)
-def test_random_uniform_distribution(input: List[Point2D], expected: Set[Triangle]):
+def test_random_uniform_distribution(input: List[Point2D], expected: Set[TupleTriangle]):
     d = DelaunayTriangulation2D(radius=10)
     for pt in input:
         d.add_point(pt)

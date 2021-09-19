@@ -24,7 +24,7 @@ def test_simple():
     assert xs == ys
 
 
-@pytest.mark.skip("This will always fail by purpose.")
+@pytest.mark.skip("This will always fail on purpose.")
 def test_simple_fail():
     """This is a simple test which is supposed to fail
 
