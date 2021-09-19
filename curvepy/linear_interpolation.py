@@ -71,6 +71,7 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     """
     Method to calculate the ratio of the three collinear points from the parameters.
     Throws an exception if the points are not collinear.
+    Throws an exception if the points don't have the same dimension.
 
     Parameters
     ----------
@@ -88,14 +89,15 @@ def ratio(left: np.ndarray, col_point: np.ndarray, right: np.ndarray) -> float:
     """
     if not collinear_check(left, col_point, right):
         raise Exception("The points are not collinear!")
-    # TODO: check if all points have the same dimension
-    # TODO: zip it
-    for i in range(len(left)):
-        if left[i] == right[i]:
-            continue
-        if right[i] - col_point[i] == 0:
+
+    if left.shape != col_point.shape != right.shape:
+        raise Exception("The points don't have the same dimension!")
+
+    for l, r, c in zip(left, right, col_point):
+        if l != r and r - c != 0:
+            return (c - l) / (r - c)
+        elif r - c == 0:
             return np.NINF
-        return (col_point[i] - left[i]) / (right[i] - col_point[i])
     return 0
 
 
