@@ -1,8 +1,7 @@
 from enum import Enum
 import numpy as np
-from typing import Any, NamedTuple, Tuple
+from typing import Any, List, NamedTuple, Tuple
 from functools import cached_property
-from collections import namedtuple
 
 
 class CurveTypes(Enum):
@@ -27,7 +26,7 @@ class Circle:
         self.radius = radius
 
     @property
-    def center(self):
+    def center(self) -> Point2D:
         return tuple(self._center)
 
     def __contains__(self, pt: Point2D) -> bool:
@@ -51,7 +50,7 @@ class Triangle:
         self._points: Tuple[Point2D, Point2D, Point2D] = (a, b, c)
 
     @cached_property
-    def lines(self):
+    def lines(self) -> List[Edge2D]:
         a, b, c = self.points
         return [(a, b), (b, c), (a, c)]
 
