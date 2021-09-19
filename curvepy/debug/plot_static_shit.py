@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from matplotlib.tri import Triangulation
 from curvepy.debug.Reference_Implementation import Delaunay2D
 
-if __name__ == '__main__':
-    for seed, mean in [*zip(SEEDS, MEANS)]:
+def plot_it(seeds, means):
+    for seed, mean in [*zip(seeds, means)]:
         # our
         d = DelaunayTriangulation2D(mean, DIAMETER)
         for s in seed:
@@ -51,3 +51,7 @@ if __name__ == '__main__':
             axis[1].plot(*zip(*polygon), color="red")  # Plot polygon edges in red
             axis[1].fill(*zip(*polygon), alpha=0.2)
         plt.show()
+
+
+if __name__ == '__main__':
+    plot_it([SEEDS[1], SEEDS[5], SEEDS[6]], [MEANS[1], MEANS[2], MEANS[3]])
