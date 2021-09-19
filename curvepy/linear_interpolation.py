@@ -1,6 +1,6 @@
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from typing import Callable
+from typing import Callable, List
 import functools
 import matplotlib.pyplot as plt
 import sys
@@ -116,10 +116,13 @@ class Polygon:
 
     """
 
-    # TODO: Dim Check
-    def __init__(self, points: np.ndarray, make_copy=True) -> None:
+    def __init__(self, points: List[np.ndarray], make_copy: bool = True) -> None:
+        if any([points[0].shape != x.shape for x in points]):
+            raise Exception("The points don't have the same dimension!")
+        self._dim = points[0].shape[1]
+        if self._dim not in [2, 3]:
+            raise Exception("The points don't have dimension of 2 or 3!")
         self._points = points.copy() if make_copy else points
-        self._dim = points.shape[1]
         self._piece_funcs = self.create_polygon()
 
     def create_polygon(self) -> np.ndarray:
