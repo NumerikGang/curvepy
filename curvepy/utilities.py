@@ -1,4 +1,9 @@
+from typing import Any, List
 import numpy as np
+
+
+def flatten_list_of_lists(xss: List[List[Any]]) -> List[Any]:
+    return sum(xss, [])
 
 
 def csv_read(file_path: str) -> np.ndarray:
