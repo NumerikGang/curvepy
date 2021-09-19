@@ -1,6 +1,6 @@
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from typing import Callable, List
+from typing import Callable, List, Tuple
 import functools
 import matplotlib.pyplot as plt
 import sys
@@ -234,7 +234,7 @@ class Triangle(Polygon):
         return np.linalg.det(np.array([a, b, c])) / 2
 
     # TODO: Write shorter
-    def squash_parallel_to_axis_plane(self, p: np.ndarray):
+    def squash_parallel_to_axis_plane(self, p: np.ndarray) -> List[np.ndarray]:
         """
         This method projects p and the points of the Triangle on a plane, for example the y-plane with distance 1 for
         all points of the Triangle to the plane, so that cramer's rule can easily be applied to them
@@ -257,12 +257,12 @@ class Triangle(Polygon):
                     and self._points[0][i - 1] != self._points[1][i - 1] != self._points[2][i - 1]:
                 p_copy[i - 2], a[i - 2], b[i - 2], c[i - 2] = 1, 1, 1, 1
                 break
-        return p_copy, a, b, c
+        return [p_copy, a, b, c]
 
     # TODO: Remove exception (checked at constructor)
     # TODO: Type hinting
     # TODO: Optional make_copy parameter
-    def check_points_for_area_calc(self, p):
+    def check_points_for_area_calc(self, p: np.ndarray) -> List[np.ndarray]:
         """
         This method checks if the point p and the points of the Triangle have the right dimension and will make them so
         that cramer's rule can be applied to them.
@@ -279,7 +279,7 @@ class Triangle(Polygon):
         """
         if self._dim == 3:
             return self.squash_parallel_to_axis_plane(p)
-        return (np.append(x.copy(), [1]) for x in [p, *self._points])
+        return [np.hstack((x.copy(), [1])) for x in [p, *self._points]]
 
     # TODO: If 3D: Check if the 3D-Point lies on the 2D-Hyperplane defined by the bary coordinates
     # TODO: If not, throw an exception
