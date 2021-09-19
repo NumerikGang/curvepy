@@ -1,6 +1,6 @@
 from enum import Enum
 import numpy as np
-from typing import Any, List, NamedTuple, Tuple
+from typing import Any, Dict, Deque, List, NamedTuple, Tuple
 from functools import cached_property
 
 
@@ -12,6 +12,7 @@ class CurveTypes(Enum):
 
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
+
 
 class TriangleTuple(NamedTuple):
     ccw: Point2D
@@ -99,3 +100,6 @@ class Triangle:
 
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.points)))
+
+
+VoronoiRegions2D = Dict[Point2D, Deque[Triangle]]
