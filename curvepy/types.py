@@ -226,8 +226,8 @@ class PolygonTriangle(Polygon, AbstractTriangle):
 
     def squash_parallel_to_axis_plane(self, p: np.ndarray) -> List[np.ndarray]:
         """
-        This method projects p and the points of the TupleTriangle on a plane, for example the y-plane with distance 1 for
-        all points of the TupleTriangle to the plane, so that cramer's rule can easily be applied to them
+        This method projects p and the points of the TupleTriangle on a plane, for example the y-plane with distance 1
+        for all points of the TupleTriangle to the plane, so that cramer's rule can easily be applied to them
         in order to calculate the calc_area of the TupleTriangle corresponding to every 3 out of the 4 points.
         But this method does not overwrite the self._points.
 
@@ -251,8 +251,8 @@ class PolygonTriangle(Polygon, AbstractTriangle):
 
     def check_points_for_area_calc(self, p: np.ndarray) -> List[np.ndarray]:
         """
-        This method checks if the point p and the points of the TupleTriangle have the right dimension and will make them so
-        that cramer's rule can be applied to them.
+        This method checks if the point p and the points of the TupleTriangle have the right dimension and will make
+        them so that cramer's rule can be applied to them.
 
         Parameters
         ----------

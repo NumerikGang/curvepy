@@ -37,7 +37,7 @@ def bernstein_polynomial_rec(n: int, i: int, t: float = 1) -> float:
         return 1
     if not 0 <= i <= n:
         return 0
-    return (1-t)*bernstein_polynomial_rec(n-1, i, t) + t*bernstein_polynomial_rec(n-1, i-1, t)
+    return (1 - t) * bernstein_polynomial_rec(n - 1, i, t) + t * bernstein_polynomial_rec(n - 1, i - 1, t)
 
 
 def bernstein_polynomial(n: int, i: int, t: float = 1) -> float:
@@ -65,7 +65,7 @@ def bernstein_polynomial(n: int, i: int, t: float = 1) -> float:
     Equation used for computing:
     math:: B_i^n(t) = \\binom{n}{i} t^{i} (1-t)^{n-i}
     """
-    return scs.binom(n, i) * (t**i) * ((1-t)**(n-i))
+    return scs.binom(n, i) * (t ** i) * ((1 - t) ** (n - i))
 
 
 def partial_bernstein_polynomial(n: int, i: int) -> Callable[[float], float]:
@@ -123,8 +123,8 @@ def bezier_curve_with_bernstein(m: np.ndarray, t: float = 0.5, r: int = 0,
     math:: b_i^r(t) = \\sum_{j=0}^r b_{i+j} \\cdot B_i^r(t)
     """
     _, n = m.shape
-    t = (t-interval[0])/(interval[1]-interval[0])
-    return np.sum([m[:, i] * bernstein_polynomial(n-r-1, i, t) for i in range(n-r)], axis=0)
+    t = (t - interval[0]) / (interval[1] - interval[0])
+    return np.sum([m[:, i] * bernstein_polynomial(n - r - 1, i, t) for i in range(n - r)], axis=0)
 
 
 def intermediate_bezier_points(m: np.ndarray, r: int, i: int, t: float = 1,
@@ -160,8 +160,8 @@ def intermediate_bezier_points(m: np.ndarray, r: int, i: int, t: float = 1,
     math:: b_i^r(t) = \\sum_{j=0}^r b_{i+j} \\cdot B_i^r(t)
     """
     _, n = m.shape
-    t = (t-interval[0])/(interval[1]-interval[0])
-    return np.sum([m[:, i+j]*bernstein_polynomial(n-1, j, t) for j in range(r)], axis=0)
+    t = (t - interval[0]) / (interval[1] - interval[0])
+    return np.sum([m[:, i + j] * bernstein_polynomial(n - 1, j, t) for j in range(r)], axis=0)
 
 
 def barycentric_combination_bezier(m: np.ndarray, c: np.ndarray, alpha: float = 0, beta: float = 1, t: float = 1,
@@ -208,7 +208,8 @@ def barycentric_combination_bezier(m: np.ndarray, c: np.ndarray, alpha: float = 
     if alpha + beta != 1:
         raise Exception("Alpha and Beta must add up to 1!")
 
-    return alpha * bezier_curve_with_bernstein(m, t, r, interval)+beta * bezier_curve_with_bernstein(c, t, r, interval)
+    return alpha * bezier_curve_with_bernstein(m, t, r, interval) + beta * bezier_curve_with_bernstein(c, t, r,
+                                                                                                       interval)
 
 
 def horn_bez(m: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -231,9 +232,9 @@ def horn_bez(m: np.ndarray, t: float = 0.5) -> np.ndarray:
     n = m.shape[1] - 1  # need degree of curve (n points means degree = n-1)
     res = m[:, 0] * (1 - t)
     for i in range(1, n):
-        res = (res + t**i * scs.binom(n, i) * m[:, i]) * (1 - t)
+        res = (res + t ** i * scs.binom(n, i) * m[:, i]) * (1 - t)
 
-    res += t**n * m[:, n]
+    res += t ** n * m[:, n]
 
     return res
 
@@ -268,7 +269,7 @@ def bezier_to_power(m: np.ndarray) -> Callable[[float], np.ndarray]:
     t = sy.symbols('t')
     res = 0
     for i in range(n):
-        res += scs.binom(n-1, i) * diff[:, i] * t**i
+        res += scs.binom(n - 1, i) * diff[:, i] * t ** i
 
     return sy.lambdify(t, res)
 
@@ -299,7 +300,7 @@ def single_forward_difference(m: np.ndarray, i: int = 0, r: int = 0) -> np.ndarr
     math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
     """
     _, n = m.shape
-    return np.sum([scs.binom(r, j)*(-1)**(r - j)*m[:, i + j] for j in range(0, r+1)], axis=0)
+    return np.sum([scs.binom(r, j) * (-1) ** (r - j) * m[:, i + j] for j in range(0, r + 1)], axis=0)
 
 
 def all_forward_differences(m: np.ndarray, i: int = 0) -> np.ndarray:
@@ -356,8 +357,8 @@ def derivative_bezier_curve(m: np.ndarray, t: float = 1, r: int = 1) -> np.ndarr
     math:: \\frac{d^r}{dt^r} b^n(t) = \\frac{n!}{(n-r)!} \\cdot \\sum_{j=0}^{n-r} \\Delta^r b_j \\cdot B_j^{n-r}(t)
     """
     _, n = m.shape
-    factor = scs.factorial(n)/scs.factorial(n-r)
-    tmp = [factor * single_forward_difference(m, j, r) * bernstein_polynomial(n-r, j, t) for j in range(n-r)]
+    factor = scs.factorial(n) / scs.factorial(n - r)
+    tmp = [factor * single_forward_difference(m, j, r) * bernstein_polynomial(n - r, j, t) for j in range(n - r)]
     return np.sum(tmp, axis=0)
 
 
@@ -378,7 +379,7 @@ def horner(m: np.ndarray, t: float = 0.5) -> Tuple[Union[float, Any], ...]:
     tuple:
         point calculated with given t
     """
-    return tuple(reduce(lambda x, y: t*x+y, m[i, ::-1]) for i in [0, 1])
+    return tuple(reduce(lambda x, y: t * x + y, m[i, ::-1]) for i in [0, 1])
 
 
 def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
@@ -404,8 +405,8 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
     if m.shape[1] < 2:
         raise Exception("At least two points are needed")
 
-    t1 = (interval[1] - t)/(interval[1] - interval[0]) if interval != (0, 1) else (1-t)
-    t2 = (t - interval[0])/(interval[1] - interval[0]) if interval != (0, 1) else t
+    t1 = (interval[1] - t) / (interval[1] - interval[0]) if interval != (0, 1) else (1 - t)
+    t2 = (t - interval[0]) / (interval[1] - interval[0]) if interval != (0, 1) else t
 
     m[:, :-1] = t1 * m[:, :-1] + t2 * m[:, 1:]
     return m
@@ -543,7 +544,7 @@ def subdiv(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
     np.ndarray:
         left polygon
     """
-    return de_caes(m, t, True), de_caes(m[:, ::-1], 1.0-t, True)
+    return de_caes(m, t, True), de_caes(m[:, ::-1], 1.0 - t, True)
 
 
 def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> float:
@@ -580,8 +581,8 @@ def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> 
         raise Exception("points need to be of the same dimension!")
 
     numerator = abs((p2[0] - p1[0]) * (p1[1] - p_to_check[1]) - (p1[0] - p_to_check[0]) * (p2[1] - p1[1]))
-    denominator = ((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)**0.5
-    return numerator/denominator
+    denominator = ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
+    return numerator / denominator
 
 
 def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
@@ -602,7 +603,7 @@ def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
     bool:
         True if all point are less than tol away from line otherwise false
     """
-    return all(distance_to_line(m[:, 0], m[:, len(m[0])-1], m[:, i]) <= tol for i in range(1, len(m[0])-1))
+    return all(distance_to_line(m[:, 0], m[:, len(m[0]) - 1], m[:, i]) <= tol for i in range(1, len(m[0]) - 1))
 
 
 def min_max_box(m: np.ndarray) -> List[float]:
@@ -661,7 +662,7 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
     if z == 0:
         return None
     # we divide with z to turn back to 2D space
-    return np.array([x/z, y/z])
+    return np.array([x / z, y / z])
 
 
 def intersect(m: np.ndarray, tol: float = s.float_info.epsilon) -> np.ndarray:
@@ -709,21 +710,21 @@ def init() -> None:
     x = [0, 0, 8, 4]
     y = [0, 2, 2, 0]
 
-    x_1 = [0]
-    y_1 = [1]
+    # x_1 = [0]
+    # y_1 = [1]
     test = np.array([x, y], dtype=float)
     print(test.shape)
-    #print(bernstein_polynomial(4, 2, 0.5))
-    #print(bezier_curve_with_bernstein(test))
+    # print(bernstein_polynomial(4, 2, 0.5))
+    # print(bezier_curve_with_bernstein(test))
     _, n = test.shape
     print(de_caes_blossom(test, [0.5, 0.5, 0.25]))
-    #print(de_caes(test, 0.5))
-    #print(bernstein_polynomial_rec.__doc__)
-    #print(min_max_box(test))
-    #print(np.ndarray([]).size)
-    #print(check_flat(test))
-    #print(horn_bez(test))
-    #print(all_forward_differences(test))
+    # print(de_caes(test, 0.5))
+    # print(bernstein_polynomial_rec.__doc__)
+    # print(min_max_box(test))
+    # print(np.ndarray([]).size)
+    # print(check_flat(test))
+    # print(horn_bez(test))
+    # print(all_forward_differences(test))
 
 
 if __name__ == "__main__":

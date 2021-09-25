@@ -36,10 +36,12 @@ before_script:
 #     of the language. On the one hand, if a function is a one_liner, which is neither semantically part of the class
 #     nor used outside of single function, I don't want to assign it to another function. On the other hand,
 #     some predicates (a -> Bool) can be nontrivial. A variable name can fill the semantics gap.
+# - Continuation line with same indent as next logical line (E125): PyCharms formatter doesn't implement that, therefore
+#   it will always break as we don't have any pre-commit stuff.
 flake8:
   stage: static-analysis
   script:
-    flake8 --version && flake8 --count --statistics --max-line-length=120 --ignore=E731 curvepy
+    flake8 --version && flake8 --count --statistics --max-line-length=120 --ignore=E731,E125 curvepy
   only:
     - master
     - merge_requests
@@ -47,7 +49,7 @@ flake8:
 unit-tests:
   stage: test
   script:
-    python -m pytest -s -v curvepy/tests/unit_tests
+    python -m pytest -s -v curvepy/tests
   only:
     - master
     - merge_requests

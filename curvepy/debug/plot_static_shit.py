@@ -1,3 +1,4 @@
+# flake8: noqa
 from curvepy.tests.test_voronoi_regions import *
 import numpy as np
 from curvepy.voronoi import Voronoi
