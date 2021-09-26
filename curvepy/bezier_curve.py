@@ -1,5 +1,6 @@
 import numpy as np
 import sympy as sy
+import scipy.special as scs
 import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
@@ -7,6 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Callable, Union
 
 from curvepy.utilities import csv_read
+from curvepy.types import bernstein_polynomial
 
 
 class Tholder:
@@ -326,6 +328,81 @@ class AbstractBezierCurve(ABC):
         for c in list_of_curves:
             c.plot()
         plt.show()
+
+    def single_forward_difference(self, i: int = 0, r: int = 0) -> np.ndarray:
+        """
+        Method using equation 5.23 to calculate forward difference of degree r for specific point i
+
+        Parameters
+        ----------
+        i: int:
+            point i for which forward all_forward_differences are calculated
+
+        r: int:
+            degree of forward difference
+
+        Returns
+        -------
+        np.ndarray:
+                forward difference of degree r for point i
+
+        Notes
+        -----
+        Equation used for computing all_forward_differences:
+        math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
+        """
+        return np.sum([scs.binom(r, j) * (-1) ** (r - j) * self._bezier_points[:, i + j] for j in range(0, r + 1)], axis=0)
+
+    def all_forward_differences(self, i: int = 0) -> np.ndarray:
+        """
+        Method using equation 5.23 to calculate all forward all_forward_differences for a given point i.
+        First entry is first difference, second entry is second difference and so on.
+
+        Parameters
+        ----------
+        i: int:
+            point i for which forward all_forward_differences are calculated
+
+        Returns
+        -------
+        np.ndarray:
+             array holds all forward all_forward_differences for given point i
+
+        Notes
+        -----
+        Equation used for computing all_forward_differences:
+        math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
+        """
+        _, n = self._bezier_points.shape
+        diff = [self.single_forward_difference(i, r) for r in range(0, n)]
+        return np.array(diff).T
+
+    def derivative_bezier_curve(self, t: float = 1, r: int = 1) -> np.ndarray:
+        """
+        Method using equation 5.24 to calculate rth derivative of bezier curve at value t
+
+        Parameters
+        ----------
+        t: float:
+            value for which Bezier curves are calculated
+
+        r: int:
+            rth derivative
+
+        Returns
+        -------
+        np.ndarray:
+             point of the rth derivative at value t
+
+        Notes
+        -----
+        Equation used for computing:
+        math:: \\frac{d^r}{dt^r} b^n(t) = \\frac{n!}{(n-r)!} \\cdot \\sum_{j=0}^{n-r} \\Delta^r b_j \\cdot B_j^{n-r}(t)
+        """
+        _, n = self._bezier_points.shape
+        factor = scs.factorial(n) / scs.factorial(n - r)
+        tmp = [factor * self.single_forward_difference(j, r) * bernstein_polynomial(n - r, j, t) for j in range(n - r)]
+        return np.sum(tmp, axis=0)
 
     def __str__(self):
         """
