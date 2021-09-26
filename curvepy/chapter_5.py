@@ -12,7 +12,7 @@ from typing import Tuple, Callable, Union, List, Any
 def bezier_curve_with_bernstein(m: np.ndarray, t: float = 0.5, r: int = 0,
                                 interval: Tuple[float, float] = (0, 1)) -> np.ndarray:
     """
-    Method using 5.8 to calculate a point with given betier points
+    Method using 5.8 to calculate a point with given bezier points
 
     Parameters
     ----------
@@ -80,6 +80,7 @@ def intermediate_bezier_points(m: np.ndarray, r: int, i: int, t: float = 1,
     return np.sum([m[:, i + j] * bernstein_polynomial(n - 1, j, t) for j in range(r)], axis=0)
 
 
+# TODO: Implement __add__ __mul__ (with scalars) for beziercurves
 def barycentric_combination_bezier(m: np.ndarray, c: np.ndarray, alpha: float = 0, beta: float = 1, t: float = 1,
                                    r: int = 0, interval: Tuple[float, float] = (0, 1)) -> np.ndarray:
     """
@@ -230,14 +231,14 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
     np.ndarray:
         array containing calculated points with given t
     """
-    if m.shape[1] < 2:
-        raise Exception("At least two points are needed")
 
     t1 = (interval[1] - t) / (interval[1] - interval[0]) if interval != (0, 1) else (1 - t)
     t2 = (t - interval[0]) / (interval[1] - interval[0]) if interval != (0, 1) else t
 
     m[:, :-1] = t1 * m[:, :-1] + t2 * m[:, 1:]
-    return m
+    if m.shape == (2, 1):
+        return m
+    return m[:, :-1]
 
 
 def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
@@ -264,16 +265,8 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
         array containing calculated points with given t
     """
 
-    if r >= m.shape[1]:
-        raise Exception("Can't perform r rounds!")
-
-    if m.shape[1] < 2:
-        raise Exception("At least two points are needed")
-
     for i in range(r):
         m = de_caes_one_step(m, t, interval)
-        if i != r - 1:
-            m = m[:, :-1]
     return m
 
 
@@ -301,16 +294,10 @@ def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = False, interval: Tu
         array containing calculated points with given t
     """
 
-    if m.shape[1] < 2:
-        raise Exception("At least two points are needed")
-
-    if m.shape[1] < 2:
-        raise Exception("At least two points are needed")
-
     _, n = m.shape
     return de_caes_n_steps(m.copy(), t, n, interval) if make_copy else de_caes_n_steps(m, t, n, interval)
 
-
+# TODO: Make decaes class always blossomed, create unblossomed @classmethod constructor
 def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = False,
                     interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
@@ -355,7 +342,7 @@ def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = False,
 
 def subdiv(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Method using subdivison to calculate right and left polygon with given t using de Casteljau
+    Method using subdivision to calculate right and left polygon with given t using de Casteljau
 
     Parameters
     ----------
@@ -374,7 +361,7 @@ def subdiv(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
     """
     return de_caes(m, t, True), de_caes(m[:, ::-1], 1.0 - t, True)
 
-
+# TODO utility
 def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> float:
     """
     Method calculating distance of point to line through p1 and p2
@@ -412,7 +399,7 @@ def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> 
     denominator = ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
     return numerator / denominator
 
-
+# TODO utility
 def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
     """
     Method checking if all points between the first and the last point
@@ -433,7 +420,7 @@ def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
     """
     return all(distance_to_line(m[:, 0], m[:, len(m[0]) - 1], m[:, i]) <= tol for i in range(1, len(m[0]) - 1))
 
-
+# TODO compare to other box
 def min_max_box(m: np.ndarray) -> List[float]:
     """
     Method creating the minmaxbox of a given curve
@@ -450,7 +437,7 @@ def min_max_box(m: np.ndarray) -> List[float]:
     """
     return [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
 
-
+# TODO mvp
 def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> Union[np.ndarray, None]:
     """
     Method checking if line through p1, p2 intersects with line through p3, p4
@@ -541,11 +528,11 @@ def init() -> None:
     # x_1 = [0]
     # y_1 = [1]
     test = np.array([x, y], dtype=float)
-    print(test.shape)
+    #print(test.shape)
     # print(bernstein_polynomial(4, 2, 0.5))
     # print(bezier_curve_with_bernstein(test))
     _, n = test.shape
-    print(de_caes_blossom(test, [0.5, 0.5, 0.25]))
+    print(de_caes(test, 0.5))
     # print(de_caes(test, 0.5))
     # print(bernstein_polynomial_rec.__doc__)
     # print(min_max_box(test))

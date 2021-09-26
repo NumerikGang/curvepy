@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import threading as th
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
-from typing import Tuple, Callable, Union
+from typing import List, Tuple, Callable, Union
+from functools import partial
 
 from curvepy.utilities import csv_read
 from curvepy.types import bernstein_polynomial
@@ -490,7 +491,7 @@ class BezierCurveThreaded(AbstractBezierCurve):
         """
         return self.de_casteljau_threading
 
-    def de_casteljau_threading(self, ts: np.ndarray = None, cnt_threads: int = 4) -> None:
+    def de_casteljau_threading(self, ts: np.ndarray = None, cnt_threads: int = 4) -> List[np.ndarray]:
         """
         Method implementing the threading for the De Casteljau algorithm
 
@@ -519,6 +520,45 @@ class BezierCurveThreaded(AbstractBezierCurve):
             curve = curve + tmp
 
         return curve
+
+class BezierCurveBernstein(AbstractBezierCurve):
+
+    def init_func(self, m: np.ndarray) -> Callable:
+        ...
+
+    def bezier_curve_with_bernstein(self, t: float = 0.5, r: int = 0,
+                                    interval: Tuple[float, float] = (0, 1)) -> np.ndarray:
+        """
+        Method using 5.8 to calculate a point with given bezier points
+
+        Parameters
+        ----------
+        m: np.ndarray:
+            array containing the Bezier Points
+
+        t: float:
+            value for which Bezier curve are calculated
+
+        r: int:
+            optional Parameter to calculate only a partial curve if we already have some degree of the bezier points
+
+        interval: Tuple[float,float]:
+            Interval of t used for affine transformation
+
+        Returns
+        -------
+        np.ndarray:
+                point on the curve
+
+        Notes
+        -----
+        Equation used for computing:
+        math:: b_i^r(t) = \\sum_{j=0}^r b_{i+j} \\cdot B_i^r(t)
+        """
+        m = self._bezier_points
+        _, n = m.shape
+        t = (t - interval[0]) / (interval[1] - interval[0])
+        return np.sum([m[:, i] * bernstein_polynomial(n - r - 1, i, t) for i in range(n - r)], axis=0)
 
 
 def init() -> None:
