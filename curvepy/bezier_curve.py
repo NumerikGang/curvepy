@@ -12,109 +12,6 @@ from curvepy.utilities import csv_read
 from curvepy.types import bernstein_polynomial
 
 
-class Tholder:
-    """
-    Class holds Array with equidistant ts in [0,1] of length n
-
-    Parameters
-    ----------
-    n: int
-        Numbers of ts to calculate
-
-    Attributes
-    -------
-    _tArray : np.ndarray
-        array in which all ts are stored
-    _pointer : int
-        pointer pointing on next t to get
-    lockMe: th.Lock
-        lock for multithreading
-    """
-
-    def __init__(self, ts: np.ndarray = None) -> None:
-        self._tArray = ts
-        self._pointer = 0
-        self.lockMe = th.Lock()  # variable used to control access of threads
-
-    def get_next_t(self) -> float:
-        """
-        Method for threads to get next t
-
-        Returns
-        -------
-        float:
-            t to calculate the next De Casteljau step
-        """
-        if self._pointer == len(self._tArray):
-            return -1
-        res = self._tArray[self._pointer]
-        self._pointer += 1
-        return res
-
-
-class CasteljauThread(th.Thread):
-    """
-    Thread class computing the De Casteljau algorithm
-
-    Parameters
-    ----------
-    ts_holder: Tholder
-        Class which yields all ts
-    c: np.ndarray
-        Array with control points
-    f: Function
-         Function to transform t if necessary
-
-    Attributes
-    -------
-    _ts_holder : Tholder
-        instance of class Tholder so thread can get the ts for calculating the de Casteljau algorithm
-    _coords: np.ndarray
-        original control points
-    res: list
-        actual points on curve
-    _func: Function
-        function for transforming t
-    """
-
-    def __init__(self, ts_holder: Tholder, c: np.ndarray, f: Callable[[float], float] = lambda x: x) -> None:
-        th.Thread.__init__(self)
-        self._ts_holder = ts_holder
-        self._coords = c
-        self.res = []
-        self._func = f
-
-    def de_caes(self, t: float, n: int) -> None:
-        """
-        Method implementing the the De Casteljau algorithm
-
-        Parameters
-        ----------
-        t: float
-            value at which to be evaluated at
-        n: int
-            number of iterations TODO find more describing phrasing together
-        """
-        m = self._coords.copy()
-        t = self._func(t)
-        for r in range(n):
-            m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
-        self.res.append(m[:, 0])
-
-    def run(self) -> None:
-        """
-        Method calculates points until depot is empty
-        """
-        _, n = self._coords.shape
-        while True:
-            self._ts_holder.lockMe.acquire()
-            t = self._ts_holder.get_next_t()
-            self._ts_holder.lockMe.release()
-            if t == -1:
-                break
-            self.de_caes(t, n)
-
-
 class AbstractBezierCurve(ABC):
     """
     Abstract class for creating a Bezier Curve.
@@ -521,6 +418,7 @@ class BezierCurveThreaded(AbstractBezierCurve):
 
         return curve
 
+
 class BezierCurveBernstein(AbstractBezierCurve):
 
     def init_func(self, m: np.ndarray) -> Callable:
@@ -559,6 +457,7 @@ class BezierCurveBernstein(AbstractBezierCurve):
         _, n = m.shape
         t = (t - interval[0]) / (interval[1] - interval[0])
         return np.sum([m[:, i] * bernstein_polynomial(n - r - 1, i, t) for i in range(n - r)], axis=0)
+
 
 
 def init() -> None:
