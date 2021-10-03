@@ -66,7 +66,7 @@ class MyOptionWidget(QWidget):
         self.plot_canvas = plot_canvas
 
         self.type = curve_type
-        self.names = ['BezierCurve', 'BezierCurveParallel', 'BezierCurveBlossoms']
+        self.names = ['BezierCurve', 'BezierCurveDeCaes', 'BezierCurveBlossoms']
 
         self.sld_points_cnt = QSlider(Qt.Horizontal)
         self.sld_thread_cnt = QSlider(Qt.Horizontal)
@@ -149,7 +149,7 @@ class MyTableWidget(QWidget):
         QWidget.__init__(self)
         self.layout = QVBoxLayout(self)
         self.tabs_cnt = 4
-        self.tabs_titles = ['Welcome', 'BezierCurve', 'BezierCurveParallel', 'BezierCurveBlossoms']
+        self.tabs_titles = ['Welcome', 'BezierCurve', 'BezierCurveDeCaes', 'BezierCurveBlossoms']
 
         # Initialize tab screen
         self.tabs = QTabWidget()

@@ -1,3 +1,4 @@
+from __future__ import annotations  # Needed until Py3.10, see PEP 563
 import numpy as np
 import sympy as sy
 import scipy.special as scs
@@ -5,9 +6,11 @@ import matplotlib.pyplot as plt
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Callable, Union
-from functools import partial
+from functools import partial, cached_property
+import concurrent.futures
+from multiprocessing import cpu_count
 
-from curvepy.de_caes import parallel_decaes_unblossomed
+from curvepy.de_caes import de_caes
 from curvepy.utilities import csv_read
 from curvepy.types import bernstein_polynomial
 
@@ -34,29 +37,19 @@ class AbstractBezierCurve(ABC):
         numbers of equidistant ts to calculate
     func: Callable
         function computing the Bezier Curve for a single point
-    _curve: list
-        list containing points belonging to actual curve
-    box: list
-        points describing minmax box of curve
     """
 
-    def __init__(self, m: np.ndarray, cnt_ts: int = 1000) -> None:
+    def __init__(self, m: np.ndarray, cnt_ts: int = 1000, use_parallel=False) -> None:
         self._bezier_points = m
         self._dimension = self._bezier_points.shape[0]
         self._cnt_ts = cnt_ts
-        self.func = self.init_func(m)
-        self._curve = None
-        self.box = []
+        self.func = self.init_func()
+        self._use_parallel = use_parallel
 
     @abstractmethod
-    def init_func(self) -> Callable:
+    def init_func(self) -> Callable[[float], np.ndarray]:
         """
         Method returns the function to calculate all values at once.
-
-        Parameters
-        ----------
-        m: np.ndarray:
-            array containing the Bezier Points
 
         Returns
         -------
@@ -65,22 +58,14 @@ class AbstractBezierCurve(ABC):
         """
         ...
 
-    def _get_or_create_values(self) -> np.ndarray:
-        """
-        Method returns minmax box of calculated curve
+    def parallel_execution(self, ts: np.ndarray):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
+            return executor.map(self.func, ts)
 
-        Returns
-        -------
-        np.ndarray:
-            calculating no. of points defined by variable cnt_ts
-        """
-        if self._curve is None:
-            ts = np.linspace(0, 1, self._cnt_ts)
-            self._curve = self.func(ts)
-            self.min_max_box()
-        return self._curve
+    def serial_execution(self, ts: np.ndarray):
+        return np.frompyfunc(self.func, 1, 1)(ts)
 
-    @property
+    @cached_property
     def curve(self) -> Union[Tuple[list, list], Tuple[list, list, list]]:
         """
         Method returning coordinates of all calculated points
@@ -90,13 +75,16 @@ class AbstractBezierCurve(ABC):
         Union[tuple[list, list], tuple[list, list, list]]:
             first list for x coords, second for y coords and third for z if existing
         """
-        tmp = np.ravel([*self._get_or_create_values()])
+
+        ts = np.linspace(0, 1, self._cnt_ts)
+        curve = self.parallel_execution(ts) if self._use_parallel else self.serial_execution(ts)
+        tmp = np.ravel([*curve])
         if self._dimension == 2:
             return tmp[0::2], tmp[1::2]
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
     @staticmethod
-    def intersect(t1: tuple, t2: tuple) -> bool:
+    def intersect(t1: np.ndarray, t2: np.ndarray) -> bool:
         """
         Method checking intersection of two given tuples TODO find more describing phrasing together
 
@@ -113,21 +101,21 @@ class AbstractBezierCurve(ABC):
             true if intersect otherwise false
         """
         return t2[0] <= t1[0] <= t2[1] \
-            or t2[0] <= t1[1] <= t2[1] \
-            or t1[0] <= t2[0] <= t1[1] \
-            or t1[0] <= t2[1] <= t1[1]
+               or t2[0] <= t1[1] <= t2[1] \
+               or t1[0] <= t2[0] <= t1[1] \
+               or t1[0] <= t2[1] <= t1[1]
 
-    def min_max_box(self) -> None:
+    @cached_property
+    def min_max_box(self) -> List[np.ndarray]:
         """
         Method creates minmax box for the corresponding curve
         """
-        xs = sorted([*self._bezier_points[0, :]])
-        ys = sorted([*self._bezier_points[1, :]])
+        m = self._bezier_points
+        box = [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
         if self._dimension == 2:
-            self.box = [(xs[0], xs[-1]), (ys[0], ys[-1])]
-            return
-        zs = sorted([*self._bezier_points[2, :]])
-        self.box.append((zs[0], zs[-1]))
+            return box
+        box.extend([m[2, :].min(), m[2, :].max()])
+        return box
 
     def collision_check(self, other_curve) -> bool:
         """
@@ -149,7 +137,7 @@ class AbstractBezierCurve(ABC):
 
         return self.curve_collision_check(other_curve)
 
-    def box_collision_check(self, other_curve) -> bool:
+    def box_collision_check(self, other_curve: BezierCurve) -> bool:
         """
         Method checking box collision with the given curve.
 
@@ -163,8 +151,8 @@ class AbstractBezierCurve(ABC):
         bool:
             true if boxes collide otherwise false
         """
-        o_box = other_curve.box
-        box = self.box
+        o_box = other_curve.min_max_box
+        box = self.min_max_box
         for t1, t2 in zip(box, o_box):
             if not self.intersect(t1, t2):
                 return False
@@ -249,7 +237,8 @@ class AbstractBezierCurve(ABC):
         Equation used for computing all_forward_differences:
         math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
         """
-        return np.sum([scs.binom(r, j) * (-1) ** (r - j) * self._bezier_points[:, i + j] for j in range(0, r + 1)], axis=0)
+        return np.sum([scs.binom(r, j) * (-1) ** (r - j) * self._bezier_points[:, i + j] for j in range(0, r + 1)],
+                      axis=0)
 
     def all_forward_differences(self, i: int = 0) -> np.ndarray:
         """
@@ -336,14 +325,9 @@ class BezierCurve(AbstractBezierCurve):
     see AbstractBezierCurve
     """
 
-    def init_func(self) -> Callable:
+    def init_func(self) -> Callable[[float], np.ndarray]:
         """
         Method returns the function to calculate all values at once.
-
-        Parameters
-        ----------
-        m: np.ndarray:
-            array containing the Bezier Points
 
         Returns
         -------
@@ -356,14 +340,13 @@ class BezierCurve(AbstractBezierCurve):
         t = sy.symbols('t')
         for r in range(n):
             m[:, :(n - r - 1)] = (1 - t) * m[:, :(n - r - 1)] + t * m[:, 1:(n - r)]
-        f = sy.lambdify(t, m[:, 0])
-        return np.frompyfunc(f, 1, 1)
+        return sy.lambdify(t, m[:, 0])
 
 
 # TODO Interval
-class BezierCurveParallel(AbstractBezierCurve):
+class BezierCurveDeCaes(AbstractBezierCurve):
     """
-    Class for creating a 2-dimensional Bezier Curve by using the threaded De Casteljau Algorithm
+    Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
 
     Parameters
     ----------
@@ -374,27 +357,22 @@ class BezierCurveParallel(AbstractBezierCurve):
     see AbstractBezierCurve
     """
 
-    def init_func(self) -> Callable:
+    def init_func(self) -> Callable[[float], np.ndarray]:
         """
         Method returns the function to calculate all values at once.
-
-        Parameters
-        ----------
-        m: np.ndarray:
-            array containing the Bezier Points
 
         Returns
         -------
         Callable:
             function representing the Bezier Curve
         """
-        return partial(parallel_decaes_unblossomed, self._bezier_points)
+        return partial(de_caes, self._bezier_points)
 
 
 class BezierCurveBernstein(AbstractBezierCurve):
 
-    def init_func(self) -> Callable:
-        ...
+    def init_func(self) -> Callable[[float], np.ndarray]:
+        return self.bezier_curve_with_bernstein
 
     def bezier_curve_with_bernstein(self, t: float = 0.5, r: int = 0,
                                     interval: Tuple[float, float] = (0, 1)) -> np.ndarray:
@@ -403,9 +381,6 @@ class BezierCurveBernstein(AbstractBezierCurve):
 
         Parameters
         ----------
-        m: np.ndarray:
-            array containing the Bezier Points
-
         t: float:
             value for which Bezier curve are calculated
 
@@ -429,7 +404,6 @@ class BezierCurveBernstein(AbstractBezierCurve):
         _, n = m.shape
         t = (t - interval[0]) / (interval[1] - interval[0])
         return np.sum([m[:, i] * bernstein_polynomial(n - r - 1, i, t) for i in range(n - r)], axis=0)
-
 
 
 def init() -> None:
