@@ -2,12 +2,12 @@ import numpy as np
 import sympy as sy
 import scipy.special as scs
 import matplotlib.pyplot as plt
-import threading as th
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Callable, Union
 from functools import partial
 
+from curvepy.de_caes import parallel_decaes_unblossomed
 from curvepy.utilities import csv_read
 from curvepy.types import bernstein_polynomial
 
@@ -49,7 +49,7 @@ class AbstractBezierCurve(ABC):
         self.box = []
 
     @abstractmethod
-    def init_func(self, m: np.ndarray) -> Callable:
+    def init_func(self) -> Callable:
         """
         Method returns the function to calculate all values at once.
 
@@ -336,7 +336,7 @@ class BezierCurve(AbstractBezierCurve):
     see AbstractBezierCurve
     """
 
-    def init_func(self, m: np.ndarray) -> Callable:
+    def init_func(self) -> Callable:
         """
         Method returns the function to calculate all values at once.
 
@@ -350,6 +350,7 @@ class BezierCurve(AbstractBezierCurve):
         Callable:
             function representing the Bezier Curve
         """
+        m = self._bezier_points
         _, n = m.shape
         m = sy.Matrix(m)
         t = sy.symbols('t')
@@ -359,7 +360,8 @@ class BezierCurve(AbstractBezierCurve):
         return np.frompyfunc(f, 1, 1)
 
 
-class BezierCurveThreaded(AbstractBezierCurve):
+# TODO Interval
+class BezierCurveParallel(AbstractBezierCurve):
     """
     Class for creating a 2-dimensional Bezier Curve by using the threaded De Casteljau Algorithm
 
@@ -372,7 +374,7 @@ class BezierCurveThreaded(AbstractBezierCurve):
     see AbstractBezierCurve
     """
 
-    def init_func(self, m: np.ndarray) -> Callable:
+    def init_func(self) -> Callable:
         """
         Method returns the function to calculate all values at once.
 
@@ -386,42 +388,12 @@ class BezierCurveThreaded(AbstractBezierCurve):
         Callable:
             function representing the Bezier Curve
         """
-        return self.de_casteljau_threading
-
-    def de_casteljau_threading(self, ts: np.ndarray = None, cnt_threads: int = 4) -> List[np.ndarray]:
-        """
-        Method implementing the threading for the De Casteljau algorithm
-
-        Parameters
-        ----------
-        cnt_threads: int
-            number of threads to use
-
-        ts: np.ndarray:
-            array containing all ts used to calculate points
-
-        """
-        ts = Tholder(ts)
-        threads = []
-        curve = []
-
-        for _ in range(cnt_threads):
-            threads.append(CasteljauThread(ts, self._bezier_points))
-
-        for t in threads:
-            t.start()
-
-        for t in threads:
-            t.join()
-            tmp = t.res
-            curve = curve + tmp
-
-        return curve
+        return partial(parallel_decaes_unblossomed, self._bezier_points)
 
 
 class BezierCurveBernstein(AbstractBezierCurve):
 
-    def init_func(self, m: np.ndarray) -> Callable:
+    def init_func(self) -> Callable:
         ...
 
     def bezier_curve_with_bernstein(self, t: float = 0.5, r: int = 0,
