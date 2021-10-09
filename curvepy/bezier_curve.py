@@ -39,10 +39,12 @@ class AbstractBezierCurve(ABC):
         function computing the Bezier Curve for a single point
     """
 
-    def __init__(self, m: np.ndarray, cnt_ts: int = 1000, use_parallel=False) -> None:
+    def __init__(self, m: np.ndarray, cnt_ts: int = 1000, use_parallel: bool = False,
+                 interval: Tuple[int, int] = (0, 1)) -> None:
         self._bezier_points = m
         self._dimension = self._bezier_points.shape[0]
         self._cnt_ts = cnt_ts
+        self.interval = interval
         self.func = self.init_func()
         self._use_parallel = use_parallel
 
@@ -66,7 +68,7 @@ class AbstractBezierCurve(ABC):
         return np.frompyfunc(self.func, 1, 1)(ts)
 
     @cached_property
-    def curve(self) -> Union[Tuple[list, list], Tuple[list, list, list]]:
+    def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
         """
         Method returning coordinates of all calculated points
 
@@ -117,7 +119,7 @@ class AbstractBezierCurve(ABC):
         box.extend([m[2, :].min(), m[2, :].max()])
         return box
 
-    def collision_check(self, other_curve) -> bool:
+    def collision_check(self, other_curve: BezierCurve) -> bool:
         """
         Method checking collision with given curve.
         Starts with a box check, if this didn't intersect it is checking the actual curves
@@ -159,7 +161,7 @@ class AbstractBezierCurve(ABC):
 
         return True
 
-    def curve_collision_check(self, other_curve) -> bool:
+    def curve_collision_check(self, other_curve: BezierCurve) -> bool:
         """
         Method checking curve collision with the given curve.
 
@@ -291,6 +293,54 @@ class AbstractBezierCurve(ABC):
         tmp = [factor * self.single_forward_difference(j, r) * bernstein_polynomial(n - r, j, t) for j in range(n - r)]
         return np.sum(tmp, axis=0)
 
+    @staticmethod
+    def barycentric_combination_bezier(m: AbstractBezierCurve, c: AbstractBezierCurve, alpha: float = 0,
+                                       beta: float = 1) -> AbstractBezierCurve:
+        """
+        TODO Docstrings
+        Method using 5.13 to calculate the barycentric combination of two given bezier curves
+
+        Parameters
+        ----------
+        m: np.ndarray:
+            first array containing the Bezier Points
+
+        c: np.ndarray:
+            second array containing the Bezier Points
+
+        alpha: float:
+            weight for the first Bezier curve
+
+        beta: float:
+            weight for the first Bezier curve
+
+        t: float:
+            value for which Bezier curves are calculated
+
+        r: int:
+            optional Parameter to calculate only a partial curve if we already have some degree of the bezier points
+
+        interval: Tuple[float,float]:
+            Interval of t used for affine transformation
+
+        Returns
+        -------
+        np.ndarray:
+                point of the weighted combination
+
+        Notes
+        -----
+        The Parameter alpha and beta must hold the following condition: alpha + beta = 1
+        Equation used for computing:
+        math:: \\sum_{j=0}^r (\\alpha \\cdot b_j + \\beta \\cdot c_j)B_j^n(t) =
+        \\alpha \\cdot \\sum_{j=0}^r b_j \\cdot B_j^n(t) + \\beta \\cdot \\sum_{j=0}^r c_j \\cdot B_j^n(t)
+        """
+
+        if alpha + beta != 1:
+            raise ValueError("Alpha and Beta must add up to 1!")
+
+        return m * alpha + c * beta
+
     def __str__(self):
         """
         Returns string represenation as the mathematical bezier curve
@@ -310,6 +360,30 @@ class AbstractBezierCurve(ABC):
         String: internal represenation based on __str__
         """
         return f"<id {id(self)}, {self.__str__()}>"
+
+    def __call__(self, u):
+        # 3.9
+        a, b = self.interval
+        t = (u - a) / (b - a)
+        return self.func((1 - t) * a + t * b)
+
+    def __mul__(self, other: Union[float, int]):
+        del self.curve  # this is fine and as it should be to reset cached_properties, linters are stupid
+        self._bezier_points *= other
+        return self
+
+    __rmul__ = __mul__
+
+    # TODO write in docstrings that anything other than unit intervals are forbidden
+    def __add__(self, other: AbstractBezierCurve):
+        if not isinstance(other, AbstractBezierCurve):
+            raise TypeError("")
+
+        del self.curve  # this is fine
+
+        self._bezier_points += other._bezier_points
+        self._cnt_ts = max(self._cnt_ts, other._cnt_ts)
+        return self
 
 
 class BezierCurve(AbstractBezierCurve):
@@ -404,6 +478,75 @@ class BezierCurveBernstein(AbstractBezierCurve):
         _, n = m.shape
         t = (t - interval[0]) / (interval[1] - interval[0])
         return np.sum([m[:, i] * bernstein_polynomial(n - r - 1, i, t) for i in range(n - r)], axis=0)
+
+
+class HornerBezierCurve(AbstractBezierCurve):
+
+    def init_func(self) -> Callable[[float], np.ndarray]:
+        return self.horn_bez
+
+    def horn_bez(self, t: float = 0.5) -> np.ndarray:
+        """
+        Method using horner like scheme to calculate point on curve with given t
+
+        Parameters
+        ----------
+        t: float:
+            value for which point is calculated
+
+        Returns
+        -------
+        np.ndarray:
+            point calculated with given t
+        """
+        m = self._bezier_points
+        n = m.shape[1] - 1  # need degree of curve (n points means degree = n-1)
+        res = m[:, 0] * (1 - t)
+        for i in range(1, n):
+            res = (res + t ** i * scs.binom(n, i) * m[:, i]) * (1 - t)
+
+        res += t ** n * m[:, n]
+
+        return res
+
+
+class MonomialBezierCurve(AbstractBezierCurve):
+
+    def init_func(self) -> Callable[[float], np.ndarray]:
+        """
+        TODO Docstring
+        Method calculating monomial representation of given bezier form using 5.27
+
+        Parameters
+        ----------
+        m: np.ndarray:
+            array containing the Bezier Points
+
+        Returns
+        -------
+        Callable:
+            bezier function in polynomial form
+
+        Notes
+        -----
+        Equation 5.27 used for computing polynomial form:
+        math:: b^n(t) = \\sum_{j=0}^n \\binom{n}{j} \\Delta^j b_0 t^j
+
+        Initially the method would only compute the polynomial coefficients in an array, and parsing this array with a given
+        t to the horner method we would get a point back. Instead the method uses sympy to calculate a function depending on
+        t. After initial computation, f(t) calculates the value for a given t. Having a function it is simple to map it on
+        an array containing multiple values for t.
+        As a result we do not need to call the horner method for each t individually.
+        """
+        m = self._bezier_points
+        _, n = m.shape
+        diff = self.all_forward_differences()
+        t = sy.symbols('t')
+        res = 0
+        for i in range(n):
+            res += scs.binom(n - 1, i) * diff[:, i] * t ** i
+
+        return sy.lambdify(t, res)
 
 
 def init() -> None:
