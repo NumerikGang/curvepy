@@ -4,7 +4,8 @@ import numpy as np
 from multiprocessing import cpu_count
 
 
-def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
+def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1),
+                     make_copy: bool = False) -> np.ndarray:
     """
     Method computing one round of de Casteljau
 
@@ -24,7 +25,8 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
     np.ndarray:
         array containing calculated points with given t
     """
-
+    if make_copy:
+        m = m.copy()
     l, r = interval
     t2 = (t - l) / (r - l) if interval != (0, 1) else t
     t1 = 1 - t2
@@ -133,8 +135,19 @@ def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = False,
 
 
 def parallel_decaes_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count()*2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
         return executor.map(lambda t: de_caes(m, t, interval=interval), ts)
+
+
+def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
+    left, right = np.zeros(m.shape), np.zeros(m.shape)
+    current = m
+    for i in range(m.shape[1]):
+        left[::, i] = current[::, 0]
+        right[::, i] = current[::, -1]
+        current = de_caes_one_step(current, t, make_copy=True)
+
+    return left, right
 
 
 if __name__ == '__main__':

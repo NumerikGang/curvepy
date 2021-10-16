@@ -1,7 +1,9 @@
 from typing import Any, List, Callable, Tuple, Union
 import numpy as np
 import functools
+import sys
 
+from curvepy.de_caes import subdivision
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
     """
@@ -157,7 +159,7 @@ def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> 
     return numerator / denominator
 
 
-def check_flat(m: np.ndarray, tol: float = s.float_info.epsilon) -> bool:
+def check_flat(m: np.ndarray, tol: float = sys.float_info.epsilon) -> bool:
     """
     Method checking if all points between the first and the last point
     are less than tol away from line through beginning and end point of bezier curve
@@ -222,6 +224,58 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
 
 def flatten_list_of_lists(xss: List[List[Any]]) -> List[Any]:
     return sum(xss, [])
+
+
+def min_max_box(m: np.ndarray) -> List[np.ndarray]:
+    """
+    Method creates minmax box for the corresponding bezier points
+    """
+    box = [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
+    if m.shape[0] == 2:
+        return box
+    box.extend([m[2, :].min(), m[2, :].max()])
+    return box
+
+
+def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
+    """
+    Method checks if curve intersects with x-axis
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        points of curve
+
+    tol: float:
+        tolerance for check_flat
+
+    Returns
+    -------
+    np.ndarray:
+        Points where curve and x-axis intersect
+    """
+    box = min_max_box(m)
+    res = np.array([])
+
+    if box[2] * box[3] > 0:
+        # Both y values are positive, ergo curve lies above x_axis
+        return np.array([])
+
+    if check_flat(m, tol):
+        # poly is flat enough, so we can perform intersect of straight lines
+        # since we are assuming poly is a straight line we define a line through first and las point of poly
+        # additionally we create a line which demonstrates the x axis
+        # having these two lines we can check them for intersection
+        p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
+        if p is not None:
+            res = np.append(res, p.reshape((2, 1)), axis=1)
+    else:
+        # if poly not flat enough we subdivide and check the resulting polygons for intersection
+        p1, p2 = subdivision(m)
+        res = np.append(res, intersect(p1, tol).reshape((2, 1)), axis=1)
+        res = np.append(res, intersect(p2, tol).reshape((2, 1)), axis=1)
+
+    return res
 
 
 def csv_read(file_path: str) -> np.ndarray:

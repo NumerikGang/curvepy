@@ -10,9 +10,9 @@ from functools import partial, cached_property
 import concurrent.futures
 from multiprocessing import cpu_count
 
-from curvepy.de_caes import de_caes
-from curvepy.utilities import csv_read
-from curvepy.types import bernstein_polynomial
+from curvepy.de_caes import de_caes, subdivision
+from curvepy.utilities import min_max_box
+from curvepy.types import bernstein_polynomial, Polygon
 
 
 class AbstractBezierCurve(ABC):
@@ -112,12 +112,7 @@ class AbstractBezierCurve(ABC):
         """
         Method creates minmax box for the corresponding curve
         """
-        m = self._bezier_points
-        box = [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
-        if self._dimension == 2:
-            return box
-        box.extend([m[2, :].min(), m[2, :].max()])
-        return box
+        return min_max_box(self._bezier_points)
 
     def collision_check(self, other_curve: BezierCurve) -> bool:
         """
@@ -549,14 +544,9 @@ class MonomialBezierCurve(AbstractBezierCurve):
         return sy.lambdify(t, res)
 
 
-def init() -> None:
-    m = csv_read('test.csv')  # reads csv file with bezier points
-    b1 = BezierCurve(m)
-    print(b1.func(0.5))
-    m = csv_read('test2.csv')  # reads csv file with bezier points
-    b2 = BezierCurve(m)
-    b2.show_funcs([b1])
+class BezierCurveApproximation(AbstractBezierCurve):
+    def __init__(self, m: np.ndarray, approx_rounds: int = 5, interval: Tuple[int, int] = (0, 1)) -> None:
+        # cnt_ts = approx_rounds * m.shape[1]
+        AbstractBezierCurve.__init__(self, m, 2**approx_rounds*m.shape[1], False, interval)
+        self._approx_rounds = approx_rounds
 
-
-if __name__ == "__main__":
-    init()
