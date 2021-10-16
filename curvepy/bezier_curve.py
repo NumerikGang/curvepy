@@ -550,3 +550,20 @@ class BezierCurveApproximation(AbstractBezierCurve):
         AbstractBezierCurve.__init__(self, m, 2**approx_rounds*m.shape[1], False, interval)
         self._approx_rounds = approx_rounds
 
+    init_func = None
+
+    @cached_property
+    def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
+        current = [self._bezier_points]
+        for _ in range(self._approx_rounds):
+            queue = []
+            for c in current:
+                queue.extend(subdivision(c))
+            current = queue
+
+        ret = np.hstack(current)
+        ret = np.ravel(ret)
+        n = len(ret)
+        if self._dimension == 2:
+            return ret[:n/2], ret[n/2:]
+        return ret[:n/3], ret[n/3:2*n/3], ret[2*n/3:]
