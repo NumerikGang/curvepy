@@ -1,9 +1,11 @@
 from enum import Enum
 import numpy as np
 import sys
+import scipy.special as scs
+
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable
-from functools import cached_property
+from functools import cached_property, partial
 from collections.abc import Sequence
 from curvepy.utilities import create_straight_line_function
 
@@ -305,3 +307,127 @@ class Triangle:
 
 
 VoronoiRegions2D = Dict[Point2D, Deque[TriangleNode]]
+
+
+def bernstein_polynomial_rec(n: int, i: int, t: float = 1) -> float:
+    """
+    Method using 5.8 to calculate a point with given bezier points
+
+    Parameters
+    ----------
+    n: int:
+        degree of the Bernstein Polynomials
+
+    i: int:
+        starting point for calculation
+
+    t: float:
+        value for which Bezier curve are calculated
+
+    Returns
+    -------
+    float:
+        value of Bernstein Polynomial B_i^n(t)
+
+    Notes
+    -----
+    Equation used for computing:
+    Base Case: B_0^0(t) = 1
+    math:: i \\notin \\{0, \\dots, n\\} \\rightarrow B_i^n(t) = 0
+    math:: B_i^n(t) = (1-t) \\cdot B_i^{n-1}(t) + t \\cdot B_{i-1}^{n-1}(t)
+    """
+    if i == n == 0:
+        return 1
+    if not 0 <= i <= n:
+        return 0
+    return (1 - t) * bernstein_polynomial_rec(n - 1, i, t) + t * bernstein_polynomial_rec(n - 1, i - 1, t)
+
+
+def bernstein_polynomial(n: int, i: int, t: float = 1) -> float:
+    """
+    Method using 5.1 to calculate a point with given bezier points
+
+    Parameters
+    ----------
+    n: int:
+        degree of the Bernstein Polynomials
+
+    i: int:
+        starting point for calculation
+
+    t: float:
+        value for which Bezier curve are calculated
+
+    Returns
+    -------
+    float:
+        value of Bernstein Polynomial B_i^n(t)
+
+    Notes
+    -----
+    Equation used for computing:
+    math:: B_i^n(t) = \\binom{n}{i} t^{i} (1-t)^{n-i}
+    """
+    return scs.binom(n, i) * (t ** i) * ((1 - t) ** (n - i))
+
+
+def partial_bernstein_polynomial(n: int, i: int) -> Callable[[float], float]:
+    """
+    Method using 5.1 to calculate a point with given bezier points
+
+    Parameters
+    ----------
+    n: int:
+        degree of the Bernstein Polynomials
+
+    i: int:
+        starting point for calculation
+
+    Returns
+    -------
+    Callable[[float], float]:
+        partial application of 5.1
+
+    Notes
+    -----
+    Equation used for computing:
+    math:: B_i^n(t) = \\binom{n}{i} t^{i} (1-t)^{n-i}
+    """
+    return partial(bernstein_polynomial, n, i)
+
+
+def intermediate_bezier_points(m: np.ndarray, r: int, i: int, t: float = 0.5,
+                               interval: Tuple[float, float] = (0, 1)) -> np.ndarray:
+    """
+    Method using 5.7 an intermediate point of the bezier curve
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        array containing the Bezier Points
+
+    i: int:
+        which intermediate points should be calculated
+
+    t: float:
+        value for which Bezier curve are calculated
+
+    r: int:
+        optional Parameter to calculate only a partial curve
+
+    interval: Tuple[float,float]:
+        Interval of t used for affine transformation
+
+    Returns
+    -------
+    np.ndarray:
+            intermediate point
+
+    Notes
+    -----
+    Equation used for computing:
+    math:: b_i^r(t) = \\sum_{j=0}^r b_{i+j} \\cdot B_i^r(t)
+    """
+    _, n = m.shape
+    t = (t - interval[0]) / (interval[1] - interval[0])
+    return np.sum([m[:, i + j] * bernstein_polynomial(n - 1, j, t) for j in range(r)], axis=0)
