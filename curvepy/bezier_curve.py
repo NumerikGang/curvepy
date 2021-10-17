@@ -104,10 +104,7 @@ class AbstractBezierCurve(ABC):
         bool:
             true if intersect otherwise false
         """
-        return t2[0] <= t1[0] <= t2[1] \
-               or t2[0] <= t1[1] <= t2[1] \
-               or t1[0] <= t2[0] <= t1[1] \
-               or t1[0] <= t2[1] <= t1[1]
+        return t2[0] <= t1[0] <= t2[1] or t2[0] <= t1[1] <= t2[1] or t1[0] <= t2[0] <= t1[1] or t1[0] <= t2[1] <= t1[1]
 
     @cached_property
     def min_max_box(self) -> List[np.ndarray]:
@@ -527,10 +524,10 @@ class MonomialBezierCurve(AbstractBezierCurve):
         Equation 5.27 used for computing polynomial form:
         math:: b^n(t) = \\sum_{j=0}^n \\binom{n}{j} \\Delta^j b_0 t^j
 
-        Initially the method would only compute the polynomial coefficients in an array, and parsing this array with a given
-        t to the horner method we would get a point back. Instead the method uses sympy to calculate a function depending on
-        t. After initial computation, f(t) calculates the value for a given t. Having a function it is simple to map it on
-        an array containing multiple values for t.
+        Initially the method would only compute the polynomial coefficients in an array, and parsing this array with
+        a given t to the horner method we would get a point back. Instead the method uses sympy to calculate a function
+        depending on t. After initial computation, f(t) calculates the value for a given t. Having a function it is
+        simple to map it on an array containing multiple values for t.
         As a result we do not need to call the horner method for each t individually.
         """
         m = self._bezier_points

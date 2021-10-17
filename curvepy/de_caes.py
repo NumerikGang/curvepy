@@ -60,7 +60,7 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
         array containing calculated points with given t
     """
 
-    for i in range(r):
+    for _ in range(r):
         m = de_caes_one_step(m, t, interval)
     return m
 
