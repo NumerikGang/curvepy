@@ -1,6 +1,7 @@
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
 import numpy as np
 import sympy as sy
+import math
 import scipy.special as scs
 import matplotlib.pyplot as plt
 import shapely.geometry as sg
@@ -12,7 +13,7 @@ from multiprocessing import cpu_count
 
 from curvepy.de_caes import de_caes, subdivision
 from curvepy.utilities import min_max_box
-from curvepy.types import bernstein_polynomial, Polygon
+from curvepy.types import bernstein_polynomial
 
 
 class AbstractBezierCurve(ABC):
@@ -51,6 +52,7 @@ class AbstractBezierCurve(ABC):
     @abstractmethod
     def init_func(self) -> Callable[[float], np.ndarray]:
         """
+        # TODO: Dies ist eine absolut dreiste Luege!
         Method returns the function to calculate all values at once.
 
         Returns
@@ -359,8 +361,7 @@ class AbstractBezierCurve(ABC):
     def __call__(self, u):
         # 3.9
         a, b = self.interval
-        t = (u - a) / (b - a)
-        return self.func((1 - t) * a + t * b)
+        return self.func((u-a)/(b-a))
 
     def __mul__(self, other: Union[float, int]):
         del self.curve  # this is fine and as it should be to reset cached_properties, linters are stupid
@@ -546,16 +547,24 @@ class MonomialBezierCurve(AbstractBezierCurve):
 
 class BezierCurveApproximation(AbstractBezierCurve):
     def __init__(self, m: np.ndarray, approx_rounds: int = 5, interval: Tuple[int, int] = (0, 1)) -> None:
-        # cnt_ts = approx_rounds * m.shape[1]
+        """
+        We can't actually set the approx_rounds explicitly, because the number of iterations can be
+        changed by using __add__ with any other AbstractBezierCurve
+        """
         AbstractBezierCurve.__init__(self, m, 2**approx_rounds*m.shape[1], False, interval)
-        self._approx_rounds = approx_rounds
 
-    init_func = None
+    def init_func(self) -> Callable[[float], np.ndarray]:
+        # dummy
+        return partial(de_caes, self._bezier_points)
+
+    serial_execution = None
+    parallel_execution = None
 
     @cached_property
     def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
+        approx_rounds = math.ceil(math.log((self._cnt_ts/self._bezier_points.shape[1]), 2))
         current = [self._bezier_points]
-        for _ in range(self._approx_rounds):
+        for _ in range(approx_rounds):
             queue = []
             for c in current:
                 queue.extend(subdivision(c))

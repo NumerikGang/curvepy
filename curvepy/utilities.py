@@ -5,6 +5,7 @@ import sys
 
 from curvepy.de_caes import subdivision
 
+
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
     """
     Method to calculate a single point on a straight line through a and b.
