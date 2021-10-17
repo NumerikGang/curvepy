@@ -3,6 +3,5 @@ matplotlib
 Shapely
 scipy
 sympy
-PyQt5
 hypothesis
 pytest
