@@ -1,5 +1,5 @@
 # flake8: noqa
-from curvepy.tests.test_voronoi_regions import *
+from curvepy.tests.test_voronoi import *
 import numpy as np
 from curvepy.voronoi import Voronoi
 import matplotlib.pyplot as plt

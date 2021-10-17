@@ -1,7 +1,7 @@
 # flake8: noqa
 from collections import deque
 from curvepy.delaunay import DelaunayTriangulation2D, TriangleNode
-from curvepy.tests.test_voronoi_regions import *
+from curvepy.tests.test_voronoi import *
 
 if __name__ == '__main__':
     for seed, mean in [*zip([SEEDS[0]] + SEEDS[2:5] + SEEDS[7:], [MEANS[0]] + MEANS[2:5] + MEANS[7:])]:
