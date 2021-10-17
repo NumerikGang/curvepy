@@ -361,7 +361,7 @@ class AbstractBezierCurve(ABC):
     def __call__(self, u):
         # 3.9
         a, b = self.interval
-        return self.func((u-a)/(b-a))
+        return self.func((u - a) / (b - a))
 
     def __mul__(self, other: Union[float, int]):
         del self.curve  # this is fine and as it should be to reset cached_properties, linters are stupid
@@ -413,7 +413,6 @@ class BezierCurve(AbstractBezierCurve):
         return sy.lambdify(t, m[:, 0])
 
 
-# TODO Interval
 class BezierCurveDeCaes(AbstractBezierCurve):
     """
     Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
@@ -551,7 +550,7 @@ class BezierCurveApproximation(AbstractBezierCurve):
         We can't actually set the approx_rounds explicitly, because the number of iterations can be
         changed by using __add__ with any other AbstractBezierCurve
         """
-        AbstractBezierCurve.__init__(self, m, 2**approx_rounds*m.shape[1], False, interval)
+        AbstractBezierCurve.__init__(self, m, 2 ** approx_rounds * m.shape[1], False, interval)
 
     def init_func(self) -> Callable[[float], np.ndarray]:
         # dummy
@@ -562,7 +561,7 @@ class BezierCurveApproximation(AbstractBezierCurve):
 
     @cached_property
     def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
-        approx_rounds = math.ceil(math.log((self._cnt_ts/self._bezier_points.shape[1]), 2))
+        approx_rounds = math.ceil(math.log((self._cnt_ts / self._bezier_points.shape[1]), 2))
         current = [self._bezier_points]
         for _ in range(approx_rounds):
             queue = []
@@ -574,5 +573,5 @@ class BezierCurveApproximation(AbstractBezierCurve):
         ret = np.ravel(ret)
         n = len(ret)
         if self._dimension == 2:
-            return ret[:n/2], ret[n/2:]
-        return ret[:n/3], ret[n/3:2*n/3], ret[2*n/3:]
+            return ret[:n / 2], ret[n / 2:]
+        return ret[:n / 3], ret[n / 3:2 * n / 3], ret[2 * n / 3:]
