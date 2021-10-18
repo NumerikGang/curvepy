@@ -151,13 +151,14 @@ def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
 
 
 if __name__ == '__main__':
-    x = [0, 0, 8, 4]
-    y = [0, 2, 2, 0]
+    x = [1, 5, 10, 14]
+    y = [1, 6, 4, 2]
 
     # x_1 = [0]
     # y_1 = [1]
     test = np.array([x, y], dtype=float)
     ptmp = list(parallel_decaes_unblossomed(test, np.linspace(0, 1, 1000)))
+    print([[list(t[0]), list(t[1])] for t in ptmp])
     test = np.array([x, y], dtype=float)
     tmp = [de_caes(test, t, make_copy=True) for t in np.linspace(0, 1, 1000)]
     assert len(ptmp) == len(tmp)
