@@ -136,7 +136,7 @@ def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = False,
 
 def parallel_decaes_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)):
     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
-        return executor.map(lambda t: de_caes(m, t, interval=interval), ts)
+        return executor.map(lambda t: de_caes(m, t, make_copy=True, interval=interval), ts)
 
 
 def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
@@ -158,8 +158,8 @@ if __name__ == '__main__':
     # y_1 = [1]
     test = np.array([x, y], dtype=float)
     ptmp = list(parallel_decaes_unblossomed(test, np.linspace(0, 1, 1000)))
+    test = np.array([x, y], dtype=float)
     tmp = [de_caes(test, t, make_copy=True) for t in np.linspace(0, 1, 1000)]
-
     assert len(ptmp) == len(tmp)
     print('Länge OK')
     for a, b in zip(tmp, ptmp):
