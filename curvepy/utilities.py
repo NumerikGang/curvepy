@@ -89,12 +89,11 @@ def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray
     if not collinear_check(left_point, col_point, right_point):
         raise ValueError("The points are not collinear!")
 
-    # TODO refactor me right - col != 0
     for left, right, col in zip(left_point, right_point, col_point):
-        if left != right and right - col != 0:
-            return (col - left) / (right - col)
-        elif right - col == 0:
+        if right - col == 0:
             return np.NINF
+        elif left != right:
+            return (col - left) / (right - col)
     return 0
 
 

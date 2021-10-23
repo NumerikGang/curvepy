@@ -97,10 +97,10 @@ def test_ratio_is_0_when_a_is_b():
     assert ratio(a, b, c) == 0
 
 
-def test_ratio_is_inf_when_a_is_c():
+def test_ratio_is_inf_when_b_is_c():
     a = np.array([4, 3])
     b = np.array([8, 5])
-    c = a
+    c = b
     assert ratio(a, b, c) == np.NINF
 
 
