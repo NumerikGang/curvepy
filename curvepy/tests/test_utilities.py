@@ -1,3 +1,4 @@
+from curvepy.tests.utility import arrayize
 from curvepy.utilities import *
 import pytest
 import numpy as np
@@ -40,8 +41,7 @@ COLLINEAR_POINTS_Z_AXIS = [((a2, a3, a1), (b2, b3, b1), (c2, c3, c1)) for (a1, a
                            COLLINEAR_POINTS_X_AXIS_3D]
 
 
-def arrayize(xss):
-    return [(np.array(a), np.array(b), np.array(c)) for a, b, c in xss]
+
 
 
 NOT_COLLINEAR_POINTS = [
