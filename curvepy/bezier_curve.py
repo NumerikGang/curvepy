@@ -542,13 +542,6 @@ class BezierCurveMonomial(AbstractBezierCurve):
 
 
 class BezierCurveApproximation(AbstractBezierCurve):
-    def __init__(self, m: np.ndarray, approx_rounds: int = 5, interval: Tuple[int, int] = (0, 1)) -> None:
-        """
-        We can't actually set the approx_rounds explicitly, because the number of iterations can be
-        changed by using __add__ with any other AbstractBezierCurve
-        """
-        AbstractBezierCurve.__init__(self, m, 2 ** approx_rounds * m.shape[1], False, interval)
-
     def init_func(self) -> Callable[[float], np.ndarray]:
         # dummy
         return partial(de_caes, self._bezier_points)
@@ -556,13 +549,18 @@ class BezierCurveApproximation(AbstractBezierCurve):
     serial_execution = None
     parallel_execution = None
 
+    @classmethod
+    def from_round_number(cls, m: np.ndarray, approx_rounds: int = 5,
+                          interval: Tuple[int, int] = (0, 1)) -> BezierCurveApproximation:
+        return cls(m, cls.approx_rounds_to_cnt_ts(approx_rounds, m.shape[1]), False, interval)
+
     @staticmethod
     def cnt_ts_to_approx_rounds(cnt_ts, cnt_bezier_points):
         return math.ceil(math.log(cnt_ts / cnt_bezier_points, 2))
 
     @staticmethod
     def approx_rounds_to_cnt_ts(approx_rounds, cnt_bezier_points):
-        return 2**approx_rounds * cnt_bezier_points
+        return 2 ** approx_rounds * cnt_bezier_points
 
     @cached_property
     def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
