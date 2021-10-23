@@ -113,7 +113,7 @@ class AbstractBezierCurve(ABC):
         """
         return min_max_box(self._bezier_points)
 
-    def collision_check(self, other_curve: BezierCurve) -> bool:
+    def collision_check(self, other_curve: BezierCurveSymPy) -> bool:
         """
         Method checking collision with given curve.
         Starts with a box check, if this didn't intersect it is checking the actual curves
@@ -133,7 +133,7 @@ class AbstractBezierCurve(ABC):
 
         return self.curve_collision_check(other_curve)
 
-    def box_collision_check(self, other_curve: BezierCurve) -> bool:
+    def box_collision_check(self, other_curve: BezierCurveSymPy) -> bool:
         """
         Method checking box collision with the given curve.
 
@@ -155,7 +155,7 @@ class AbstractBezierCurve(ABC):
 
         return True
 
-    def curve_collision_check(self, other_curve: BezierCurve) -> bool:
+    def curve_collision_check(self, other_curve: BezierCurveSymPy) -> bool:
         """
         Method checking curve collision with the given curve.
 
@@ -379,7 +379,7 @@ class AbstractBezierCurve(ABC):
         return self
 
 
-class BezierCurve(AbstractBezierCurve):
+class BezierCurveSymPy(AbstractBezierCurve):
     """
     Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
 
@@ -472,7 +472,7 @@ class BezierCurveBernstein(AbstractBezierCurve):
         return np.sum([m[:, i] * bernstein_polynomial(n - r - 1, i, t) for i in range(n - r)], axis=0)
 
 
-class HornerBezierCurve(AbstractBezierCurve):
+class BezierCurveHorner(AbstractBezierCurve):
 
     def init_func(self) -> Callable[[float], np.ndarray]:
         return self.horn_bez
@@ -502,7 +502,7 @@ class HornerBezierCurve(AbstractBezierCurve):
         return res
 
 
-class MonomialBezierCurve(AbstractBezierCurve):
+class BezierCurveMonomial(AbstractBezierCurve):
 
     def init_func(self) -> Callable[[float], np.ndarray]:
         """
@@ -556,9 +556,17 @@ class BezierCurveApproximation(AbstractBezierCurve):
     serial_execution = None
     parallel_execution = None
 
+    @staticmethod
+    def cnt_ts_to_approx_rounds(cnt_ts, cnt_bezier_points):
+        return math.ceil(math.log(cnt_ts / cnt_bezier_points, 2))
+
+    @staticmethod
+    def approx_rounds_to_cnt_ts(approx_rounds, cnt_bezier_points):
+        return 2**approx_rounds * cnt_bezier_points
+
     @cached_property
     def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
-        approx_rounds = math.ceil(math.log((self._cnt_ts / self._bezier_points.shape[1]), 2))
+        approx_rounds = self.cnt_ts_to_approx_rounds(self._cnt_ts, self._bezier_points.shape[1])
         current = [self._bezier_points]
         for _ in range(approx_rounds):
             queue = []

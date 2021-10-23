@@ -1,6 +1,30 @@
 import pytest
+import numpy as np
+import itertools
 from curvepy.bezier_curve import *
 from curvepy.tests.utility import arrayize
+from dataclasses import dataclass
+
+
+@dataclass
+class AllBezierCurves:
+    bezier_curve_sympy: BezierCurveSymPy
+    bezier_curve_de_caes: BezierCurveDeCaes
+    bezier_curve_bernstein: BezierCurveBernstein
+    bezier_curve_horner: BezierCurveHorner
+    bezier_curve_monomial: BezierCurveMonomial
+    bezier_curve_approximation: BezierCurveApproximation
+
+    @staticmethod
+    def from_bezier_points(m: np.ndarray, cnt_ts: int = 1000, use_parallel: bool = False,
+                           interval: Tuple[int, int] = (0, 1)):
+        ...
+
+
+@pytest.fixture
+def use_all_curves():
+    ...
+
 
 # TODO: Equality (mit Rundung) aller bez_curves (jeweils zwischen 2 damit man am Funktionsnamen erkennen kann
 # TODO: welche beiden
@@ -104,6 +128,7 @@ def test_intersect_intersects_left_side(x, y):
 def test_intersect_intersects_right_size(x, y):
     assert AbstractBezierCurve.intersect(x, y)
 
+
 # TODO: collision_check testen (dies ist curveunabhaengig)
 
 # TODO: curve_collision_check testen mit verschiedenen BezCurves (hier einfach mit parametrize)
@@ -124,3 +149,9 @@ def test_intersect_intersects_right_size(x, y):
 #   - Klappt __add__ mit Approx sowie nicht-Approx?
 #   - Gehen bei __add__ (und auch generell und so) die cnt_ts kaputt?
 #   - (Nicht als Test schreiben) Klappt eigentlich plot? show_funcs mit nicht Approxes?
+
+@pytest.mark.parametrize('approx_rounds, cnt_bezier_points', itertools.product(range(2,7), range(5,206, 20)))
+def test_approx_rounds_to_cnt_ts_to_approx_rounds_equals_id(approx_rounds, cnt_bezier_points):
+    assert BezierCurveApproximation.cnt_ts_to_approx_rounds(
+        BezierCurveApproximation.approx_rounds_to_cnt_ts(approx_rounds, cnt_bezier_points), cnt_bezier_points
+    ) == approx_rounds
