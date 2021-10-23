@@ -370,7 +370,7 @@ class AbstractBezierCurve(ABC):
     # TODO write in docstrings that anything other than unit intervals are forbidden
     def __add__(self, other: AbstractBezierCurve):
         if not isinstance(other, AbstractBezierCurve):
-            raise TypeError("")
+            raise TypeError("Argument must be an instance of AbstractBezierCurve")
 
         del self.curve  # this is fine
 
