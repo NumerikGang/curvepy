@@ -79,3 +79,45 @@ def test_collinear_not_parallel_to_axis(a, b, c):
 @pytest.mark.parametrize('a,b,c', arrayize(NOT_COLLINEAR_POINTS))
 def test_not_collinear(a, b, c):
     assert not collinear_check(a, b, c)
+
+
+@pytest.mark.parametrize('a,b,c', arrayize(NOT_COLLINEAR_POINTS))
+def test_ratio_fails_when_not_collinear(a, b, c):
+    try:
+        ratio(a, b, c)
+        raise Exception("This method should fail as they are not collinear")
+    except ValueError as e:
+        pass
+
+
+def test_ratio_is_0_when_a_is_b():
+    a = np.array([4, 3])
+    b = a
+    c = np.array([8, 5])
+    assert ratio(a, b, c) == 0
+
+
+def test_ratio_is_inf_when_a_is_c():
+    a = np.array([4, 3])
+    b = np.array([8, 5])
+    c = a
+    assert ratio(a, b, c) == np.NINF
+
+
+def test_ratio_is_inf_when_all_points_are_the_same():
+    a = np.array([4, 3])
+    b = a
+    c = a
+    assert ratio(a, b, c) == np.NINF
+
+
+@pytest.mark.parametrize('a,b,c,expected', [(np.array(a), np.array(b), np.array(c), d) for a, b, c, d in
+                                            [((2, 1), (4, 1), (-6, 1), -0.2),
+                                             ((0, 0), (-10, 0), (20, 0), -0.3333333333333333),
+                                             ((-1000000000, -1), (1000000000, -1), (1337, -1), -2.000002674003575),
+                                             ((25, -1, -3), (50, -1, -4), (75, -1, -5), 1.0),
+                                             ((230, 1, -500), (203, 1, -500), (20, 1, -500), 0.14754098360655737),
+                                             ((25, -3, -1), (50, -4, -1), (75, -5, -1), 1.0),
+                                             ((230, -500, 1), (203, -500, 1), (20, -500, 1), 0.14754098360655737)]])
+def test_ratio_sane_values(a, b, c, expected):
+    assert ratio(a, b, c) == expected
