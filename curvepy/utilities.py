@@ -66,7 +66,7 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     """
     return np.count_nonzero(np.cross(b - a, c - a)) == 0
 
-
+# TODO revert "bug"
 def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray) -> float:
     """
     Method to calculate the ratio of the three collinear points from the parameters.
