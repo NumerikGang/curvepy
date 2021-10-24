@@ -257,7 +257,7 @@ class AbstractBezierCurve(ABC):
         math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
         """
         _, n = self._bezier_points.shape
-        diff = [self.single_forward_difference(i, r) for r in range(0, n)]
+        diff = [self.single_forward_difference(i, r) for r in range(0, n - i)]
         return np.array(diff).T
 
     def derivative_bezier_curve(self, t: float = 1, r: int = 1) -> np.ndarray:
