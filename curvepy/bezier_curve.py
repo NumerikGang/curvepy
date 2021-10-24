@@ -236,8 +236,9 @@ class AbstractBezierCurve(ABC):
         return np.sum([scs.binom(r, j) * (-1) ** (r - j) * self._bezier_points[:, i + j] for j in range(0, r + 1)],
                       axis=0)
 
-    def all_forward_differences(self, i: int = 0) -> np.ndarray:
+    def all_forward_differences_for_one_value(self, i: int = 0) -> np.ndarray:
         """
+        TODO rewrite this docstring
         Method using equation 5.23 to calculate all forward all_forward_differences for a given point i.
         First entry is first difference, second entry is second difference and so on.
 
@@ -532,7 +533,7 @@ class BezierCurveMonomial(AbstractBezierCurve):
         """
         m = self._bezier_points
         _, n = m.shape
-        diff = self.all_forward_differences()
+        diff = self.all_forward_differences_for_one_value()
         t = sy.symbols('t')
         res = 0
         for i in range(n):
