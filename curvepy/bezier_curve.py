@@ -82,7 +82,9 @@ class AbstractBezierCurve(ABC):
 
         ts = np.linspace(0, 1, self._cnt_ts)
         curve = self.parallel_execution(ts) if self._use_parallel else self.serial_execution(ts)
+        print(f"{curve=}")
         tmp = np.ravel([*curve])
+        print(f"{tmp=}")
         if self._dimension == 2:
             return tmp[0::2], tmp[1::2]
         return tmp[0::3], tmp[1::3], tmp[2::3]
@@ -186,31 +188,6 @@ class AbstractBezierCurve(ABC):
             ax = plt.axes(projection='3d')
             ax.scatter3D(*self.curve)
 
-    def show_funcs(self, list_of_curves: list = None) -> None:
-        """
-        Method plotting multiple Bezier Curves in one figure
-
-        Parameters
-        ----------
-        list_of_curves:
-            curves to plot
-        """
-
-        if list_of_curves is None:
-            list_of_curves = []
-
-        self.plot()
-        # TODO: debate whether the if below should be thrown away
-        # this is possible since we would just iterate through an empty list
-        # This shouldn't be that much faster since we check if the list is empty anyways
-        # but it would reduce noise
-        if not list_of_curves:
-            plt.show()
-            return
-        for c in list_of_curves:
-            c.plot()
-        plt.show()
-
     def single_forward_difference(self, i: int = 0, r: int = 0) -> np.ndarray:
         """
         Method using equation 5.23 to calculate forward difference of degree r for specific point i
@@ -257,7 +234,7 @@ class AbstractBezierCurve(ABC):
         Equation used for computing all_forward_differences:
         math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
         """
-        deg = self._bezier_points.shape[1]-1
+        deg = self._bezier_points.shape[1] - 1
         diff = [self.single_forward_difference(i, r) for r in range(0, deg - i)]
         return np.array(diff).T
 
@@ -283,9 +260,9 @@ class AbstractBezierCurve(ABC):
         Equation used for computing:
         math:: \\frac{d^r}{dt^r} b^n(t) = \\frac{n!}{(n-r)!} \\cdot \\sum_{j=0}^{n-r} \\Delta^r b_j \\cdot B_j^{n-r}(t)
         """
-        deg = self._bezier_points.shape[1]-1
-        tmp = [self.single_forward_difference(j, r) * bernstein_polynomial(deg - r, j, t) for j in range((deg - r)+1)]
-        return prod(range(deg-r+1, deg+1)) * np.sum(tmp, axis=0)
+        deg = self._bezier_points.shape[1] - 1
+        tmp = [self.single_forward_difference(j, r) * bernstein_polynomial(deg - r, j, t) for j in range((deg - r) + 1)]
+        return prod(range(deg - r + 1, deg + 1)) * np.sum(tmp, axis=0)
 
     @staticmethod
     def barycentric_combination_bezier(m: AbstractBezierCurve, c: AbstractBezierCurve, alpha: float = 0,
