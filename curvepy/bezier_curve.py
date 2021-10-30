@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Callable, Union
-from functools import partial, cached_property, reduce
+from functools import partial, cached_property
 import concurrent.futures
 from multiprocessing import cpu_count
 
@@ -257,11 +257,11 @@ class AbstractBezierCurve(ABC):
         Equation used for computing all_forward_differences:
         math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
         """
-        _, n = self._bezier_points.shape
-        diff = [self.single_forward_difference(i, r) for r in range(0, n - i)]
+        deg = self._bezier_points.shape[1]-1
+        diff = [self.single_forward_difference(i, r) for r in range(0, deg - i)]
         return np.array(diff).T
 
-    def derivative_bezier_curve(self, t: float = 1, r: int = 1) -> np.ndarray:
+    def derivative_bezier_curve(self, t: float = 0.5, r: int = 1) -> np.ndarray:
         """
         Method using equation 5.24 to calculate rth derivative of bezier curve at value t
 
@@ -283,9 +283,9 @@ class AbstractBezierCurve(ABC):
         Equation used for computing:
         math:: \\frac{d^r}{dt^r} b^n(t) = \\frac{n!}{(n-r)!} \\cdot \\sum_{j=0}^{n-r} \\Delta^r b_j \\cdot B_j^{n-r}(t)
         """
-        _, n = self._bezier_points.shape
-        tmp = [self.single_forward_difference(j, r) * bernstein_polynomial(n - r, j, t) for j in range((n - r)+1)]
-        return prod(range(n-r+1, n+1)) * np.sum(tmp, axis=0)
+        deg = self._bezier_points.shape[1]-1
+        tmp = [self.single_forward_difference(j, r) * bernstein_polynomial(deg - r, j, t) for j in range((deg - r)+1)]
+        return prod(range(deg-r+1, deg+1)) * np.sum(tmp, axis=0)
 
     @staticmethod
     def barycentric_combination_bezier(m: AbstractBezierCurve, c: AbstractBezierCurve, alpha: float = 0,

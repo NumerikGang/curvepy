@@ -1,59 +1,25 @@
 import numpy as np
 import random
 
-from curvepy.bezier_curve import BezierCurveSymPy, BezierCurveDeCaes
+from curvepy.bezier_curve import BezierCurveDeCaes
 
 TEST_CASES = 50
-dif = lambda s: [x - s[i] for i, x in enumerate(s[1:])]
-difn = lambda s, n: difn(dif(s), n - 1) if n else s
+INTERVAL = (-20, 20)
 
 
-def all_forward_dif(s, i):
-    n = len(s)
-    j = 0
-    ret = []
-    while True:
-        r = difn(s[i:], j)
-        ret.append(r)
-        if len(r) == 1:
-            break
-        j += 1
-    return ret
-
-
-def gen_test_cases(min, max, val_min, val_max):
-    print("[")
+def gen_test_cases(n):
+    print(f"[")
     for _ in range(TEST_CASES):
-        x = [random.randint(val_min, val_max) for _ in range(random.randint(min, max) + 1)]
-        print("(",x, ",")
-        print(f"({difn(x, len(x) - 1)[0]},{difn(x, len(x) - 1)[0]})),")
-    print("]")
-
-def gen_test_cases_for_all_forward_for_one_value(min, max, val_min, val_max, fp, max_number_of_test_cases):
-    n = 0
-    print("[", file=fp)
-    for _ in range(TEST_CASES):
-        x = [random.randint(val_min, val_max) for _ in range(random.randint(min, max) + 1)]
-        for i in range(len(x)):
-            if n >= max_number_of_test_cases:
-                continue
-            if random.random() < 0.99:
-                continue
-            n+=1
-            print(f"(({x}, {i}), ", file=fp)
-            print(f"{all_forward_dif(x, i)}),", file=fp)
-    print("]", file=fp)
-
-
-gen_n = lambda n : [random.randint(-20, 20) for _ in range(n+1)]
+        pts = [random.randint(*INTERVAL) + random.random() for _ in range(2*n)]
+        pts = [pts[:len(pts)//2], pts[len(pts)//2:]]
+        for _ in range(3):
+            t = random.random()
+            r = random.randint(1, len(pts)-1)
+            b = BezierCurveDeCaes(np.array(pts))
+            res = list(b.derivative_bezier_curve(t, r))
+            print(f"{(pts,t,r,res)},")
+    print(f"]")
 
 
 if __name__ == '__main__':
-    # gen_test_cases(15, 50, -20, 20)
-    with open("bla.txt", "a") as fp:
-        gen_test_cases_for_all_forward_for_one_value(15, 50, -20, 20, fp, 100)
-
-    # xs = gen_n(16)
-    # ret = all_forward_dif(xs, 0)
-    # for r in ret:
-    #     print(r)
+    gen_test_cases(8)

@@ -71,7 +71,9 @@ def test_single_forward_difference(x, res):
     )
 
 
-# TODO: derivative_bezier_curve testen
+@pytest.mark.parametrize('pts, t, r, expected', data.DERIVATIVES)
+def test_derivative(pts, t, r, expected):
+    assert pytest.approx(BezierCurveDeCaes(pts).derivative_bezier_curve(t,r), expected)
 
 # TODO: barycentric_combination_bezier testen
 
