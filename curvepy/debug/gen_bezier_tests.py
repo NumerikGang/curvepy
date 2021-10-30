@@ -29,25 +29,29 @@ def gen_test_cases(min, max, val_min, val_max):
         print(f"({difn(x, len(x) - 1)[0]},{difn(x, len(x) - 1)[0]})),")
     print("]")
 
-def gen_test_cases_for_all_forward_for_one_value(min, max, val_min, val_max, fp):
+def gen_test_cases_for_all_forward_for_one_value(min, max, val_min, val_max, fp, max_number_of_test_cases):
+    n = 0
     print("[", file=fp)
     for _ in range(TEST_CASES):
         x = [random.randint(val_min, val_max) for _ in range(random.randint(min, max) + 1)]
         for i in range(len(x)):
-            if random.random() < 0.5:
+            if n >= max_number_of_test_cases:
                 continue
+            if random.random() < 0.99:
+                continue
+            n+=1
             print(f"(({x}, {i}), ", file=fp)
             print(f"{all_forward_dif(x, i)}),", file=fp)
     print("]", file=fp)
 
 
-gen_n = lambda n : [random.randint(-20,20) for _ in range(n+1)]
+gen_n = lambda n : [random.randint(-20, 20) for _ in range(n+1)]
 
 
 if __name__ == '__main__':
     # gen_test_cases(15, 50, -20, 20)
     with open("bla.txt", "a") as fp:
-        gen_test_cases_for_all_forward_for_one_value(15, 50, -20, 20, fp)
+        gen_test_cases_for_all_forward_for_one_value(15, 50, -20, 20, fp, 100)
 
     # xs = gen_n(16)
     # ret = all_forward_dif(xs, 0)

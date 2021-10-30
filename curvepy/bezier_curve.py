@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Callable, Union
-from functools import partial, cached_property
+from functools import partial, cached_property, reduce
 import concurrent.futures
 from multiprocessing import cpu_count
 
 from curvepy.de_caes import de_caes, subdivision
-from curvepy.utilities import min_max_box
+from curvepy.utilities import min_max_box, prod
 from curvepy.types import bernstein_polynomial
 
 
@@ -284,9 +284,8 @@ class AbstractBezierCurve(ABC):
         math:: \\frac{d^r}{dt^r} b^n(t) = \\frac{n!}{(n-r)!} \\cdot \\sum_{j=0}^{n-r} \\Delta^r b_j \\cdot B_j^{n-r}(t)
         """
         _, n = self._bezier_points.shape
-        factor = scs.factorial(n) / scs.factorial(n - r)
-        tmp = [factor * self.single_forward_difference(j, r) * bernstein_polynomial(n - r, j, t) for j in range(n - r)]
-        return np.sum(tmp, axis=0)
+        tmp = [self.single_forward_difference(j, r) * bernstein_polynomial(n - r, j, t) for j in range((n - r)+1)]
+        return prod(range(n-r+1, n+1)) * np.sum(tmp, axis=0)
 
     @staticmethod
     def barycentric_combination_bezier(m: AbstractBezierCurve, c: AbstractBezierCurve, alpha: float = 0,

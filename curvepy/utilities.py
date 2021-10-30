@@ -1,7 +1,10 @@
-from typing import Any, List, Callable, Tuple, Union
+from typing import Any, List, Callable, Tuple, Union, Iterable
+from numbers import Number
 import numpy as np
 import functools
 import sys
+import operator
+
 
 from curvepy.de_caes import subdivision
 
@@ -273,3 +276,6 @@ def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
         res = np.append(res, intersect(p2, tol).reshape((2, 1)), axis=1)
 
     return res
+
+def prod(xs: Iterable[Number]):
+    return functools.reduce(operator.mul, xs, 1)
