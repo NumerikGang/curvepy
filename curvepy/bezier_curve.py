@@ -42,7 +42,7 @@ class AbstractBezierCurve(ABC):
 
     def __init__(self, m: np.ndarray, cnt_ts: int = 1000, use_parallel: bool = False,
                  interval: Tuple[int, int] = (0, 1)) -> None:
-        self._bezier_points = m
+        self._bezier_points = m * 1.0
         self._dimension = self._bezier_points.shape[0]
         self._cnt_ts = cnt_ts
         self.interval = interval
@@ -82,9 +82,7 @@ class AbstractBezierCurve(ABC):
 
         ts = np.linspace(0, 1, self._cnt_ts)
         curve = self.parallel_execution(ts) if self._use_parallel else self.serial_execution(ts)
-        print(f"{curve=}")
         tmp = np.ravel([*curve])
-        print(f"{tmp=}")
         if self._dimension == 2:
             return tmp[0::2], tmp[1::2]
         return tmp[0::3], tmp[1::3], tmp[2::3]
@@ -520,7 +518,7 @@ class BezierCurveMonomial(AbstractBezierCurve):
 
 class BezierCurveApproximation(AbstractBezierCurve):
     def init_func(self) -> Callable[[float], np.ndarray]:
-        # dummy
+        # dummy, just used for __call__ and __getitem__
         return partial(de_caes, self._bezier_points)
 
     serial_execution = None
@@ -550,8 +548,11 @@ class BezierCurveApproximation(AbstractBezierCurve):
             current = queue
 
         ret = np.hstack(current)
+        print(f"{ret=}")
         ret = np.ravel(ret)
         n = len(ret)
         if self._dimension == 2:
-            return ret[:n / 2], ret[n / 2:]
-        return ret[:n / 3], ret[n / 3:2 * n / 3], ret[2 * n / 3:]
+            assert (n/2).is_integer() # TODO debug
+            return ret[:n // 2], ret[n // 2:]
+        assert (n/3).is_integer() # todo debug
+        return ret[:n // 3], ret[n // 3:2 * n // 3], ret[2 * n // 3:]

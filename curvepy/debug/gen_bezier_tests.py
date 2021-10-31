@@ -2,11 +2,14 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 
+import curvepy.types
 from curvepy.bezier_curve import *
 
 TEST_CASES = 50
 INTERVAL = (-20, 20)
 
+#bsp = [[0.,0.,8.,4.],[0.,2.,2.,0.]]
+bsp = [[0,0,8,4],[0,2,2,0]]
 
 def gen_test_cases(n):
     print(f"[")
@@ -17,22 +20,39 @@ def gen_test_cases(n):
             t = random.random()
             r = random.randint(1, len(pts)-1)
             int2 = sorted([random.randint(*INTERVAL), random.randint(*INTERVAL)])
-            pts = np.array(pts)
+            pts = np.array(bsp)
             if int2[0] == int2[1]:
                 continue
-            a = BezierCurveSymPy(pts, use_parallel=True)
-            b = BezierCurveDeCaes(pts, use_parallel=True)
-            c = BezierCurveBernstein(pts, use_parallel=True)
-            d = BezierCurveHorner(pts, use_parallel=True)
+            a = BezierCurveSymPy(pts.copy(), cnt_ts=8, use_parallel=True)
+            b = BezierCurveDeCaes(pts.copy(), cnt_ts=8, use_parallel=True)
+            c = BezierCurveBernstein(pts.copy(), cnt_ts=8, use_parallel=True)
+            d = BezierCurveHorner(pts.copy(), cnt_ts=8, use_parallel=True)
             #e = BezierCurveMonomial(pts, use_parallel=True)
-            f = BezierCurveApproximation(pts, use_parallel=True)
-            fig, axs = plt.subplots(6)
-            axs[0].plot(*c.curve)
-            axs[1].plot(*d.curve)
-            axs[2].plot(*a.curve)
-            axs[3].plot(*f.curve)
+            f = BezierCurveApproximation(pts.copy(), cnt_ts=8, use_parallel=True)
+            fig, axs = plt.subplots(5)
+
+            # acurve = a.curve
+            # bcurve = b.curve
+            # ccurve = c.curve
+            # dcurve = d.curve
+            # # ecurve = e.curve
+            # fcurve = f.curve
+
+
+
+            ccurve = c.curve
+            dcurve = d.curve
+            acurve = a.curve
+            bcurve = b.curve
+            fcurve = f.curve
+            #ecurve = e.curve
+            bcurve = b.curve
+            axs[0].plot(*acurve,  marker='o')
+            axs[1].plot(*bcurve, marker='o')
+            axs[2].plot(*ccurve,  marker='o')
+            axs[3].plot(*dcurve,  marker='o')
             #axs[4].plot(*e.curve)
-            axs[5].plot(*b.curve)
+            axs[4].plot(*fcurve,  marker='o')
     print(f"]")
 
 if __name__ == '__main__':
