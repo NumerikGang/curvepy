@@ -27,9 +27,9 @@ def gen_test_cases(n):
             b = BezierCurveDeCaes(pts.copy(), use_parallel=True)
             c = BezierCurveBernstein(pts.copy(), use_parallel=True)
             d = BezierCurveHorner(pts.copy(), use_parallel=True)
-            #e = BezierCurveMonomial(pts, use_parallel=True)
+            e = BezierCurveMonomial(pts, use_parallel=True)
             f = BezierCurveApproximation(pts.copy(), use_parallel=True)
-            fig, axs = plt.subplots(5)
+            fig, axs = plt.subplots(6)
 
             # acurve = a.curve
             # bcurve = b.curve
@@ -45,14 +45,14 @@ def gen_test_cases(n):
             acurve = a.curve
             bcurve = b.curve
             fcurve = f.curve
-            #ecurve = e.curve
+            ecurve = e.curve
             bcurve = b.curve
             axs[0].plot(*acurve)
             axs[1].plot(*bcurve)
             axs[2].plot(*ccurve)
             axs[3].plot(*dcurve)
-            #axs[4].plot(*e.curve)
-            axs[4].plot(*fcurve)
+            axs[4].plot(*e.curve)
+            axs[5].plot(*fcurve)
     print(f"]")
 
 if __name__ == '__main__':
