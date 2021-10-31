@@ -20,6 +20,6 @@ def test_parametrized_for_de_caes_parallel(m, res, ts):
 @pytest.mark.parametrize('m, res', data.cases_sub)
 def test_parametrized_for_subdivision(m, res):
     l, r = subdivision(np.array(m, dtype=float), 0.5)
-    l, r = [list(l[0]), list(l[1])], [list(r[0]), list(r[1])]
+    l, r = [list(l[0]), list(l[1])], [list(r[0][::-1]), list(r[1][::-1])]
     tmp = (l, r)
     assert res == tmp

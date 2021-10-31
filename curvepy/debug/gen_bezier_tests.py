@@ -2,11 +2,14 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 
+import curvepy.types
 from curvepy.bezier_curve import *
 
 TEST_CASES = 50
 INTERVAL = (-20, 20)
 
+#bsp = [[0.,0.,8.,4.],[0.,2.,2.,0.]]
+bsp = [[0,0,8,4],[0,2,2,0]]
 
 def gen_test_cases(n):
     print(f"[")
@@ -20,19 +23,36 @@ def gen_test_cases(n):
             pts = np.array(pts)
             if int2[0] == int2[1]:
                 continue
-            a = BezierCurveSymPy(pts, use_parallel=True)
-            b = BezierCurveDeCaes(pts, use_parallel=True)
-            c = BezierCurveBernstein(pts, use_parallel=True)
-            d = BezierCurveHorner(pts, use_parallel=True)
-            #e = BezierCurveMonomial(pts, use_parallel=True)
-            f = BezierCurveApproximation(pts, use_parallel=True)
+            a = BezierCurveSymPy(pts.copy(), use_parallel=True)
+            b = BezierCurveDeCaes(pts.copy(), use_parallel=True)
+            c = BezierCurveBernstein(pts.copy(), use_parallel=True)
+            d = BezierCurveHorner(pts.copy(), use_parallel=True)
+            e = BezierCurveMonomial(pts, use_parallel=True)
+            f = BezierCurveApproximation(pts.copy(), use_parallel=True)
             fig, axs = plt.subplots(6)
-            axs[0].plot(*c.curve)
-            axs[1].plot(*d.curve)
-            axs[2].plot(*a.curve)
-            axs[3].plot(*f.curve)
-            #axs[4].plot(*e.curve)
-            axs[5].plot(*b.curve)
+
+            # acurve = a.curve
+            # bcurve = b.curve
+            # ccurve = c.curve
+            # dcurve = d.curve
+            # # ecurve = e.curve
+            # fcurve = f.curve
+
+
+
+            ccurve = c.curve
+            dcurve = d.curve
+            acurve = a.curve
+            bcurve = b.curve
+            fcurve = f.curve
+            ecurve = e.curve
+            bcurve = b.curve
+            axs[0].plot(*acurve)
+            axs[1].plot(*bcurve)
+            axs[2].plot(*ccurve)
+            axs[3].plot(*dcurve)
+            axs[4].plot(*e.curve)
+            axs[5].plot(*fcurve)
     print(f"]")
 
 if __name__ == '__main__':

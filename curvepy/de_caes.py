@@ -5,7 +5,7 @@ from multiprocessing import cpu_count
 
 
 def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1),
-                     make_copy: bool = False) -> np.ndarray:
+                     make_copy: bool = True) -> np.ndarray:
     """
     Method computing one round of de Casteljau
 
@@ -65,7 +65,7 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
     return m
 
 
-def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = False, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
+def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing de Casteljau
 
@@ -93,7 +93,7 @@ def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = False, interval: Tu
     return de_caes_n_steps(m.copy(), t, n, interval) if make_copy else de_caes_n_steps(m, t, n, interval)
 
 
-def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = False,
+def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
                     interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing de Casteljau with different values of t in each step
@@ -143,9 +143,11 @@ def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
     left, right = np.zeros(m.shape), np.zeros(m.shape)
     current = m
     for i in range(m.shape[1]):
-        left[::, i] = current[::, 0]
-        right[::, i] = current[::, -1]
+        left[::, i] = current.copy()[::, 0] #TODO remove copy
+        right[::, -i-1] = current.copy()[::, -1]  #TODO remove copy
         current = de_caes_one_step(current, t, make_copy=True)
+
+    print(f"{left=}\n {right=}")
 
     return left, right
 
