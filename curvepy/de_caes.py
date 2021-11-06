@@ -61,7 +61,7 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
     """
 
     for _ in range(r):
-        m = de_caes_one_step(m, t, interval)
+        m = de_caes_one_step(m, t, interval, make_copy=False)
     return m
 
 
@@ -146,8 +146,6 @@ def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
         left[::, i] = current.copy()[::, 0] #TODO remove copy
         right[::, -i-1] = current.copy()[::, -1]  #TODO remove copy
         current = de_caes_one_step(current, t, make_copy=True)
-
-    print(f"{left=}\n {right=}")
 
     return left, right
 

@@ -4,12 +4,32 @@ import curvepy.tests.data.data_bezier_curve as data
 from curvepy.bezier_curve import *
 from curvepy.tests.utility import arrayize
 
-# TODO: Equality (mit Rundung) aller bez_curves (jeweils zwischen 2 damit man am Funktionsnamen erkennen kann
-# TODO: welche beiden
 
-# TODO: Equality (ohne Rundung) aller bez_curves auch parallel vs seriell
+@pytest.mark.parametrize('m,cnt_ts, use_parallel', data.BEZIER_TESTCASES_NORMAL_SIZE)
+def test_compare_all_bezier_curves(m, cnt_ts, use_parallel):
+    a = BezierCurveSymPy(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    b = BezierCurveDeCaes(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    c = BezierCurveBernstein(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    d = BezierCurveHorner(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    e = BezierCurveMonomial(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    for x, y in itertools.combinations([a, b, c, d, e], 2):
+        assert pytest.approx(x.curve, y.curve)
 
-# TODO: curve auch generell mit ground truth vergleichen (vorgerechnet)  (Approx)
+
+@pytest.mark.parametrize('m,cnt_ts, use_parallel', data.BEZIER_TESTCASES_LARGE_SIZE)
+def test_compare_all_large_bezier_curves(m, cnt_ts, use_parallel):
+    a = BezierCurveDeCaes(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    b = BezierCurveBernstein(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    c = BezierCurveHorner(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    d = BezierCurveMonomial(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    for x, y in itertools.combinations([a, b, c, d], 2):
+        assert pytest.approx(x.curve, y.curve)
+
+
+@pytest.mark.parametrize('m,expected,approx_rounds', data.BEZIER_CURVE_APPROXIMATION_PRECOMPUTED)
+def test_values_for_bezier_curve_approximation(m, expected, approx_rounds):
+    c = BezierCurveApproximation.from_round_number(np.array(m), approx_rounds).curve
+    assert pytest.approx(list(c[0]), expected[0]), pytest.approx(list(c[1]), expected[1])
 
 
 @pytest.mark.parametrize('x,y', arrayize([
@@ -32,8 +52,6 @@ def test_intersect_at_least_one_equal_point(x, y):
 def test_intersect_disjunct_intervals(x, y):
     assert not AbstractBezierCurve.intersect(x, y)
 
-def hello_world():
-    return
 
 @pytest.mark.parametrize('x,y', arrayize([
     ((a, d), (b, c)) for a, b, c, d in data.FOUR_DISTINCT_SORTED_VALUES
@@ -60,7 +78,6 @@ def test_intersect_intersects_right_size(x, y):
 
 # TODO: curve_collision_check testen mit verschiedenen BezCurves (hier einfach mit parametrize)
 
-# TODO: single_forward_difference testen
 
 # Computed with https://rosettacode.org/wiki/Forward_difference#Python
 
@@ -73,7 +90,8 @@ def test_single_forward_difference(x, res):
 
 @pytest.mark.parametrize('pts, t, r, expected', data.DERIVATIVES)
 def test_derivative(pts, t, r, expected):
-    assert pytest.approx(BezierCurveDeCaes(pts).derivative_bezier_curve(t,r), expected)
+    assert pytest.approx(BezierCurveDeCaes(pts).derivative_bezier_curve(t, r), expected)
+
 
 # TODO: barycentric_combination_bezier testen
 
@@ -86,7 +104,7 @@ def test_derivative(pts, t, r, expected):
 #   - Gehen bei __add__ (und auch generell und so) die cnt_ts kaputt?
 #   - (Nicht als Test schreiben) Klappt eigentlich plot? show_funcs mit nicht Approxes?
 
-# TODO: Refactor as
+# TODO: Refactor as property based test (based)
 @pytest.mark.parametrize('approx_rounds, cnt_bezier_points', itertools.product(range(2, 7), range(5, 206, 20)))
 def test_approx_rounds_to_cnt_ts_to_approx_rounds_equals_id(approx_rounds, cnt_bezier_points):
     assert BezierCurveApproximation.cnt_ts_to_approx_rounds(

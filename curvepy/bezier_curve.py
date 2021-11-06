@@ -508,8 +508,6 @@ class BezierCurveMonomial(AbstractBezierCurve):
         m = self._bezier_points
         _, n = m.shape
         diff = self.all_forward_differences_for_one_value()
-        print(f"{diff=}")
-        print(f"{n=}")
         t = sy.symbols('t')
         res = 0
         for i in range(n):
@@ -550,7 +548,6 @@ class BezierCurveApproximation(AbstractBezierCurve):
             current = queue
 
         ret = np.hstack(current)
-        print(f"{ret=}")
         ret = np.ravel(ret)
         n = len(ret)
         if self._dimension == 2:
