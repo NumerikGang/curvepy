@@ -69,9 +69,11 @@ class AbstractBezierCurve(ABC):
     def serial_execution(self, ts: np.ndarray):
         return np.frompyfunc(self.func, 1, 1)(ts)
 
+    # TODO FIx typing to nparray (and everywhere else)
     @cached_property
     def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
         """
+        TODO: Immer Unitinterval (dokumentieren)
         Method returning coordinates of all calculated points
 
         Returns

@@ -279,3 +279,6 @@ def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
 
 def prod(xs: Iterable[Number]):
     return functools.reduce(operator.mul, xs, 1)
+
+def unzip(xs):
+    return zip(*xs)

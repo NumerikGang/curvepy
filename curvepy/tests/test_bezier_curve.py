@@ -2,6 +2,7 @@ import pytest
 import itertools
 import curvepy.tests.data.data_bezier_curve as data
 from curvepy.bezier_curve import *
+from curvepy.utilities import unzip
 from curvepy.tests.utility import arrayize
 
 
@@ -95,7 +96,15 @@ def test_derivative(pts, t, r, expected):
 
 # TODO: barycentric_combination_bezier testen
 
-# TODO: __call__ testen, explizit mit wylden intervallen
+@pytest.mark.parametrize('interval, xs', zip(data.RANDOM_INTERVALS, data.BEZIER_TESTCASES_NORMAL_SIZE))
+def test_check_intervals(interval, xs):
+    m, cnt_ts, use_parallel = xs
+    a = BezierCurveDeCaes(m, cnt_ts, use_parallel, interval=tuple(interval))
+    res_x, res_y = map(np.array, unzip([a(t) for t in np.linspace(*interval, cnt_ts)]))
+    acurve = a.curve
+    assert len(acurve[0]) == len(res_x) and len(acurve[1]) == len(res_y)
+    assert np.allclose(res_x.reshape(acurve[0].shape), acurve[0]) \
+           and np.allclose(res_y.reshape(acurve[1].shape), acurve[1])
 
 # TODO: Kommutativitaet von Skalarmultiplikation testen (ggf via Hypothesis)
 
