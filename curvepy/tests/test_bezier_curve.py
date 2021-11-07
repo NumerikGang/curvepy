@@ -94,17 +94,28 @@ def test_derivative(pts, t, r, expected):
     assert pytest.approx(BezierCurveDeCaes(pts).derivative_bezier_curve(t, r), expected)
 
 
-# TODO: barycentric_combination_bezier testen
+@pytest.mark.parametrize('m, n, alpha', data.BARYCENTRIC_COMBINATIONS)
+def test_barycentric_combinations(m, n, alpha):
+    n = np.array(n)
+    m = np.array(m)
+    a = BezierCurveDeCaes(m)
+    b = BezierCurveDeCaes(n)
+    ab = AbstractBezierCurve.barycentric_combination_bezier(a, b, alpha, 1-alpha)
+    curve = [*ab.curve]
+    pre_weighted = m*alpha + n*(1-alpha)
+    expected = [*BezierCurveDeCaes(pre_weighted).curve]
+    assert np.array_equal(curve, expected)
+
 
 @pytest.mark.parametrize('interval, xs', zip(data.RANDOM_INTERVALS, data.BEZIER_TESTCASES_NORMAL_SIZE))
 def test_check_intervals(interval, xs):
     m, cnt_ts, use_parallel = xs
     a = BezierCurveDeCaes(m, cnt_ts, use_parallel, interval=tuple(interval))
     res_x, res_y = map(np.array, unzip([a(t) for t in np.linspace(*interval, cnt_ts)]))
-    acurve = a.curve
-    assert len(acurve[0]) == len(res_x) and len(acurve[1]) == len(res_y)
-    assert np.allclose(res_x.reshape(acurve[0].shape), acurve[0]) \
-           and np.allclose(res_y.reshape(acurve[1].shape), acurve[1])
+    a_curve = a.curve
+    assert len(a_curve[0]) == len(res_x) and len(a_curve[1]) == len(res_y)
+    assert np.allclose(res_x.reshape(a_curve[0].shape), a_curve[0]) \
+           and np.allclose(res_y.reshape(a_curve[1].shape), a_curve[1])
 
 # TODO: Kommutativitaet von Skalarmultiplikation testen (ggf via Hypothesis)
 

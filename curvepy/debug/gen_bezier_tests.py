@@ -22,44 +22,17 @@ def gen_intervals(n):
 
 def gen_test_cases(n):
     # fp = open('bla.txt', 'w')
-    # print(f"[", file=fp)
-    for _ in range(1):
-        pts = [random.randint(*INTERVAL) + random.random() for _ in range(2 * n)]
-        pts = [pts[:len(pts) // 2], pts[len(pts) // 2:]]
-        for _ in range(1):
-            t = random.random()
-            r = random.randint(1, len(pts) - 1)
-            int2 = sorted([random.randint(*INTERVAL), random.randint(*INTERVAL)])
+    print(f"[")
+    for _ in range(20):
+        print(",(", end="")
+        for _ in range(2):
+            pts = [random.randint(*INTERVAL) + random.random() for _ in range(2 * n)]
+            pts = [pts[:len(pts) // 2], pts[len(pts) // 2:]]
 
-            if int2[0] == int2[1]:
-                continue
-            # print(f',({([1, 2], [3, 4])},', file=fp, end=' ')
-            pts = np.array(pts)
-            rounds = random.randint(6, 8 + 1)
-            f = BezierCurveApproximation.from_round_number(pts.copy(), rounds)
-            c = f.curve
-            # print(f'{[list([1, 2, 3]), list([1, 2, 3])]}, {rounds})', file=fp)
-            fig, axs = plt.subplots(2)
-            a = BezierCurveDeCaes(pts, interval=(-5, 6))
-            ts = np.linspace(-5, 6, 1000)
-            res = np.array([a(t) for t in ts])
-            print(res.flatten())
-
-            # acurve = a.curve
-            # bcurve = b.curve
-            # ccurve = c.curve
-            # dcurve = d.curve
-            # ecurve = e.curve
-            # fcurve = f.curve
-
-            # axs[0].plot(xs, ys)
-            # axs[1].plot(*acurve)
-            # axs[2].plot(*ccurve)
-            # axs[3].plot(*dcurve)
-            # axs[4].plot(*e.curve)
-            # axs[5].plot(*fcurve)
-    # print(f"]", file=fp)
-    # fp.close()
+            print(f'{pts},' , end=" ")
+        alpha = random.random()
+        print(f'{alpha})')
+    print(f"]")
 
 
 if __name__ == '__main__':

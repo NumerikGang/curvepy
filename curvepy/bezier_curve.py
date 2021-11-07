@@ -338,7 +338,11 @@ class AbstractBezierCurve(ABC):
         return self.func((u - a) / (b - a))
 
     def __mul__(self, other: Union[float, int]):
-        del self.curve  # this is fine and as it should be to reset cached_properties, linters are stupid
+        try:
+            del self.curve  # this is fine and as it should be to reset cached_properties, linters are stupid
+        except AttributeError:
+            # This means that the curve was never called before
+            ...
         self._bezier_points *= other
         return self
 
@@ -348,8 +352,11 @@ class AbstractBezierCurve(ABC):
     def __add__(self, other: AbstractBezierCurve):
         if not isinstance(other, AbstractBezierCurve):
             raise TypeError("Argument must be an instance of AbstractBezierCurve")
-
-        del self.curve  # this is fine
+        try:
+            del self.curve  # this is fine
+        except AttributeError:
+            # This means that the curve was never called before
+            ...
 
         self._bezier_points += other._bezier_points
         self._cnt_ts = max(self._cnt_ts, other._cnt_ts)
