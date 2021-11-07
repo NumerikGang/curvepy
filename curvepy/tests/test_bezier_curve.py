@@ -100,9 +100,9 @@ def test_barycentric_combinations(m, n, alpha):
     m = np.array(m)
     a = BezierCurveDeCaes(m)
     b = BezierCurveDeCaes(n)
-    ab = AbstractBezierCurve.barycentric_combination_bezier(a, b, alpha, 1-alpha)
+    ab = AbstractBezierCurve.barycentric_combination_bezier(a, b, alpha, 1 - alpha)
     curve = [*ab.curve]
-    pre_weighted = m*alpha + n*(1-alpha)
+    pre_weighted = m * alpha + n * (1 - alpha)
     expected = [*BezierCurveDeCaes(pre_weighted).curve]
     assert np.array_equal(curve, expected)
 
@@ -117,14 +117,7 @@ def test_check_intervals(interval, xs):
     assert np.allclose(res_x.reshape(a_curve[0].shape), a_curve[0]) \
            and np.allclose(res_y.reshape(a_curve[1].shape), a_curve[1])
 
-# TODO: Kommutativitaet von Skalarmultiplikation testen (ggf via Hypothesis)
 
-# TODO: BezierCurveApprox Sondertests:
-#   - Klappt __add__ mit Approx sowie nicht-Approx?
-#   - Gehen bei __add__ (und auch generell und so) die cnt_ts kaputt?
-#   - (Nicht als Test schreiben) Klappt eigentlich plot? show_funcs mit nicht Approxes?
-
-# TODO: Refactor as property based test (based)
 @pytest.mark.parametrize('approx_rounds, cnt_bezier_points', itertools.product(range(2, 7), range(5, 206, 20)))
 def test_approx_rounds_to_cnt_ts_to_approx_rounds_equals_id(approx_rounds, cnt_bezier_points):
     assert BezierCurveApproximation.cnt_ts_to_approx_rounds(
