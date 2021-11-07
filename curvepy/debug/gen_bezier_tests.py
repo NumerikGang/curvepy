@@ -11,6 +11,7 @@ INTERVAL = (-20, 20)
 # bsp = [[0.,0.,8.,4.],[0.,2.,2.,0.]]
 bsp = [[0, 0, 8, 4], [0, 2, 2, 0]]
 
+
 def gen_intervals(n):
     print("[")
     for _ in range(n):
