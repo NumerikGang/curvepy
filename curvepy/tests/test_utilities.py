@@ -65,6 +65,85 @@ def test_ratio_is_nan_when_all_points_are_the_same():
     assert ratio(a, b, c) is np.NaN
 
 
-@pytest.mark.parametrize('a,b,c,r', [(np.array(a), np.array(b), np.array(c), r) for a,b,c,r in data.GOOD_VALUES])
-def test_ratio_good_values(a,b,c,r):
-    assert pytest.approx(ratio(a,b,c),r)
+@pytest.mark.parametrize('a,b,c,r', [(np.array(a), np.array(b), np.array(c), r) for a, b, c, r in data.GOOD_VALUES])
+def test_ratio_good_values(a, b, c, r):
+    assert pytest.approx(ratio(a, b, c), r)
+
+# TODO distance_to_line tests
+
+# TODO check_flat tests
+
+# TODO TEST intersect lines
+
+# TODO flatten_list_of_lists
+FLATTEN_LIST_OF_LISTS_TESTS = [
+    [
+        [[1,2,3],[4,5,6],[7,8,9]],
+        [1,2,3,4,5,6,7,8,9]
+    ],
+    [
+        [[]],
+        []
+    ],
+    [
+        [],
+        []
+    ],
+    [
+        [[[1],2,3],[4,[5,6]]],
+        [[1],2,3,4,[5,6]]
+    ]
+]
+
+@pytest.mark.parametrize('input,expected', FLATTEN_LIST_OF_LISTS_TESTS)
+def test_flatten_list_of_lists(input, expected):
+    assert flatten_list_of_lists(input) == expected
+
+# TODO test min max box
+
+# TODO test intersect
+
+# TODO test prod
+
+# TODO test unzip
+UNZIP_TESTS = [
+    [1, 2, 3, 4],
+    [[1, 2], [3, 4]],
+    [[1, 2, 3], [4, [5, 6]]]
+]
+
+"""
+zip(a: Iterable[T], b: Iterable[U]) -> List[Tuple[T,U]]
+
+input: Iterable[List[Any]]
+unzip(zip(input)): Iterable[Tuple[List[Any]]] 
+*Iterable[Tuple[List[Any]]] 
+
+Pointer[Pointer[int]] = *
+
+List[Any]
+Tuple[List[Any]]
+"""
+
+@pytest.mark.parametrize('input', UNZIP_TESTS)
+def test_unzip(input):
+    # Otherwise unzip(zip(input)) has the Signature
+    # zip_generator[Tuple[List[Any]]]
+    # instead of
+    # Tuple[List[Any]]
+    #assert all([a==b for a,b in zip(*unzip(zip(input)),input)])
+    ...
+
+UNZIP_TESTS_2 =[
+    [[1, 2], [3, 4]],
+    [[1], [2, 3], [[3, 4], [5]]],
+    [[1], [[2, 3], 4], [5]]
+]
+
+@pytest.mark.parametrize('input', UNZIP_TESTS_2)
+def test_unzip_2(input):
+    b = unzip(input)
+    b = [*b]
+    c = zip(*b)
+    print(f"{input} | {[*b]} | {[*c]}")
+    #assert all([a == list(b) for a, b in zip(*zip(*unzip(input)), input)])
