@@ -4,7 +4,7 @@ import numpy as np
 import functools
 import sys
 import operator
-
+from math import isclose
 
 from curvepy.de_caes import subdivision
 
@@ -67,7 +67,8 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     bool:
         True if points are collinear else False
     """
-    return np.count_nonzero(np.cross(b - a, c - a)) == 0
+    return np.allclose(np.cross(b-a,c-a), np.zeros(a.shape))
+
 
 def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray) -> float:
     """

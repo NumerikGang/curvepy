@@ -1,19 +1,22 @@
 import random
-"""
-for _ in number_of_testcases:
-  xs = [4_random_punkte_die_paarweise_verschieden_sind]
-  xs.sort()
-  p1,p2 = (xs[0], xs[1]), (xs[2], xs[3])
-"""
+import numpy as np
+from curvepy.utilities import *
 
 
-def main():
-    for _ in range(20):
-        xs = [random.sample(range(-20, 20), 4)]
-        xs.sort()
-        p1, p2 = (xs[0], xs[1]), (xs[2], xs[3])
-        print(f"{p1}, {p2}")
+def gen_vals(n, interval):
+    return [random.randint(*interval) for _ in range(n)]
 
+def main(test_cases, interval):
+    print("[")
+    for _ in range(test_cases):
+        p1 = np.array(gen_vals(2, interval))
+        m1 = (random.random() * 10.0) - 5
+        p2 = p1*m1
+        m2 = (random.random() * 10.0) - 5
+        p3 = p1*m2
+        r = ratio(p1,p2,p3)
+        print(f",({[*p1]}, {[*p2]}, {[*p3]}, {r})")
+    print("]")
 
 if __name__ == '__main__':
-    main()
+    main(20, (-20, 20))

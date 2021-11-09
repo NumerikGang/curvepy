@@ -63,3 +63,8 @@ def test_ratio_is_nan_when_all_points_are_the_same():
     b = a
     c = a
     assert ratio(a, b, c) is np.NaN
+
+
+@pytest.mark.parametrize('a,b,c,r', [(np.array(a), np.array(b), np.array(c), r) for a,b,c,r in data.GOOD_VALUES])
+def test_ratio_good_values(a,b,c,r):
+    assert pytest.approx(ratio(a,b,c),r)
