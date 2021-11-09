@@ -94,7 +94,7 @@ def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray
 
     for left, right, col in zip(left_point, right_point, col_point):
         if right - col == 0:
-            return np.NINF
+            return np.NaN
         elif left != right:
             return (col - left) / (right - col)
     return 0
