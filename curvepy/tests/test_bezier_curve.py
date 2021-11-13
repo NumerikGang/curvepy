@@ -77,6 +77,29 @@ def test_intersect_intersects_right_size(x, y):
 
 # TODO: collision_check testen (dies ist curveunabhaengig)
 
+@pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2", data.NOT_EVEN_BOXES_INTERSECT)
+def test_not_even_boxes_intersect(xs1, ys1, xs2, ys2, m1, m2):
+    # The first 4 parameters are the boxes
+    b1 = BezierCurveDeCaes(np.array(m1))
+    b2 = BezierCurveDeCaes(np.array(m2))
+    assert not b1.box_collision_check(b2)
+
+
+def test_only_boxes_intesect():
+    # assert box_check == True
+    # assert real_collision == False
+    ...
+
+
+def test_curves_intersect():
+    # assert real_collision==True
+    ...
+
+
+def test_same_curve_intersects_with_itself():
+    ...
+
+
 # TODO: curve_collision_check testen mit verschiedenen BezCurves (hier einfach mit parametrize)
 
 

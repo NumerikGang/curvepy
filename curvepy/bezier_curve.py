@@ -109,7 +109,7 @@ class AbstractBezierCurve(ABC):
         return t2[0] <= t1[0] <= t2[1] or t2[0] <= t1[1] <= t2[1] or t1[0] <= t2[0] <= t1[1] or t1[0] <= t2[1] <= t1[1]
 
     @cached_property
-    def min_max_box(self) -> List[np.ndarray]:
+    def min_max_box(self) -> np.ndarray:
         """
         Method creates minmax box for the corresponding curve
         """
@@ -135,7 +135,7 @@ class AbstractBezierCurve(ABC):
 
         return self.curve_collision_check(other_curve)
 
-    def box_collision_check(self, other_curve: BezierCurveSymPy) -> bool:
+    def box_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
         """
         Method checking box collision with the given curve.
 
@@ -149,15 +149,13 @@ class AbstractBezierCurve(ABC):
         bool:
             true if boxes collide otherwise false
         """
-        o_box = other_curve.min_max_box
-        box = self.min_max_box
-        for t1, t2 in zip(box, o_box):
-            if not self.intersect(t1, t2):
-                return False
+        return all(
+            self.intersect(our, their) for our, their in [
+                (self.min_max_box[:2], other_curve.min_max_box[:2]),
+                (self.min_max_box[2:], other_curve.min_max_box[2:])]
+        )
 
-        return True
-
-    def curve_collision_check(self, other_curve: BezierCurveSymPy) -> bool:
+    def curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
         """
         Method checking curve collision with the given curve.
 
@@ -235,7 +233,7 @@ class AbstractBezierCurve(ABC):
         math:: \\Delta^r b_i = \\sum_{j=0}^r \\binom{r}{j} (-1)^{r-j} b_{i+j}
         """
         deg = self._bezier_points.shape[1] - 1
-        diff = [self.single_forward_difference(i, r) for r in range(0, (deg - i)+1)]
+        diff = [self.single_forward_difference(i, r) for r in range(0, (deg - i) + 1)]
         return np.array(diff).T
 
     def derivative_bezier_curve(self, t: float = 0.5, r: int = 1) -> np.ndarray:
@@ -560,7 +558,7 @@ class BezierCurveApproximation(AbstractBezierCurve):
         ret = np.ravel(ret)
         n = len(ret)
         if self._dimension == 2:
-            assert (n/2).is_integer() # TODO debug
+            assert (n / 2).is_integer()  # TODO debug
             return ret[:n // 2], ret[n // 2:]
-        assert (n/3).is_integer() # todo debug
+        assert (n / 3).is_integer()  # todo debug
         return ret[:n // 3], ret[n // 3:2 * n // 3], ret[2 * n // 3:]
