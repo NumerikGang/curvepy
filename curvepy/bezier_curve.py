@@ -155,6 +155,14 @@ class AbstractBezierCurve(ABC):
                 (self.min_max_box[2:], other_curve.min_max_box[2:])]
         )
 
+    # TODO:
+    """
+    - Nur Bereich betrachten wo die min_max_boxen overlappen O(n)
+    - Dann die Kurventeile, die darin liegen, in n Slices aufteilen O(n)
+    - n^2 Kombinationen bilden, darauf machen wir box_collision_check O(n)
+    - Den Teil rausschneiden, der keine box_collision_hat (free)
+    - line-comparisons aller uebrig-gebliebenen O(n^2) (aber eig weniger)
+    """
     def curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
         """
         Method checking curve collision with the given curve.
@@ -170,9 +178,15 @@ class AbstractBezierCurve(ABC):
             true if curves collide otherwise false
         """
         tuple_of_dimensions = self.curve
-        f1 = sg.LineString(np.column_stack(tuple_of_dimensions))
+        xs = []
+        for ab in zip(*self.curve):
+            xs.append(ab)
+        f1 = sg.LineString(np.array(xs))
         tuple_of_dimensions = other_curve.curve
-        f2 = sg.LineString(np.column_stack(tuple_of_dimensions))
+        ys = []
+        for ab in zip(*other_curve.curve):
+            ys.append(ab)
+        f2 = sg.LineString(np.array(ys))
         inter = f1.intersection(f2)
         return not inter.geom_type == 'LineString'
 

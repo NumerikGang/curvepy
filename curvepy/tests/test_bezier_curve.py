@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 import itertools
 import curvepy.tests.data.data_bezier_curve as data
@@ -85,15 +86,13 @@ def test_not_even_boxes_intersect(xs1, ys1, xs2, ys2, m1, m2):
     assert not b1.box_collision_check(b2)
 
 
-def test_only_boxes_intesect():
-    # assert box_check == True
-    # assert real_collision == False
-    ...
-
-
-def test_curves_intersect():
-    # assert real_collision==True
-    ...
+@pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2,expected", data.CURVE_COLLISION)
+def test_curves_collision_checks_manually_verfied(xs1,ys1,xs2,ys2,m1,m2,expected):
+    # The first 4 parameters are the boxes
+    assert BezierCurveDeCaes(np.array(m1))\
+        .curve_collision_check(
+        BezierCurveDeCaes(np.array(m2))
+    ) == expected
 
 
 def test_same_curve_intersects_with_itself():

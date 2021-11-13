@@ -6,7 +6,7 @@ import bezier
 import curvepy.types
 from curvepy.bezier_curve import *
 
-TEST_CASES = 50
+TEST_CASES = 10
 INTERVAL = (-20, 20)
 
 # bsp = [[0.,0.,8.,4.],[0.,2.,2.,0.]]
@@ -35,6 +35,40 @@ def gen_not_even_boxes_intersect(l, r):
                     random.random() * (ys[1] - ys[0]) - (ys[1] - ys[0]) / 2 + ys[0] for _ in range(8)
                 ]])
             print(f",{vals[0]}, {vals[1]})", file=fp)
+        print("]", file=fp)
+
+def gen_curves_intersect(l,r):
+    with open("txt.3alb", 'w') as fp:
+        fig, ax = plt.subplots(2,5)
+        print("[", file=fp)
+        for i in range(TEST_CASES):
+            str = ""
+            xss = [(random.random() * (r - l)) - ((r - l) / 2) for _ in range(4)]
+            xs1 = sorted(xss[:2])
+            xs1[0] -= 5
+            ys1 = sorted(xss[2:])
+            ys1[0] -= 5
+            delta = (xs1[1] - xs1[0])/2
+            xs2 = [x+delta for x in xs1]
+
+            print(f",({xs1},{ys1},{xs2},{ys1}", file=fp, end=" ")
+            vals = []
+            for (xs, ys) in [(xs1, ys1), (xs2, ys1)]:
+                vals.append([[
+                    random.random() * (xs[1] - xs[0]) - (xs[1] - xs[0]) / 2 + xs[0] for _ in range(8)
+                ], [
+                    random.random() * (ys[1] - ys[0]) - (ys[1] - ys[0]) / 2 + ys[0] for _ in range(8)
+                ]])
+            print(f",{vals[0]}, {vals[1]})", file=fp)
+
+            #res = [BezierCurveDeCaes(np.array(pts)).curve for pts in vals]
+            for pts in vals:
+                c = BezierCurveDeCaes(np.array(pts)).curve
+                row = int(i<5)
+                ax[row, i%5].plot(*c)
+
+        plt.show()
+
         print("]", file=fp)
 
 
@@ -89,4 +123,4 @@ def gen_test_cases(n):
 
 
 if __name__ == '__main__':
-    gen_not_even_boxes_intersect(-20, 20)
+    gen_curves_intersect(-20, 20)
