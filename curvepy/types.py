@@ -9,6 +9,7 @@ from functools import cached_property, partial
 from collections.abc import Sequence
 from curvepy.utilities import create_straight_line_function
 
+MinMaxBox = np.ndarray
 
 class CurveTypes(Enum):
     bezier_curve = 0

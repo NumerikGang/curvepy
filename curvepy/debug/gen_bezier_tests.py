@@ -5,8 +5,9 @@ import bezier
 
 import curvepy.types
 from curvepy.bezier_curve import *
+from curvepy.tests.data.data_bezier_curve import FOUR_DISTINCT_SORTED_VALUES
 
-TEST_CASES = 10
+TEST_CASES = 20
 INTERVAL = (-20, 20)
 
 # bsp = [[0.,0.,8.,4.],[0.,2.,2.,0.]]

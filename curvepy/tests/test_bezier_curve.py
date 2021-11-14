@@ -76,6 +76,35 @@ def test_intersect_intersects_right_size(x, y):
     assert AbstractBezierCurve.intersect(x, y)
 
 
+PRECOMPUTED_INTERSECTIONS = [
+    ([-4, 4, 3, 8], [0, 2, 2, 5], [0, 2, 3, 5]),
+    ([-10, 20, 0, 1], [-15, 15, -30, 510], [-10, 15, 0, 1]),
+    ([-100, -98, 42, 84, -3, 10], [-99, -97, 37, 50, 5, 15], [-99, -98, 42, 50, 5, 10]),
+    ([2, 20, -10, 10], [3, 40, -5, 5], [3, 20, -5, 5]),
+    ([199, 201, -10, -7], [-1, 200, -9, 5], [199, 200, -9, -7]),
+    ([42, 1337, 2, 3, 5, 7], [42, 1337, 2, 3, 5, 7], [42, 1337, 2, 3, 5, 7]),
+    ([1, 10, 7, 9], [10, 15, 9, 15], [10, 10, 9, 9])
+]
+
+PRECOMPUTED_NONINTERSECTIONS = [
+    ([-5, 5, -10, 0], [-4, 3, 0.01, 10]),
+    ([1, 2, 3, 4], [-4, -3, -2, -1]),
+    ([1, 2, 3, 4, 5, 6], [1.1, 1.9, 3.1, 3.9, 7, 8])
+]
+
+
+@pytest.mark.parametrize('box1, box2, intersection', PRECOMPUTED_INTERSECTIONS)
+def test_check_intersections_of_two_boxes(box1, box2, intersection):
+    got = AbstractBezierCurve.find_overlap_of_two_min_max_boxes(np.array(box1), np.array(box2))
+    expected = np.array(intersection)
+    assert all(got == expected)
+
+
+@pytest.mark.parametrize('box1, box2', PRECOMPUTED_NONINTERSECTIONS)
+def test_check_non_intersection_of_two_boxes(box1, box2):
+    assert AbstractBezierCurve.find_overlap_of_two_min_max_boxes(np.array(box1), np.array(box2)) is None
+
+
 # TODO: collision_check testen (dies ist curveunabhaengig)
 
 @pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2", data.NOT_EVEN_BOXES_INTERSECT)
@@ -87,10 +116,10 @@ def test_not_even_boxes_intersect(xs1, ys1, xs2, ys2, m1, m2):
 
 
 @pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2,expected", data.CURVE_COLLISION)
-def test_curves_collision_checks_manually_verfied(xs1,ys1,xs2,ys2,m1,m2,expected):
+def test_curves_collision_checks_manually_verfied(xs1, ys1, xs2, ys2, m1, m2, expected):
     # The first 4 parameters are the boxes
-    assert BezierCurveDeCaes(np.array(m1))\
-        .curve_collision_check(
+    assert BezierCurveDeCaes(np.array(m1)) \
+               .curve_collision_check(
         BezierCurveDeCaes(np.array(m2))
     ) == expected
 

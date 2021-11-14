@@ -6,14 +6,14 @@ import scipy.special as scs
 import matplotlib.pyplot as plt
 import shapely.geometry as sg
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Callable, Union
+from typing import List, Tuple, Callable, Union, Optional
 from functools import partial, cached_property
 import concurrent.futures
 from multiprocessing import cpu_count
 
 from curvepy.de_caes import de_caes, subdivision
 from curvepy.utilities import min_max_box, prod
-from curvepy.types import bernstein_polynomial
+from curvepy.types import bernstein_polynomial, MinMaxBox
 
 
 class AbstractBezierCurve(ABC):
@@ -135,6 +135,8 @@ class AbstractBezierCurve(ABC):
 
         return self.curve_collision_check(other_curve)
 
+
+    # TODO Replace me with find_overlap_of_two_min_max_boxes check is None
     def box_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
         """
         Method checking box collision with the given curve.
@@ -155,6 +157,30 @@ class AbstractBezierCurve(ABC):
                 (self.min_max_box[2:], other_curve.min_max_box[2:])]
         )
 
+    @staticmethod
+    def find_overlap_of_two_min_max_boxes(box1: MinMaxBox, box2: MinMaxBox) -> Optional[MinMaxBox]:
+        if len(box1) != len(box2):
+            raise ValueError("The boxes differ in dimension!")
+        if any(len(box) % 2 == 1 for box in [box1, box2]):
+            raise TypeError("That is not a box. (since the number of elements are odd)")
+
+        res = np.zeros(box1.shape)
+
+        for i in range(len(box1)//2):
+            dim_min_1, dim_max_1 = box1[2*i:(2*i)+2]
+            dim_min_2, dim_max_2 = box2[2*i:(2*i)+2]
+            if dim_min_1 <= dim_min_2 <= dim_max_1:
+                res[2*i:(2*i)+2] = [dim_min_2, min(dim_max_1, dim_max_2)]
+            elif dim_min_2 <= dim_min_1 <= dim_max_2:
+                res[2*i:(2*i)+2] = [dim_min_1, min(dim_max_1, dim_max_2)]
+            else:
+                return None
+        return res
+
+
+    def curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
+        ...
+
     # TODO:
     """
     - Nur Bereich betrachten wo die min_max_boxen overlappen O(n)
@@ -163,7 +189,7 @@ class AbstractBezierCurve(ABC):
     - Den Teil rausschneiden, der keine box_collision_hat (free)
     - line-comparisons aller uebrig-gebliebenen O(n^2) (aber eig weniger)
     """
-    def curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
+    def old_curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
         """
         Method checking curve collision with the given curve.
 
