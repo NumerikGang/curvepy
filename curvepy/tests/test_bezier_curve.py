@@ -86,6 +86,15 @@ PRECOMPUTED_INTERSECTIONS = [
     ([1, 10, 7, 9], [10, 15, 9, 15], [10, 10, 9, 9])
 ]
 
+PRECOMPUTED_POINTS_IN_INTERSECTION_BOX = [
+    ([-4, 4, 3, 8], (((2, 5), True), ((-4, 2), False), ((-5, 5), False), ((-4, 8), True),  ((4, 3), True))),
+    ([-10, 20, 0, 1], (((-10, 0), True), ((21, 2), False))),
+    ([-100, -98, 42, 84, -3, 10], (((-99, 42, 0), True), ((-99, 41, 1), False), ((-98, 50, -4), False ))),
+    ([2, 20, -10, 10], (((5, 2), True), ((2, 12), False), ((7, 5), True), ((2, 10), True),  ((20, -10), True))),
+    ([199, 201, -10, -7], (((200, -8), True), ((199, 1), False), ((199, -10), True), ((201, -7), True),  ((199, -10), True))),
+    ([1, 10, 7, 9], (((1, 8), True), ((10, 10), False), ((1, 7), True), ((10, 1), False),  ((1, 9), True)))
+]
+
 PRECOMPUTED_NONINTERSECTIONS = [
     ([-5, 5, -10, 0], [-4, 3, 0.01, 10]),
     ([1, 2, 3, 4], [-4, -3, -2, -1]),
@@ -104,6 +113,11 @@ def test_check_intersections_of_two_boxes(box1, box2, intersection):
 def test_check_non_intersection_of_two_boxes(box1, box2):
     assert AbstractBezierCurve.find_overlap_of_two_min_max_boxes(np.array(box1), np.array(box2)) is None
 
+
+@pytest.mark.parametrize('box, pts', PRECOMPUTED_POINTS_IN_INTERSECTION_BOX)
+def test_point_is_in_min_max_box(box, pts):
+    for p in pts:
+        assert p[1] == AbstractBezierCurve.point_is_in_min_max_box(box, p[0])
 
 # TODO: collision_check testen (dies ist curveunabhaengig)
 

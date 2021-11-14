@@ -176,10 +176,29 @@ class AbstractBezierCurve(ABC):
                 return None
         return res
 
+    @staticmethod
+    def point_is_in_min_max_box(box, point) -> bool:
+        if not len(box)//2 == len(point):
+            raise ValueError("Dimension of box does not match dimension of points")
+
+        for i in range(len(point)):
+            if not (box[2*i] <= point[i] <= box[(2*i)+1]):
+                return False
+        return True
+
+
     def curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
+        # Check if any overlap of the min_max_boxes exists O(1)
         curve1, curve2 = self.curve, other_curve.curve
         overlap = self.find_overlap_of_two_min_max_boxes(self.min_max_box, other_curve.min_max_box)
         if overlap is None:
+            return False
+
+        # Check which points lie in the overlap O(n)
+        curve1 = [*filter(partial(self.point_is_in_min_max_box, overlap), zip(*curve1))]
+        curve2 = [*filter(partial(self.point_is_in_min_max_box, overlap), zip(*curve2))]
+
+        if len(curve1) == 0 or len(curve2) == 0:
             return False
 
     # TODO:
