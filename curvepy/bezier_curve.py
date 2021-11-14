@@ -135,7 +135,6 @@ class AbstractBezierCurve(ABC):
 
         return self.curve_collision_check(other_curve)
 
-
     # TODO Replace me with find_overlap_of_two_min_max_boxes check is None
     def box_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
         """
@@ -166,29 +165,31 @@ class AbstractBezierCurve(ABC):
 
         res = np.zeros(box1.shape)
 
-        for i in range(len(box1)//2):
-            dim_min_1, dim_max_1 = box1[2*i:(2*i)+2]
-            dim_min_2, dim_max_2 = box2[2*i:(2*i)+2]
+        for i in range(len(box1) // 2):
+            dim_min_1, dim_max_1 = box1[2 * i:(2 * i) + 2]
+            dim_min_2, dim_max_2 = box2[2 * i:(2 * i) + 2]
             if dim_min_1 <= dim_min_2 <= dim_max_1:
-                res[2*i:(2*i)+2] = [dim_min_2, min(dim_max_1, dim_max_2)]
+                res[2 * i:(2 * i) + 2] = [dim_min_2, min(dim_max_1, dim_max_2)]
             elif dim_min_2 <= dim_min_1 <= dim_max_2:
-                res[2*i:(2*i)+2] = [dim_min_1, min(dim_max_1, dim_max_2)]
+                res[2 * i:(2 * i) + 2] = [dim_min_1, min(dim_max_1, dim_max_2)]
             else:
                 return None
         return res
 
-
     def curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
-        ...
+        curve1, curve2 = self.curve, other_curve.curve
+        overlap = self.find_overlap_of_two_min_max_boxes(self.min_max_box, other_curve.min_max_box)
+        if overlap is None:
+            return False
 
     # TODO:
     """
-    - Nur Bereich betrachten wo die min_max_boxen overlappen O(n)
     - Dann die Kurventeile, die darin liegen, in n Slices aufteilen O(n)
     - n^2 Kombinationen bilden, darauf machen wir box_collision_check O(n)
     - Den Teil rausschneiden, der keine box_collision_hat (free)
     - line-comparisons aller uebrig-gebliebenen O(n^2) (aber eig weniger)
     """
+
     def old_curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
         """
         Method checking curve collision with the given curve.
