@@ -3,15 +3,13 @@ import numpy as np
 from curvepy.utilities import *
 
 
-def gen_vals(n, interval):
-    return [random.randint(*interval) for _ in range(n)]
+class A:
+    xs = [*range(1,11)]
 
-def main(test_cases, interval):
-    print("[")
-    for _ in range(test_cases):
-        l = random.randint(2, 100)
+    def __getitem__(self, item):
+        return self.xs.__getitem__(item)
 
-    print("]")
 
 if __name__ == '__main__':
-    main(20, (-20, 20))
+    a = A()
+    print(a[2:4])

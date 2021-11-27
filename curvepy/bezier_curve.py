@@ -6,14 +6,14 @@ import scipy.special as scs
 import matplotlib.pyplot as plt
 import itertools as itt
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Callable, Union, Optional
+from typing import List, Tuple, Callable, Union
 from functools import partial, cached_property
 import concurrent.futures
 from multiprocessing import cpu_count
 
 from curvepy.de_caes import de_caes, subdivision
 from curvepy.utilities import prod
-from curvepy.types import bernstein_polynomial, MinMaxBox2D
+from curvepy.types import bernstein_polynomial, MinMaxBox
 
 
 class AbstractBezierCurve(ABC):
@@ -90,14 +90,14 @@ class AbstractBezierCurve(ABC):
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
     @cached_property
-    def min_max_box(self) -> MinMaxBox2D:
+    def min_max_box(self) -> MinMaxBox:
         """
         Method creates minmax box for the corresponding curve
         """
-        return MinMaxBox2D.from_bezier_points(self._bezier_points)
+        return MinMaxBox.from_bezier_points(self._bezier_points)
 
     @staticmethod
-    def collision_check(b1: AbstractBezierCurve, b2: AbstractBezierCurve, tol: float):
+    def collision_check(b1: AbstractBezierCurve, b2: AbstractBezierCurve, tol: float = 0.2):
         """
         bezInt(B1, B2):
             Does bbox(B1) intersect bbox(B2)?

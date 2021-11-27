@@ -34,47 +34,6 @@ def test_values_for_bezier_curve_approximation(m, expected, approx_rounds):
     assert pytest.approx(list(c[0]), expected[0]), pytest.approx(list(c[1]), expected[1])
 
 
-@pytest.mark.parametrize('x,y', arrayize([
-    ((a, b), (a, b)) for a, b, _, _ in data.FOUR_DISTINCT_SORTED_VALUES
-]))
-def test_intersect_all_points_are_equal(x, y):
-    assert AbstractBezierCurve.intersect(x, y)
-
-
-@pytest.mark.parametrize('x,y', arrayize([
-    ((a, b), (b, c)) for a, b, c, _ in data.FOUR_DISTINCT_SORTED_VALUES
-]))
-def test_intersect_at_least_one_equal_point(x, y):
-    assert AbstractBezierCurve.intersect(x, y)
-
-
-@pytest.mark.parametrize('x,y', arrayize([
-    ((a, b), (c, d)) for a, b, c, d in data.FOUR_DISTINCT_SORTED_VALUES
-]))
-def test_intersect_disjunct_intervals(x, y):
-    assert not AbstractBezierCurve.intersect(x, y)
-
-
-@pytest.mark.parametrize('x,y', arrayize([
-    ((a, d), (b, c)) for a, b, c, d in data.FOUR_DISTINCT_SORTED_VALUES
-]))
-def test_intersect_lies_completely_within_another(x, y):
-    assert AbstractBezierCurve.intersect(x, y)
-
-
-@pytest.mark.parametrize('x,y', arrayize([
-    ((a, c), (b, d)) for a, b, c, d in data.FOUR_DISTINCT_SORTED_VALUES
-]))
-def test_intersect_intersects_left_side(x, y):
-    assert AbstractBezierCurve.intersect(x, y)
-
-
-@pytest.mark.parametrize('x,y', arrayize([
-    ((b, d), (a, c)) for a, b, c, d in data.FOUR_DISTINCT_SORTED_VALUES
-]))
-def test_intersect_intersects_right_size(x, y):
-    assert AbstractBezierCurve.intersect(x, y)
-
 
 PRECOMPUTED_INTERSECTIONS = [
     ([-4, 4, 3, 8], [0, 2, 2, 5], [0, 2, 3, 5]),
