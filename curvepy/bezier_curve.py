@@ -4,7 +4,7 @@ import sympy as sy
 import math
 import scipy.special as scs
 import matplotlib.pyplot as plt
-import shapely.geometry as sg
+import itertools as itt
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Callable, Union, Optional
 from functools import partial, cached_property
@@ -12,8 +12,8 @@ import concurrent.futures
 from multiprocessing import cpu_count
 
 from curvepy.de_caes import de_caes, subdivision
-from curvepy.utilities import min_max_box, prod
-from curvepy.types import bernstein_polynomial, MinMaxBox
+from curvepy.utilities import prod
+from curvepy.types import bernstein_polynomial, MinMaxBox2D
 
 
 class AbstractBezierCurve(ABC):
@@ -89,152 +89,40 @@ class AbstractBezierCurve(ABC):
             return tmp[0::2], tmp[1::2]
         return tmp[0::3], tmp[1::3], tmp[2::3]
 
-    @staticmethod
-    def intersect(t1: np.ndarray, t2: np.ndarray) -> bool:
-        """
-        Method checking intersection of two given tuples TODO find more describing phrasing together
-
-        Parameters
-        ----------
-        t1: tuple
-            first tuple
-        t2: tuple
-            second tuple
-
-        Returns
-        -------
-        bool:
-            true if intersect otherwise false
-        """
-        return t2[0] <= t1[0] <= t2[1] or t2[0] <= t1[1] <= t2[1] or t1[0] <= t2[0] <= t1[1] or t1[0] <= t2[1] <= t1[1]
-
     @cached_property
-    def min_max_box(self) -> np.ndarray:
+    def min_max_box(self) -> MinMaxBox2D:
         """
         Method creates minmax box for the corresponding curve
         """
-        return min_max_box(self._bezier_points)
+        return MinMaxBox2D.from_bezier_points(self._bezier_points)
 
-    def collision_check(self, other_curve: BezierCurveSymPy) -> bool:
+    @staticmethod
+    def collision_check(b1: AbstractBezierCurve, b2: AbstractBezierCurve, tol: float):
         """
-        Method checking collision with given curve.
-        Starts with a box check, if this didn't intersect it is checking the actual curves
-
-        Parameters
-        ----------
-        other_curve: BezierCurve2D
-            curve to check
-
-        Returns
-        -------
-        bool:
-            true if curves collide otherwise false
+        bezInt(B1, B2):
+            Does bbox(B1) intersect bbox(B2)?
+                No: Return false.
+                Yes: Continue.
+            Is area(bbox(B1)) + area(bbox(B2)) < threshold?
+                Yes: Return true.
+                No: Continue.
+            Split B1 into B1a and B1b at t = 0.5
+            Split B2 into B2a and B2b at t = 0.5
+            Return bezInt(B1a, B2a) || bezInt(B1a, B2b) || bezInt(B1b, B2a) || bezInt(B1b, B2b).
         """
-        if not self.box_collision_check(other_curve):
+        if not b1.min_max_box & b2.min_max_box:
             return False
 
-        return self.curve_collision_check(other_curve)
+        if b1.min_max_box.area + b2.min_max_box.area < tol:
+            return True
 
-    # TODO Replace me with find_overlap_of_two_min_max_boxes check is None
-    def box_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
-        """
-        Method checking box collision with the given curve.
+        b1s = subdivision(b1._bezier_points, 0.5)
+        b2s = subdivision(b2._bezier_points, 0.5)
 
-        Parameters
-        ----------
-        other_curve: BezierCurve2D
-            curve to check
-
-        Returns
-        -------
-        bool:
-            true if boxes collide otherwise false
-        """
-        return all(
-            self.intersect(our, their) for our, their in [
-                (self.min_max_box[:2], other_curve.min_max_box[:2]),
-                (self.min_max_box[2:], other_curve.min_max_box[2:])]
+        return any(
+            AbstractBezierCurve.collision_check(BezierCurveDeCaes(left), BezierCurveDeCaes(right), tol)
+            for left, right in itt.product(b1s, b2s)
         )
-
-    @staticmethod
-    def find_overlap_of_two_min_max_boxes(box1: MinMaxBox, box2: MinMaxBox) -> Optional[MinMaxBox]:
-        if len(box1) != len(box2):
-            raise ValueError("The boxes differ in dimension!")
-        if any(len(box) % 2 == 1 for box in [box1, box2]):
-            raise TypeError("That is not a box. (since the number of elements are odd)")
-
-        res = np.zeros(box1.shape)
-
-        for i in range(len(box1) // 2):
-            dim_min_1, dim_max_1 = box1[2 * i:(2 * i) + 2]
-            dim_min_2, dim_max_2 = box2[2 * i:(2 * i) + 2]
-            if dim_min_1 <= dim_min_2 <= dim_max_1:
-                res[2 * i:(2 * i) + 2] = [dim_min_2, min(dim_max_1, dim_max_2)]
-            elif dim_min_2 <= dim_min_1 <= dim_max_2:
-                res[2 * i:(2 * i) + 2] = [dim_min_1, min(dim_max_1, dim_max_2)]
-            else:
-                return None
-        return res
-
-    @staticmethod
-    def point_is_in_min_max_box(box, point) -> bool:
-        if not len(box)//2 == len(point):
-            raise ValueError("Dimension of box does not match dimension of points")
-
-        for i in range(len(point)):
-            if not (box[2*i] <= point[i] <= box[(2*i)+1]):
-                return False
-        return True
-
-
-    def curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
-        # Check if any overlap of the min_max_boxes exists O(1)
-        curve1, curve2 = self.curve, other_curve.curve
-        overlap = self.find_overlap_of_two_min_max_boxes(self.min_max_box, other_curve.min_max_box)
-        if overlap is None:
-            return False
-
-        # Check which points lie in the overlap O(n)
-        curve1 = [*filter(partial(self.point_is_in_min_max_box, overlap), zip(*curve1))]
-        curve2 = [*filter(partial(self.point_is_in_min_max_box, overlap), zip(*curve2))]
-
-        if len(curve1) == 0 or len(curve2) == 0:
-            return False
-
-    # TODO:
-    """
-    - Dann die Kurventeile, die darin liegen, in n Slices aufteilen O(n)
-    - n^2 Kombinationen bilden, darauf machen wir box_collision_check O(n)
-    - Den Teil rausschneiden, der keine box_collision_hat (free)
-    - line-comparisons aller uebrig-gebliebenen O(n^2) (aber eig weniger)
-    """
-
-    def old_curve_collision_check(self, other_curve: AbstractBezierCurve) -> bool:
-        """
-        Method checking curve collision with the given curve.
-
-        Parameters
-        ----------
-        other_curve: Union[BezierCurve2D, BezierCurve3D] # TODO: check whether same type as everywhere
-            curve to check
-
-        Returns
-        -------
-        bool:
-            true if curves collide otherwise false
-        """
-        tuple_of_dimensions = self.curve
-        xs = []
-        for ab in zip(*self.curve):
-            xs.append(ab)
-        f1 = sg.LineString(np.array(xs))
-        tuple_of_dimensions = other_curve.curve
-        ys = []
-        for ab in zip(*other_curve.curve):
-            ys.append(ab)
-        f2 = sg.LineString(np.array(ys))
-        inter = f1.intersection(f2)
-        return not inter.geom_type == 'LineString'
 
     def plot(self) -> None:
         """

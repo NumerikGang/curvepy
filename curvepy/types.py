@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 from enum import Enum
 import numpy as np
 import sys
 import scipy.special as scs
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable
+from dataclasses import dataclass
+from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable, Optional, Iterable
 from functools import cached_property, partial
 from collections.abc import Sequence
 from curvepy.utilities import create_straight_line_function
 
-MinMaxBox = np.ndarray
 
 class CurveTypes(Enum):
     bezier_curve = 0
@@ -308,6 +310,55 @@ class Triangle:
 
 
 VoronoiRegions2D = Dict[Point2D, Deque[TriangleNode]]
+
+
+@dataclass(frozen=True)
+class MinMaxBox2D:
+    xmin: float
+    xmax: float
+    ymin: float
+    ymax: float
+
+    @cached_property
+    def area(self) -> float:
+        return (self.xmax - self.xmin) * (self.ymax - self.ymin)
+
+    @classmethod
+    def from_bezier_points(cls, m: Iterable[float]) -> MinMaxBox2D:
+        """
+        Method creates minmax box for the corresponding bezier points
+        """
+        m = np.ndarray(m)
+        return cls(m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max())
+
+    def __getitem__(self, item: int) -> float:
+        return [self.xmin, self.xmax, self.ymin, self.ymax][item]
+
+    def __and__(self, other: MinMaxBox2D) -> Optional[MinMaxBox2D]:
+        return self.intersect(other)
+
+    __rand__ = __and__
+
+    # For iterators
+    def __len__(self):
+        return 4
+
+    def __contains__(self, point: Tuple[float, float]) -> bool:
+        return all(self[2*i] <= point[i] <= self[(2*i)+1] for i in range(len(point)))
+
+    def intersect(self, other: MinMaxBox2D) -> Optional[MinMaxBox2D]:
+        res = np.zeros((4,))
+
+        for i in range(len(self) // 2):
+            dim_min_1, dim_max_1 = self[2 * i:(2 * i) + 2]
+            dim_min_2, dim_max_2 = self[2 * i:(2 * i) + 2]
+            if dim_min_1 <= dim_min_2 <= dim_max_1:
+                res[2 * i:(2 * i) + 2] = [dim_min_2, min(dim_max_1, dim_max_2)]
+            elif dim_min_2 <= dim_min_1 <= dim_max_2:
+                res[2 * i:(2 * i) + 2] = [dim_min_1, min(dim_max_1, dim_max_2)]
+            else:
+                return None
+        return MinMaxBox2D(*res)
 
 
 def bernstein_polynomial_rec(n: int, i: int, t: float = 1) -> float:

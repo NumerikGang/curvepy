@@ -229,17 +229,9 @@ def flatten_list_of_lists(xss: List[List[Any]]) -> List[Any]:
     return sum(xss, [])
 
 
-def min_max_box(m: np.ndarray) -> np.ndarray:
-    """
-    Method creates minmax box for the corresponding bezier points
-    """
-    box = [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
-    if m.shape[0] == 2:
-        return np.array(box)
-    box.extend([m[2, :].min(), m[2, :].max()])
-    return np.array(box)
 
 
+# TODO fix me
 def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
     """
     Method checks if curve intersects with x-axis

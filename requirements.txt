@@ -1,6 +1,5 @@
 numpy
 matplotlib
-Shapely
 scipy
 sympy
 hypothesis
