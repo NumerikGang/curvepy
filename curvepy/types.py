@@ -326,7 +326,7 @@ class MinMaxBox:
         """
         Method creates minmax box for the corresponding bezier points
         """
-        return cls(sum([(m[i, :].min(), m[i, :].max()) for i in range(m.shape[0])], []))
+        return cls(sum([[m[i, :].min(), m[i, :].max()] for i in range(m.shape[0])], []))
 
     def __getitem__(self, item) -> Union[float, List[float]]:
         return self.min_maxs.__getitem__(item)
@@ -340,8 +340,12 @@ class MinMaxBox:
     def __len__(self):
         return len(self.min_maxs)
 
-    def __contains__(self, point: Tuple[float, float]) -> bool:
-        return all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
+    def dim(self):
+        return len(self)//2
+
+    def __contains__(self, point: Tuple[float, ...]) -> bool:
+        return self.dim() == len(point) \
+               and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
 
     def same_dimension(self, other: MinMaxBox):
         return len(self) == len(other)

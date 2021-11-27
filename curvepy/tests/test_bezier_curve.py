@@ -63,42 +63,38 @@ PRECOMPUTED_NONINTERSECTIONS = [
 
 @pytest.mark.parametrize('box1, box2, intersection', PRECOMPUTED_INTERSECTIONS)
 def test_check_intersections_of_two_boxes(box1, box2, intersection):
-    got = AbstractBezierCurve.find_overlap_of_two_min_max_boxes(np.array(box1), np.array(box2))
+    got = (MinMaxBox(box1)) & MinMaxBox(box2)
     expected = np.array(intersection)
     assert all(got == expected)
 
 
 @pytest.mark.parametrize('box1, box2', PRECOMPUTED_NONINTERSECTIONS)
 def test_check_non_intersection_of_two_boxes(box1, box2):
-    assert AbstractBezierCurve.find_overlap_of_two_min_max_boxes(np.array(box1), np.array(box2)) is None
+    assert MinMaxBox(box1) & MinMaxBox(box2) is None
 
 
 @pytest.mark.parametrize('box, pts', PRECOMPUTED_POINTS_IN_INTERSECTION_BOX)
 def test_point_is_in_min_max_box(box, pts):
     for p in pts:
-        assert p[1] == AbstractBezierCurve.point_is_in_min_max_box(box, p[0])
+        assert (p[0] in MinMaxBox(box)) == p[1]
 
 # TODO: collision_check testen (dies ist curveunabhaengig)
+
 
 @pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2", data.NOT_EVEN_BOXES_INTERSECT)
 def test_not_even_boxes_intersect(xs1, ys1, xs2, ys2, m1, m2):
     # The first 4 parameters are the boxes
     b1 = BezierCurveDeCaes(np.array(m1))
     b2 = BezierCurveDeCaes(np.array(m2))
-    assert not b1.box_collision_check(b2)
+    assert not AbstractBezierCurve.collision_check(b1, b2)
 
 
 @pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2,expected", data.CURVE_COLLISION)
 def test_curves_collision_checks_manually_verfied(xs1, ys1, xs2, ys2, m1, m2, expected):
     # The first 4 parameters are the boxes
-    assert BezierCurveDeCaes(np.array(m1)) \
-               .curve_collision_check(
-        BezierCurveDeCaes(np.array(m2))
-    ) == expected
-
-
-def test_same_curve_intersects_with_itself():
-    ...
+    b1 = BezierCurveDeCaes(np.array(m1))
+    b2 = BezierCurveDeCaes(np.array(m2))
+    assert AbstractBezierCurve.collision_check(b1, b2, tol=0.0001) == expected
 
 
 # TODO: curve_collision_check testen mit verschiedenen BezCurves (hier einfach mit parametrize)
