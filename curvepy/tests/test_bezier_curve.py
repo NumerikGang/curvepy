@@ -3,7 +3,6 @@ import pytest
 import itertools
 import curvepy.tests.data.data_bezier_curve as data
 from curvepy.bezier_curve import *
-from curvepy.utilities import unzip
 from curvepy.tests.utility import arrayize
 
 
@@ -131,7 +130,7 @@ def test_barycentric_combinations(m, n, alpha):
 def test_check_intervals(interval, xs):
     m, cnt_ts, use_parallel = xs
     a = BezierCurveDeCaes(m, cnt_ts, use_parallel, interval=tuple(interval))
-    res_x, res_y = map(np.array, unzip([a(t) for t in np.linspace(*interval, cnt_ts)]))
+    res_x, res_y = map(np.array, zip(*[a(t) for t in np.linspace(*interval, cnt_ts)]))
     a_curve = a.curve
     assert len(a_curve[0]) == len(res_x) and len(a_curve[1]) == len(res_y)
     assert np.allclose(res_x.reshape(a_curve[0].shape), a_curve[0]) \

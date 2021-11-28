@@ -5,13 +5,31 @@ import bezier
 
 import curvepy.types
 from curvepy.bezier_curve import *
-from curvepy.tests.data.data_bezier_curve import FOUR_DISTINCT_SORTED_VALUES
+from curvepy.tests.data.data_bezier_curve import CURVE_COLLISION
 
 TEST_CASES = 20
 INTERVAL = (-20, 20)
 
 # bsp = [[0.,0.,8.,4.],[0.,2.,2.,0.]]
 bsp = [[0, 0, 8, 4], [0, 2, 2, 0]]
+
+
+def plot_bezier_test():
+    _, _, _, _, m1, m2, exp = CURVE_COLLISION[9]
+
+    x1, y1 = m1
+    x2, y2 = m2
+
+    print(exp)
+
+    b1 = BezierCurveApproximation(np.array(m1))
+    b2 = BezierCurveApproximation(np.array(m2))
+    c1 = b1.curve
+    c2 = b2.curve
+    plt.plot(*c1)
+    plt.plot(*c2)
+    plt.show()
+
 
 
 def gen_not_even_boxes_intersect(l, r):
@@ -124,4 +142,4 @@ def gen_test_cases(n):
 
 
 if __name__ == '__main__':
-    gen_curves_intersect(-20, 20)
+    plot_bezier_test()

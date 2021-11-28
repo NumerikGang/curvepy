@@ -276,8 +276,3 @@ def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
 def prod(xs: Iterable[Number]):
     return functools.reduce(operator.mul, xs, 1)
 
-
-def unzip(xs):
-    if len(xs) == 0 or any(len(xs[0])!=len(x)for x in xs):
-        raise ValueError("Can't logically zip of different length")
-    return zip(*xs)

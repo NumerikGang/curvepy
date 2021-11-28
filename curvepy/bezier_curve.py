@@ -97,7 +97,7 @@ class AbstractBezierCurve(ABC):
         return MinMaxBox.from_bezier_points(self._bezier_points)
 
     @staticmethod
-    def collision_check(b1: AbstractBezierCurve, b2: AbstractBezierCurve, tol: float = 0.2):
+    def collision_check(b1: AbstractBezierCurve, b2: AbstractBezierCurve, tol: float = 0.01):
         """
         bezInt(B1, B2):
             Does bbox(B1) intersect bbox(B2)?
@@ -118,6 +118,9 @@ class AbstractBezierCurve(ABC):
 
         b1s = subdivision(b1._bezier_points, 0.5)
         b2s = subdivision(b2._bezier_points, 0.5)
+
+        b1a, b1b = b1s
+        b2a, b2b = b2s
 
         return any(
             AbstractBezierCurve.collision_check(BezierCurveDeCaes(left), BezierCurveDeCaes(right), tol)
