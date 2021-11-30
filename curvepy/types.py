@@ -238,6 +238,8 @@ class PolygonTriangle(Polygon, AbstractTriangle):
         in order to calculate the calc_area of the TupleTriangle corresponding to every 3 out of the 4 points.
         But this method does not overwrite the self._points.
 
+        TODO this is allowed since we use a parallel projection, which is a proper affine transformation.
+
         Parameters
         ----------
         p: np.ndarray
@@ -275,11 +277,26 @@ class PolygonTriangle(Polygon, AbstractTriangle):
             return self.squash_parallel_to_axis_plane(p)
         return [np.hstack((x.copy(), [1])) for x in [p, *self._points]]
 
+    def check_if_point_is_on_hyperplane(self, p: np.ndarray) -> None:
+        """
+        https://math.stackexchange.com/a/684580
+        """
+        if p.shape[0] == 2:
+            # this is not a hyperplane issue, true
+            return
+        m = np.array([np.hstack((x.copy(), [1])) for x in [*self.points, p]])
+        det = np.linalg.det(m)
+        if abs(det) > 1e10: # good enough as we can have badly conditioned matrices.
+            raise Exception("The given point p is not on the hyperplane of the triangle!")
+
     # TODO: If 3D: Check if the 3D-Point lies on the 2D-Hyperplane defined by the bary coordinates
     # TODO: If not, throw an exception
+    # TODO: Explizit dazuschreiben, dass wir bei rg(A) = 1 trotz Punkt auf der Hyperline verweigern weil degenerate.
     def get_bary_coords(self, p: np.ndarray) -> np.ndarray:
         """
         Calculates the barycentric coordinates of p with respect to the points defining the TupleTriangle.
+
+        TODO: write that p needs to have same dim.
 
         Parameters
         ----------
@@ -291,9 +308,11 @@ class PolygonTriangle(Polygon, AbstractTriangle):
         np.ndarray:
             Barycentric coordinates of p with respect to a, b, c.
         """
+        self.check_if_point_is_on_hyperplane(p)
+
         p_copy, a, b, c = self.check_points_for_area_calc(p)
 
-        abc_area = self.calc_area(a,b,c)
+        abc_area = self.calc_area(a, b, c)
         if abc_area == 0:
             raise Exception("The calc_area of the TupleTriangle defined by a, b, c has to be greater than 0!")
 
