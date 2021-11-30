@@ -76,7 +76,7 @@ class Polygon(Sequence):
             raise ValueError("Unsupported Dimension")
         if any([points[0].shape != x.shape for x in points]):
             raise Exception("The points don't have the same dimension!")
-        self._dim = points[0].shape[1]
+        self._dim = points[0].shape[-1]
         if self._dim not in [2, 3]:
             raise Exception("The points don't have dimension of 2 or 3!")
         self._points = points.copy() if make_copy else points
@@ -145,6 +145,7 @@ class AbstractTriangle(ABC):
     @cached_property
     def area(self) -> float:
         a, b, c = self.points
+        # print(f"{a.shape}, {b.shape}, {c.shape}")
         return self.calc_area(np.array(a), np.array(b), np.array(c))
 
     @staticmethod
@@ -207,7 +208,7 @@ class TupleTriangle(AbstractTriangle):
 class PolygonTriangle(Polygon, AbstractTriangle):
 
     def __init__(self, points: List[np.ndarray], make_copy: bool = True) -> None:
-        points.append(points[0])
+        # points.append(points[0])
         # https://stackoverflow.com/a/26927718
         Polygon.__init__(self, points, make_copy)
 
@@ -226,7 +227,7 @@ class PolygonTriangle(Polygon, AbstractTriangle):
         np.ndarray:
             Barycentric combination of a, b, c with given coordinates.
         """
-        if abs(1 - np.sum(bary_coords)) < sys.float_info.epsilon:
+        if abs(1 - np.sum(bary_coords)) > sys.float_info.epsilon:
             raise Exception("The barycentric coordinates don't sum up to 1!")
         return np.sum(bary_coords.reshape((3, 1)) * self._points, axis=0)
 
@@ -292,7 +293,7 @@ class PolygonTriangle(Polygon, AbstractTriangle):
         """
         p_copy, a, b, c = self.check_points_for_area_calc(p)
 
-        abc_area = self.area
+        abc_area = self.calc_area(a,b,c)
         if abc_area == 0:
             raise Exception("The calc_area of the TupleTriangle defined by a, b, c has to be greater than 0!")
 
@@ -341,7 +342,7 @@ class MinMaxBox:
         return len(self.min_maxs)
 
     def dim(self):
-        return len(self)//2
+        return len(self) // 2
 
     def __contains__(self, point: Tuple[float, ...]) -> bool:
         return self.dim() == len(point) \
