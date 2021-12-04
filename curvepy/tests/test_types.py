@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import itertools
 import curvepy.tests.data.data_types as data
-from curvepy.types import Polygon, PolygonTriangle
+from curvepy.types import Polygon, PolygonTriangle, bernstein_polynomial, bernstein_polynomial_rec
 from curvepy.bezier_curve import *
 from curvepy.tests.utility import arrayize
 
@@ -55,3 +55,12 @@ def test_get_bary_coords_3D(pts, weights, exp):
     p = PolygonTriangle(pts)
     weights = np.array(weights)
     assert np.all(np.isclose(p.get_bary_coords(p.bary_plane_point(weights)), weights))
+
+
+@pytest.mark.parametrize('n, i, t, exp', data.BERNSTEIN_POLYNOMIAL)
+def test_bernstein_polynomial(n, i, t, exp):
+    a = bernstein_polynomial_rec(n, i, t)
+    b = bernstein_polynomial(n, i, t)
+    assert abs(a - b) < 1e-3
+    assert abs(exp - b) < 1e-3
+    assert abs(exp - a) < 1e-3

@@ -9,7 +9,7 @@ import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable, Optional, Iterable
-from functools import cached_property, partial, reduce
+from functools import cached_property, partial, reduce, lru_cache
 from collections.abc import Sequence
 from curvepy.utilities import create_straight_line_function
 
@@ -168,6 +168,8 @@ class AbstractTriangle(ABC):
         float:
             "Area" of the TupleTriangle.
         """
+        if a.shape[0] == 2:
+            return np.linalg.det(np.array([np.hstack((x.copy(), [1])) for x in [a, b, c]])) / 2
         return np.linalg.det(np.array([a, b, c])) / 2
 
     @cached_property
@@ -286,16 +288,13 @@ class PolygonTriangle(Polygon, AbstractTriangle):
             return
         m = np.array([np.hstack((x.copy(), [1])) for x in [*self.points, p]])
         det = np.linalg.det(m)
-        if abs(det) > 1e10: # good enough as we can have badly conditioned matrices.
+        if abs(det) > 1e10:  # good enough as we can have badly conditioned matrices.
             raise Exception("The given point p is not on the hyperplane of the triangle!")
 
-    # TODO: If 3D: Check if the 3D-Point lies on the 2D-Hyperplane defined by the bary coordinates
-    # TODO: If not, throw an exception
-    # TODO: Explizit dazuschreiben, dass wir bei rg(A) = 1 trotz Punkt auf der Hyperline verweigern weil degenerate.
     def get_bary_coords(self, p: np.ndarray) -> np.ndarray:
         """
         Calculates the barycentric coordinates of p with respect to the points defining the TupleTriangle.
-
+        TODO: Explizit dazuschreiben, dass wir bei rg(A) = 1 trotz Punkt auf der Hyperline verweigern weil degenerate.
         TODO: write that p needs to have same dim.
 
         Parameters
@@ -387,9 +386,10 @@ class MinMaxBox:
         return MinMaxBox([*res])
 
 
+@lru_cache
 def bernstein_polynomial_rec(n: int, i: int, t: float = 1) -> float:
     """
-    Method using 5.8 to calculate a point with given bezier points
+    Method using 5.2 to calculate a bernstein polynomial recursively
 
     Parameters
     ----------
@@ -423,7 +423,7 @@ def bernstein_polynomial_rec(n: int, i: int, t: float = 1) -> float:
 
 def bernstein_polynomial(n: int, i: int, t: float = 1) -> float:
     """
-    Method using 5.1 to calculate a point with given bezier points
+    Method using 5.1 to calculate a bernstein polynomial
 
     Parameters
     ----------

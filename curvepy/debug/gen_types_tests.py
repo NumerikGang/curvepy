@@ -1,10 +1,11 @@
-from curvepy.types import Polygon
+from curvepy.types import *
 import random
 import numpy as np
 import sys
+import scipy.special as scp
 
 INTERVAL = (-20, 20)
-TESTCASES = 20
+TESTCASES = 50
 
 
 def gewichtung_n_punkte(alpha, a, beta, b, gamma, c):
@@ -27,6 +28,18 @@ def gen_polygon_tests_2D():
 
     print("]")
 
+def lmao():
+    print("[")
+    for _ in range(TESTCASES):
+        t = random.random()
+        i, n = sorted([random.randint(0,40), random.randint(0,40)])
+        while n == i:
+            i, n = sorted([random.randint(0, 40), random.randint(0, 40)])
+        it = bernstein_polynomial(n,i,t)
+        rec = bernstein_polynomial_rec(n,i,t)
+        assert abs(it-rec) < 0.01
+        print(f"{(n,i,t,it)},")
+    print("]")
 
 if __name__ == '__main__':
-    gen_polygon_tests_2D()
+    lmao()
