@@ -103,4 +103,10 @@ def test_flatten_list_of_lists(input, expected):
 
 # TODO test intersect_with_x_axis
 
-# TODO test prod
+
+@pytest.mark.parametrize('xs', data.PROD)
+def test_prod(xs):
+    exp = 1
+    for x in xs:
+        exp *= x
+    assert exp == prod(xs)

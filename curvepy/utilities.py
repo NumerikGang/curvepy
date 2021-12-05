@@ -228,50 +228,6 @@ def flatten_list_of_lists(xss: List[List[Any]]) -> List[Any]:
     return sum(xss, [])
 
 
-
-
-# TODO fix me
-def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
-    """
-    Method checks if curve intersects with x-axis
-
-    Parameters
-    ----------
-    m: np.ndarray:
-        points of curve
-
-    tol: float:
-        tolerance for check_flat
-
-    Returns
-    -------
-    np.ndarray:
-        Points where curve and x-axis intersect_with_x_axis
-    """
-    box = MinMaxBox.from_bezier_points(m)
-    res = np.array([])
-
-    if box[2] * box[3] > 0:
-        # Both y values are positive, ergo curve lies above x_axis
-        return np.array([])
-
-    if check_flat(m, tol):
-        # poly is flat enough, so we can perform intersect_with_x_axis of straight lines
-        # since we are assuming poly is a straight line we define a line through first and las point of poly
-        # additionally we create a line which demonstrates the x axis
-        # having these two lines we can check them for intersection
-        p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
-        if p is not None:
-            res = np.append(res, p.reshape((2, 1)), axis=1)
-    else:
-        # if poly not flat enough we subdivide and check the resulting polygons for intersection
-        p1, p2 = subdivision(m)
-        res = np.append(res, intersect(p1, tol).reshape((2, 1)), axis=1)
-        res = np.append(res, intersect(p2, tol).reshape((2, 1)), axis=1)
-
-    return res
-
-
 def prod(xs: Iterable[Number]):
     return functools.reduce(operator.mul, xs, 1)
 

@@ -10,7 +10,7 @@ import scipy.special as scp
 INTERVAL = (-20, 20)
 TESTCASES = 50
 INT_BEZ = (5,25)
-
+HURENSOHN=8
 
 def gen_polygon_tests_2D():
     print("[")
@@ -58,8 +58,16 @@ def llllll():
         ax[int(i >= len(bss) // 2), i % (len(bss) // 2)].plot(np.linspace(-20, 20, 10), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     plt.show()
 
+def pppppppp_deine_mutter(n=8):
+    ret = []
+    for _ in range(TESTCASES):
+        xss = [random.random() * 40-20 for _ in range(n)]
+        ret.append(xss)
+    print(ret)
+
 if __name__ == '__main__':
-    _test_this_shit()
-    llllll()
+    #_test_this_shit()
+    #llllll()
+    pppppppp_deine_mutter(HURENSOHN)
 
 
