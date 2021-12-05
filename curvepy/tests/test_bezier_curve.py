@@ -144,6 +144,6 @@ def test_approx_rounds_to_cnt_ts_to_approx_rounds_equals_id(approx_rounds, cnt_b
     ) == approx_rounds
 
 
-@pytest.mark.parametrize('m', data.INTERSECT_X_AXIS)
-def test_intersect_with_x_axis(m):
-    ...
+@pytest.mark.parametrize('m, exp', zip(data.INTERSECT_X_AXIS, data.INTERSECT_X_AXIS_EXPECTED))
+def test_intersect_with_x_axis(m, exp):
+    assert BezierCurveApproximation.intersect_with_x_axis(np.array(m[0])) == tuple(exp)

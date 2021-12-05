@@ -128,7 +128,7 @@ class AbstractBezierCurve(ABC):
         )
 
     @staticmethod
-    def intersect_with_x_axis(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
+    def intersect_with_x_axis(m: np.ndarray, tol: float = sys.float_info.epsilon) -> Tuple[List[float], List[float]]:
         """
         Method checks if curve intersects with x-axis
 
@@ -146,11 +146,11 @@ class AbstractBezierCurve(ABC):
             Points where curve and x-axis intersect_with_x_axis
         """
         box = MinMaxBox.from_bezier_points(m)
-        res = np.array([])
+        res = [], []
 
         if box[2] * box[3] > 0:
             # Both y values are positive, ergo curve lies above x_axis
-            return np.array([])
+            return [], []
 
         if check_flat(m, tol):
             # poly is flat enough, so we can perform intersect_with_x_axis of straight lines
@@ -159,12 +159,15 @@ class AbstractBezierCurve(ABC):
             # having these two lines we can check them for intersection
             p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
             if p is not None:
-                res = np.append(res, p, axis=1)
+                res[0].append(p[0])
+                res[1].append(p[1])
         else:
             # if poly not flat enough we subdivide and check the resulting polygons for intersection
             p1, p2 = subdivision(m)
-            res = np.append(res, AbstractBezierCurve.intersect_with_x_axis(p1, tol), axis=1)
-            res = np.append(res, AbstractBezierCurve.intersect_with_x_axis(p2, tol), axis=1)
+            rec1 = AbstractBezierCurve.intersect_with_x_axis(p1, tol)
+            rec2 = AbstractBezierCurve.intersect_with_x_axis(p2, tol)
+            res[0].extend(rec1[0] + rec2[0])
+            res[1].extend(rec1[1] + rec2[1])
 
         return res
 
