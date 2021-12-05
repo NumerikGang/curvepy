@@ -10,9 +10,9 @@ from typing import List, Tuple, Callable, Union
 from functools import partial, cached_property
 import concurrent.futures
 from multiprocessing import cpu_count
-
+import sys
 from curvepy.de_caes import de_caes, subdivision
-from curvepy.utilities import prod
+from curvepy.utilities import prod, check_flat, intersect_lines
 from curvepy.types import bernstein_polynomial, MinMaxBox
 
 
@@ -100,7 +100,7 @@ class AbstractBezierCurve(ABC):
     def collision_check(b1: AbstractBezierCurve, b2: AbstractBezierCurve, tol: float = 0.01):
         """
         bezInt(B1, B2):
-            Does bbox(B1) intersect bbox(B2)?
+            Does bbox(B1) intersect_with_x_axis bbox(B2)?
                 No: Return false.
                 Yes: Continue.
             Is area(bbox(B1)) + area(bbox(B2)) < threshold?
@@ -126,6 +126,47 @@ class AbstractBezierCurve(ABC):
             AbstractBezierCurve.collision_check(BezierCurveDeCaes(left), BezierCurveDeCaes(right), tol)
             for left, right in itt.product(b1s, b2s)
         )
+
+    @staticmethod
+    def intersect_with_x_axis(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
+        """
+        Method checks if curve intersects with x-axis
+
+        Parameters
+        ----------
+        m: np.ndarray:
+            bezier points
+
+        tol: float:
+            tolerance for check_flat
+
+        Returns
+        -------
+        np.ndarray:
+            Points where curve and x-axis intersect_with_x_axis
+        """
+        box = MinMaxBox.from_bezier_points(m)
+        res = np.array([])
+
+        if box[2] * box[3] > 0:
+            # Both y values are positive, ergo curve lies above x_axis
+            return np.array([])
+
+        if check_flat(m, tol):
+            # poly is flat enough, so we can perform intersect_with_x_axis of straight lines
+            # since we are assuming poly is a straight line we define a line through first and las point of poly
+            # additionally we create a line which demonstrates the x axis
+            # having these two lines we can check them for intersection
+            p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
+            if p is not None:
+                res = np.append(res, p, axis=1)
+        else:
+            # if poly not flat enough we subdivide and check the resulting polygons for intersection
+            p1, p2 = subdivision(m)
+            res = np.append(res, AbstractBezierCurve.intersect_with_x_axis(p1, tol), axis=1)
+            res = np.append(res, AbstractBezierCurve.intersect_with_x_axis(p2, tol), axis=1)
+
+        return res
 
     def plot(self) -> None:
         """
@@ -233,15 +274,6 @@ class AbstractBezierCurve(ABC):
 
         beta: float:
             weight for the first Bezier curve
-
-        t: float:
-            value for which Bezier curves are calculated
-
-        r: int:
-            optional Parameter to calculate only a partial curve if we already have some degree of the bezier points
-
-        interval: Tuple[float,float]:
-            Interval of t used for affine transformation
 
         Returns
         -------
@@ -511,5 +543,6 @@ class BezierCurveApproximation(AbstractBezierCurve):
         if self._dimension == 2:
             assert (n / 2).is_integer()  # TODO debug
             return ret[:n // 2], ret[n // 2:]
+        assert self._dimension == 3
         assert (n / 3).is_integer()  # todo debug
         return ret[:n // 3], ret[n // 3:2 * n // 3], ret[2 * n // 3:]

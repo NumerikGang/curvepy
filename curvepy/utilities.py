@@ -5,7 +5,6 @@ import functools
 import sys
 import operator
 from math import isclose
-
 from curvepy.de_caes import subdivision
 
 
@@ -67,7 +66,7 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     bool:
         True if points are collinear else False
     """
-    return np.allclose(np.cross(b-a,c-a), np.zeros(a.shape))
+    return np.allclose(np.cross(b-a, c-a), np.zeros(a.shape))
 
 
 def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray) -> float:
@@ -217,7 +216,7 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
     homogeneous = np.hstack((vertical_stack, np.ones((4, 1))))
     # having our points in this form we can get the lines through the cross product
     line_1, line_2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
-    # when we calculate the cross product of the lines we get intersect point
+    # when we calculate the cross product of the lines we get intersect_with_x_axis point
     x, y, z = np.cross(line_1, line_2)
     if z == 0:
         return None
@@ -247,9 +246,9 @@ def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
     Returns
     -------
     np.ndarray:
-        Points where curve and x-axis intersect
+        Points where curve and x-axis intersect_with_x_axis
     """
-    box = min_max_box(m)
+    box = MinMaxBox.from_bezier_points(m)
     res = np.array([])
 
     if box[2] * box[3] > 0:
@@ -257,7 +256,7 @@ def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
         return np.array([])
 
     if check_flat(m, tol):
-        # poly is flat enough, so we can perform intersect of straight lines
+        # poly is flat enough, so we can perform intersect_with_x_axis of straight lines
         # since we are assuming poly is a straight line we define a line through first and las point of poly
         # additionally we create a line which demonstrates the x axis
         # having these two lines we can check them for intersection

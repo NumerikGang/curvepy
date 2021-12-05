@@ -8,8 +8,8 @@ import math
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable, Optional, Iterable
-from functools import cached_property, partial, reduce, lru_cache
+from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable, Optional
+from functools import cached_property, partial, lru_cache
 from collections.abc import Sequence
 from curvepy.utilities import create_straight_line_function
 
