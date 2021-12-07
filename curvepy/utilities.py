@@ -102,9 +102,17 @@ def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray
     return 0
 
 
+"""
+a + x(b + cx) -> a + x(b + x(c)) -> a + bx + cx^2
+
+a + x(b + x(c+x*(d)))
+"""
+
 def horner(m: np.ndarray, t: float = 0.5) -> Tuple[Union[float, Any], ...]:
     """
     TODO show which problem this is
+    TODO besserer Name sowie auch BezierCurveHorner mit horner-bez
+    TODO First coeff == Highest Degree
     Method using horner's method to calculate point with given t
 
     Parameters
@@ -120,7 +128,7 @@ def horner(m: np.ndarray, t: float = 0.5) -> Tuple[Union[float, Any], ...]:
     tuple:
         point calculated with given t
     """
-    return tuple(functools.reduce(lambda x, y: t * x + y, m[i, ::-1]) for i in [0, 1])
+    return tuple(functools.reduce(lambda x, y: t * x + y, m[i, ::-1]) for i in range(m.shape[0]))
 
 
 def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> float:

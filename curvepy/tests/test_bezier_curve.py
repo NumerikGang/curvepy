@@ -96,10 +96,7 @@ def test_curves_collision_checks_manually_verfied(xs1, ys1, xs2, ys2, m1, m2, ex
     assert AbstractBezierCurve.collision_check(b1, b2, tol=0.0001) == expected
 
 
-# TODO: curve_collision_check testen mit verschiedenen BezCurves (hier einfach mit parametrize)
-
-
-# Computed with https://rosettacode.org/wiki/Forward_difference#Python
+# Computed via https://rosettacode.org/wiki/Forward_difference#Python
 
 @pytest.mark.parametrize('x, res', data.SINGLE_FORWARD_DIFFS)
 def test_single_forward_difference(x, res):

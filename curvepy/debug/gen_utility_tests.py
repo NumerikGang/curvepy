@@ -9,14 +9,15 @@ import scipy.special as scp
 
 INTERVAL = (-20, 20)
 TESTCASES = 50
-INT_BEZ = (5,25)
-HURENSOHN=8
+INT_BEZ = (5, 25)
+HURENSOHN = 8
+
 
 def gen_polygon_tests_2D():
     print("[")
 
-
     print("]")
+
 
 def lmao():
     bss = []
@@ -36,8 +37,8 @@ def lmao():
     fig, ax = plt.subplots(2, 5)
     for i in range(len(bss)):
         bc = BezierCurveApproximation(np.array(bss[i]))
-        ax[int(i>=len(bss)//2), i%(len(bss)//2)].plot(*bc.curve)
-        ax[int(i >= len(bss) // 2), i % (len(bss) // 2)].plot(np.linspace(-20,20,10), [0,0,0,0,0,0,0,0,0,0])
+        ax[int(i >= len(bss) // 2), i % (len(bss) // 2)].plot(*bc.curve)
+        ax[int(i >= len(bss) // 2), i % (len(bss) // 2)].plot(np.linspace(-20, 20, 10), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     plt.show()
 
 
@@ -58,16 +59,32 @@ def llllll():
         ax[int(i >= len(bss) // 2), i % (len(bss) // 2)].plot(np.linspace(-20, 20, 10), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     plt.show()
 
+
 def pppppppp_deine_mutter(n=8):
     ret = []
     for _ in range(TESTCASES):
-        xss = [random.random() * 40-20 for _ in range(n)]
+        xss = [random.random() * 40 - 20 for _ in range(n)]
         ret.append(xss)
     print(ret)
 
+
+def poly_gen():
+    for _ in range(TESTCASES):
+        n = random.randint(1, 50)
+        xs = [random.random() * 40 - 20 for _ in range(n)]
+        ys = [random.random() * 40 - 20 for _ in range(n)]
+        t = random.random() * 40 - 20
+        pts = [xs, ys]
+        print(f',{(pts, t, against(np.array(pts), t))}')
+        assert horner(np.array(pts), t) == against(np.array(pts), t)
+
+
+def against(m, t):
+    return (np.polynomial.polynomial.Polynomial(m[0, ::])(t),
+        np.polynomial.polynomial.Polynomial(m[1, ::])(t))
+
+
 if __name__ == '__main__':
-    #_test_this_shit()
-    #llllll()
-    pppppppp_deine_mutter(HURENSOHN)
-
-
+    # _test_this_shit()
+    # llllll()
+    poly_gen()

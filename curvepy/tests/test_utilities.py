@@ -70,38 +70,9 @@ def test_ratio_good_values(a, b, c, r):
     assert pytest.approx(ratio(a, b, c), r)
 
 
-# TODO distance_to_line tests
-
-# TODO check_flat tests
-
-# TODO TEST intersect_with_x_axis lines
-
-# TODO flatten_list_of_lists
-FLATTEN_LIST_OF_LISTS_TESTS = [
-    [
-        [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-        [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    ],
-    [
-        [[]],
-        []
-    ],
-    [
-        [],
-        []
-    ],
-    [
-        [[[1], 2, 3], [4, [5, 6]]],
-        [[1], 2, 3, 4, [5, 6]]
-    ]
-]
-
-
-@pytest.mark.parametrize('input,expected', FLATTEN_LIST_OF_LISTS_TESTS)
+@pytest.mark.parametrize('input,expected', data.FLATTEN_LIST_OF_LISTS_TESTS)
 def test_flatten_list_of_lists(input, expected):
     assert flatten_list_of_lists(input) == expected
-
-# TODO test intersect_with_x_axis
 
 
 @pytest.mark.parametrize('xs', data.PROD)
@@ -110,3 +81,8 @@ def test_prod(xs):
     for x in xs:
         exp *= x
     assert exp == prod(xs)
+
+
+@pytest.mark.parametrize("m, t, expected", data.HORNER)
+def test_horner(m, t, expected):
+    assert horner(np.array(m), t) == expected
