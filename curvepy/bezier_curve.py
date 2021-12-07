@@ -71,7 +71,7 @@ class AbstractBezierCurve(ABC):
 
     # TODO FIx typing to nparray (and everywhere else)
     @cached_property
-    def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
+    def curve(self) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """
         TODO: Immer Unitinterval (dokumentieren)
         Method returning coordinates of all calculated points
@@ -118,9 +118,6 @@ class AbstractBezierCurve(ABC):
 
         b1s = subdivision(b1._bezier_points, 0.5)
         b2s = subdivision(b2._bezier_points, 0.5)
-
-        b1a, b1b = b1s
-        b2a, b2b = b2s
 
         return any(
             AbstractBezierCurve.collision_check(BezierCurveDeCaes(left), BezierCurveDeCaes(right), tol)

@@ -4,8 +4,6 @@ import numpy as np
 import functools
 import sys
 import operator
-from math import isclose
-from curvepy.de_caes import subdivision
 
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -66,7 +64,7 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     bool:
         True if points are collinear else False
     """
-    return np.allclose(np.cross(b-a, c-a), np.zeros(a.shape))
+    return np.allclose(np.cross(b - a, c - a), np.zeros(a.shape))
 
 
 def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray) -> float:
@@ -107,6 +105,7 @@ a + x(b + cx) -> a + x(b + x(c)) -> a + bx + cx^2
 
 a + x(b + x(c+x*(d)))
 """
+
 
 def horner(m: np.ndarray, t: float = 0.5) -> Tuple[Union[float, Any], ...]:
     """
@@ -238,4 +237,3 @@ def flatten_list_of_lists(xss: List[List[Any]]) -> List[Any]:
 
 def prod(xs: Iterable[Number]):
     return functools.reduce(operator.mul, xs, 1)
-

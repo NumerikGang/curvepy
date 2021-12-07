@@ -1,8 +1,6 @@
-import numpy as np
 import pytest
-import itertools
 import curvepy.tests.data.data_types as data
-from curvepy.types import Polygon, PolygonTriangle, bernstein_polynomial, bernstein_polynomial_rec
+from curvepy.types import Polygon, PolygonTriangle, bernstein_polynomial_rec
 from curvepy.bezier_curve import *
 from curvepy.tests.utility import arrayize
 
@@ -26,7 +24,7 @@ def test_create_straight_line_functions_for_Polygon_3D(pts):
 
 
 @pytest.mark.parametrize('pts, weights, exp', data.BARY_PLANE_POINT_2D)
-def test_bary_plane_point_2D(pts, weights, exp):
+def test_bary_plane_point_2d(pts, weights, exp):
     pts = [np.array([x, y]) for x, y in zip(pts[0], pts[1])]
     p = PolygonTriangle(pts)
     weights = np.array(weights)
@@ -42,7 +40,7 @@ def test_bary_plane_point_3D(pts, weights, exp):
 
 
 @pytest.mark.parametrize('pts, weights, exp', data.BARY_PLANE_POINT_2D)
-def test_get_bary_coords_2D(pts, weights, exp):
+def test_get_bary_coords_2d(pts, weights, exp):
     pts = [np.array([x, y]) for x, y in zip(pts[0], pts[1])]
     p = PolygonTriangle(pts)
     weights = np.array(weights)
@@ -50,7 +48,7 @@ def test_get_bary_coords_2D(pts, weights, exp):
 
 
 @pytest.mark.parametrize('pts, weights, exp', data.BARY_PLANE_POINT_3D)
-def test_get_bary_coords_3D(pts, weights, exp):
+def test_get_bary_coords_3d(pts, weights, exp):
     pts = [np.array([x, y, z]) for x, y, z in zip(pts[0], pts[1], pts[2])]
     p = PolygonTriangle(pts)
     weights = np.array(weights)

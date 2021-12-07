@@ -39,10 +39,12 @@ before_script:
 #     some predicates (a -> Bool) can be nontrivial. A variable name can fill the semantics gap.
 # - Continuation line with same indent as next logical line (E125): PyCharms formatter doesn't implement that, therefore
 #   it will always break as we don't have any pre-commit stuff.
+# - Name may be undefined, or defined from star imports: module (F405): This is just flake8 struggling, not an error
+# - 'from module import *' used; unable to detect undefined names (F403): This is just flake8 struggling, not an error
 flake8:
   stage: static-analysis
   script:
-    flake8 --version && flake8 --count --statistics --max-line-length=120 --ignore=E731,E125 curvepy
+    flake8 --version && flake8 --count --statistics --max-line-length=120 --ignore=E731,E125,F405,F403  --exclude=curvepy/tests/data curvepy
   only:
     - master
     - merge_requests

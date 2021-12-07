@@ -70,9 +70,9 @@ def test_ratio_good_values(a, b, c, r):
     assert pytest.approx(ratio(a, b, c), r)
 
 
-@pytest.mark.parametrize('input,expected', data.FLATTEN_LIST_OF_LISTS_TESTS)
-def test_flatten_list_of_lists(input, expected):
-    assert flatten_list_of_lists(input) == expected
+@pytest.mark.parametrize('xs,expected', data.FLATTEN_LIST_OF_LISTS_TESTS)
+def test_flatten_list_of_lists(xs, expected):
+    assert flatten_list_of_lists(xs) == expected
 
 
 @pytest.mark.parametrize('xs', data.PROD)

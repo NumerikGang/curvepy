@@ -143,8 +143,8 @@ def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
     left, right = np.zeros(m.shape), np.zeros(m.shape)
     current = m
     for i in range(m.shape[1]):
-        left[::, i] = current.copy()[::, 0] #TODO remove copy
-        right[::, -i-1] = current.copy()[::, -1]  #TODO remove copy
+        left[::, i] = current.copy()[::, 0]
+        right[::, -i - 1] = current.copy()[::, -1]
         current = de_caes_one_step(current, t, make_copy=True)
 
     return left, right

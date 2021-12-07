@@ -3,7 +3,6 @@ import pytest
 import itertools
 import curvepy.tests.data.data_bezier_curve as data
 from curvepy.bezier_curve import *
-from curvepy.tests.utility import arrayize
 
 
 @pytest.mark.parametrize('m,cnt_ts, use_parallel', data.BEZIER_TESTCASES_NORMAL_SIZE)
@@ -33,7 +32,6 @@ def test_values_for_bezier_curve_approximation(m, expected, approx_rounds):
     assert pytest.approx(list(c[0]), expected[0]), pytest.approx(list(c[1]), expected[1])
 
 
-
 PRECOMPUTED_INTERSECTIONS = [
     ([-4, 4, 3, 8], [0, 2, 2, 5], [0, 2, 3, 5]),
     ([-10, 20, 0, 1], [-15, 15, -30, 510], [-10, 15, 0, 1]),
@@ -45,12 +43,13 @@ PRECOMPUTED_INTERSECTIONS = [
 ]
 
 PRECOMPUTED_POINTS_IN_INTERSECTION_BOX = [
-    ([-4, 4, 3, 8], (((2, 5), True), ((-4, 2), False), ((-5, 5), False), ((-4, 8), True),  ((4, 3), True))),
+    ([-4, 4, 3, 8], (((2, 5), True), ((-4, 2), False), ((-5, 5), False), ((-4, 8), True), ((4, 3), True))),
     ([-10, 20, 0, 1], (((-10, 0), True), ((21, 2), False))),
-    ([-100, -98, 42, 84, -3, 10], (((-99, 42, 0), True), ((-99, 41, 1), False), ((-98, 50, -4), False ))),
-    ([2, 20, -10, 10], (((5, 2), True), ((2, 12), False), ((7, 5), True), ((2, 10), True),  ((20, -10), True))),
-    ([199, 201, -10, -7], (((200, -8), True), ((199, 1), False), ((199, -10), True), ((201, -7), True),  ((199, -10), True))),
-    ([1, 10, 7, 9], (((1, 8), True), ((10, 10), False), ((1, 7), True), ((10, 1), False),  ((1, 9), True)))
+    ([-100, -98, 42, 84, -3, 10], (((-99, 42, 0), True), ((-99, 41, 1), False), ((-98, 50, -4), False))),
+    ([2, 20, -10, 10], (((5, 2), True), ((2, 12), False), ((7, 5), True), ((2, 10), True), ((20, -10), True))),
+    ([199, 201, -10, -7],
+     (((200, -8), True), ((199, 1), False), ((199, -10), True), ((201, -7), True), ((199, -10), True))),
+    ([1, 10, 7, 9], (((1, 8), True), ((10, 10), False), ((1, 7), True), ((10, 1), False), ((1, 9), True)))
 ]
 
 PRECOMPUTED_NONINTERSECTIONS = [
@@ -76,6 +75,7 @@ def test_check_non_intersection_of_two_boxes(box1, box2):
 def test_point_is_in_min_max_box(box, pts):
     for p in pts:
         assert (p[0] in MinMaxBox(box)) == p[1]
+
 
 # TODO: collision_check testen (dies ist curveunabhaengig)
 
@@ -144,4 +144,3 @@ def test_approx_rounds_to_cnt_ts_to_approx_rounds_equals_id(approx_rounds, cnt_b
 @pytest.mark.parametrize('m, exp', zip(data.INTERSECT_X_AXIS, data.INTERSECT_X_AXIS_EXPECTED))
 def test_intersect_with_x_axis(m, exp):
     assert BezierCurveApproximation.intersect_with_x_axis(np.array(m[0])) == tuple(exp)
-
