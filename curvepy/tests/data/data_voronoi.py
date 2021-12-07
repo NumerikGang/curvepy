@@ -1,14 +1,6 @@
-import pytest
-
+from curvepy.types import TriangleNode
 from collections import deque
-from curvepy.delaunay import DelaunayTriangulation2D, TriangleNode
 
-# Jetbrains Formatter doesn't comply with PEP8, but those data lists are
-# not well formattable anyways.
-# Therefore we ignore the following:
-# E121 continuation line under-indented for hanging indent
-#
-# flake8: noqa: E121
 
 DIAMETER = 100
 
@@ -109,7 +101,8 @@ MEANS = [
     (7.102658755155239, -6.419008952235231)
 ]
 
-REGIONS = [{(2.0212436764692328, -38.37269865281123): deque([TriangleNode(ccw=(29.061699175478893, -47.96567260813753),
+REGIONS = [
+    {(2.0212436764692328, -38.37269865281123): deque([TriangleNode(ccw=(29.061699175478893, -47.96567260813753),
                                                                           cw=(17.15295381699346, -36.67285783599547),
                                                                           pt=(2.0212436764692328, -38.37269865281123),
                                                                           ccc=(
@@ -3907,11 +3900,3 @@ REGIONS = [{(2.0212436764692328, -38.37269865281123): deque([TriangleNode(ccw=(2
                                                                       cw=(25.413916805925965, -46.32777507784173),
                                                                       pt=(37.718642199260614, -29.923394796981594),
                                                                       ccc=(21.670927467267703, -30.70320217254004))])}]
-
-
-@pytest.mark.parametrize('seed, mean, expected', [*zip(SEEDS, MEANS, REGIONS)])
-def test_random_uniform_distribution(seed, mean, expected):
-    d = DelaunayTriangulation2D(mean, DIAMETER)
-    for s in seed:
-        d.add_point(s)
-    assert d.voronoi() == expected

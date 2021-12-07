@@ -1,11 +1,5 @@
-"""
+from curvepy.types import TupleTriangle
 
-"""
-
-import pytest
-
-from typing import List, Set
-from curvepy.delaunay import DelaunayTriangulation2D, TupleTriangle, Point2D
 
 # Jetbrains Formatter doesn't comply with PEP8, but those data lists are
 # not well formattable anyways.
@@ -291,11 +285,3 @@ RANDOMLY_UNIFORMLY_DISTRIBUTED = [
          ]}
     )
 ]
-
-
-@pytest.mark.parametrize('input, expected', RANDOMLY_UNIFORMLY_DISTRIBUTED)
-def test_random_uniform_distribution(input: List[Point2D], expected: Set[TupleTriangle]):
-    d = DelaunayTriangulation2D(radius=10)
-    for pt in input:
-        d.add_point(pt)
-    assert set(d.triangles) == expected

@@ -1,9 +1,9 @@
-from typing import Any, List, Callable, Tuple, Union
+from typing import Any, List, Callable, Tuple, Union, Iterable
+from numbers import Number
 import numpy as np
 import functools
 import sys
-
-from curvepy.de_caes import subdivision
+import operator
 
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
@@ -64,14 +64,16 @@ def collinear_check(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
     bool:
         True if points are collinear else False
     """
-    return np.count_nonzero(np.cross(b - a, c - a)) == 0
+    return np.allclose(np.cross(b - a, c - a), np.zeros(a.shape))
 
 
 def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray) -> float:
     """
+
+    (b-a)/(c-b)
+
     Method to calculate the ratio of the three collinear points from the parameters.
     Throws an exception if the points are not collinear.
-    Throws an exception if the points don't have the same dimension.
 
     Parameters
     ----------
@@ -88,22 +90,28 @@ def ratio(left_point: np.ndarray, col_point: np.ndarray, right_point: np.ndarray
         the ratio of the three collinear points from the parameters
     """
     if not collinear_check(left_point, col_point, right_point):
-        raise Exception("The points are not collinear!")
-
-    if left_point.shape != col_point.shape != right_point.shape:
-        raise Exception("The points don't have the same dimension!")
+        raise ValueError("The points are not collinear!")
 
     for left, right, col in zip(left_point, right_point, col_point):
-        if left != right and right - col != 0:
+        if right - col == 0:
+            return np.NaN
+        elif left != right:
             return (col - left) / (right - col)
-        elif right - col == 0:
-            return np.NINF
     return 0
+
+
+"""
+a + x(b + cx) -> a + x(b + x(c)) -> a + bx + cx^2
+
+a + x(b + x(c+x*(d)))
+"""
 
 
 def horner(m: np.ndarray, t: float = 0.5) -> Tuple[Union[float, Any], ...]:
     """
     TODO show which problem this is
+    TODO besserer Name sowie auch BezierCurveHorner mit horner-bez
+    TODO First coeff == Highest Degree
     Method using horner's method to calculate point with given t
 
     Parameters
@@ -119,7 +127,7 @@ def horner(m: np.ndarray, t: float = 0.5) -> Tuple[Union[float, Any], ...]:
     tuple:
         point calculated with given t
     """
-    return tuple(functools.reduce(lambda x, y: t * x + y, m[i, ::-1]) for i in [0, 1])
+    return tuple(functools.reduce(lambda x, y: t * x + y, m[i, ::-1]) for i in range(m.shape[0]))
 
 
 def distance_to_line(p1: np.ndarray, p2: np.ndarray, p_to_check: np.ndarray) -> float:
@@ -215,7 +223,7 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
     homogeneous = np.hstack((vertical_stack, np.ones((4, 1))))
     # having our points in this form we can get the lines through the cross product
     line_1, line_2 = np.cross(homogeneous[0], homogeneous[1]), np.cross(homogeneous[2], homogeneous[3])
-    # when we calculate the cross product of the lines we get intersect point
+    # when we calculate the cross product of the lines we get intersect_with_x_axis point
     x, y, z = np.cross(line_1, line_2)
     if z == 0:
         return None
@@ -227,75 +235,5 @@ def flatten_list_of_lists(xss: List[List[Any]]) -> List[Any]:
     return sum(xss, [])
 
 
-def min_max_box(m: np.ndarray) -> List[np.ndarray]:
-    """
-    Method creates minmax box for the corresponding bezier points
-    """
-    box = [m[0, :].min(), m[0, :].max(), m[1, :].min(), m[1, :].max()]
-    if m.shape[0] == 2:
-        return box
-    box.extend([m[2, :].min(), m[2, :].max()])
-    return box
-
-
-def intersect(m: np.ndarray, tol: float = sys.float_info.epsilon) -> np.ndarray:
-    """
-    Method checks if curve intersects with x-axis
-
-    Parameters
-    ----------
-    m: np.ndarray:
-        points of curve
-
-    tol: float:
-        tolerance for check_flat
-
-    Returns
-    -------
-    np.ndarray:
-        Points where curve and x-axis intersect
-    """
-    box = min_max_box(m)
-    res = np.array([])
-
-    if box[2] * box[3] > 0:
-        # Both y values are positive, ergo curve lies above x_axis
-        return np.array([])
-
-    if check_flat(m, tol):
-        # poly is flat enough, so we can perform intersect of straight lines
-        # since we are assuming poly is a straight line we define a line through first and las point of poly
-        # additionally we create a line which demonstrates the x axis
-        # having these two lines we can check them for intersection
-        p = intersect_lines(m[:, 0], m[:, -1], np.array([0, 0]), np.array([1, 0]))
-        if p is not None:
-            res = np.append(res, p.reshape((2, 1)), axis=1)
-    else:
-        # if poly not flat enough we subdivide and check the resulting polygons for intersection
-        p1, p2 = subdivision(m)
-        res = np.append(res, intersect(p1, tol).reshape((2, 1)), axis=1)
-        res = np.append(res, intersect(p2, tol).reshape((2, 1)), axis=1)
-
-    return res
-
-
-def csv_read(file_path: str) -> np.ndarray:
-    try:
-        with open(file_path, 'r') as csv_file:
-            xs, ys, zs = [], [], []
-            for line in csv_file:
-                try:
-                    x, y, z = line.split(',')
-                    zs.append(float(z))
-                except ValueError:
-                    try:
-                        x, y = line.split(',')
-                    except ValueError:
-                        print('Expected two or three values per line')
-                        return np.array([])
-                xs.append(float(x))
-                ys.append(float(y))
-        return np.array([xs, ys], dtype=float) if not zs else np.array([xs, ys, zs], dtype=float)
-    except FileNotFoundError:
-        print(f'File: {file_path} does not exist.')
-        return np.array([])
+def prod(xs: Iterable[Number]):
+    return functools.reduce(operator.mul, xs, 1)

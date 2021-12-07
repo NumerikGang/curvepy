@@ -5,7 +5,7 @@ from multiprocessing import cpu_count
 
 
 def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1),
-                     make_copy: bool = False) -> np.ndarray:
+                     make_copy: bool = True) -> np.ndarray:
     """
     Method computing one round of de Casteljau
 
@@ -61,11 +61,11 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
     """
 
     for _ in range(r):
-        m = de_caes_one_step(m, t, interval)
+        m = de_caes_one_step(m, t, interval, make_copy=False)
     return m
 
 
-def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = False, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
+def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing de Casteljau
 
@@ -93,7 +93,7 @@ def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = False, interval: Tu
     return de_caes_n_steps(m.copy(), t, n, interval) if make_copy else de_caes_n_steps(m, t, n, interval)
 
 
-def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = False,
+def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
                     interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing de Casteljau with different values of t in each step
@@ -136,30 +136,31 @@ def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = False,
 
 def parallel_decaes_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)):
     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
-        return executor.map(lambda t: de_caes(m, t, interval=interval), ts)
+        return executor.map(lambda t: de_caes(m, t, make_copy=True, interval=interval), ts)
 
 
 def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
     left, right = np.zeros(m.shape), np.zeros(m.shape)
     current = m
     for i in range(m.shape[1]):
-        left[::, i] = current[::, 0]
-        right[::, i] = current[::, -1]
+        left[::, i] = current.copy()[::, 0]
+        right[::, -i - 1] = current.copy()[::, -1]
         current = de_caes_one_step(current, t, make_copy=True)
 
     return left, right
 
 
 if __name__ == '__main__':
-    x = [0, 0, 8, 4]
-    y = [0, 2, 2, 0]
+    x = [1, 5, 10, 14]
+    y = [1, 6, 4, 2]
 
     # x_1 = [0]
     # y_1 = [1]
     test = np.array([x, y], dtype=float)
     ptmp = list(parallel_decaes_unblossomed(test, np.linspace(0, 1, 1000)))
+    print([[list(t[0]), list(t[1])] for t in ptmp])
+    test = np.array([x, y], dtype=float)
     tmp = [de_caes(test, t, make_copy=True) for t in np.linspace(0, 1, 1000)]
-
     assert len(ptmp) == len(tmp)
     print('Länge OK')
     for a, b in zip(tmp, ptmp):

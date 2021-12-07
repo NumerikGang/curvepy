@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 from enum import Enum
 import numpy as np
 import sys
 import scipy.special as scs
+import math
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable
-from functools import cached_property, partial
+from dataclasses import dataclass
+from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable, Optional
+from functools import cached_property, partial, lru_cache
 from collections.abc import Sequence
 from curvepy.utilities import create_straight_line_function
 
@@ -72,7 +76,7 @@ class Polygon(Sequence):
             raise ValueError("Unsupported Dimension")
         if any([points[0].shape != x.shape for x in points]):
             raise Exception("The points don't have the same dimension!")
-        self._dim = points[0].shape[1]
+        self._dim = points[0].shape[-1]
         if self._dim not in [2, 3]:
             raise Exception("The points don't have dimension of 2 or 3!")
         self._points = points.copy() if make_copy else points
@@ -141,6 +145,7 @@ class AbstractTriangle(ABC):
     @cached_property
     def area(self) -> float:
         a, b, c = self.points
+        # print(f"{a.shape}, {b.shape}, {c.shape}")
         return self.calc_area(np.array(a), np.array(b), np.array(c))
 
     @staticmethod
@@ -163,6 +168,8 @@ class AbstractTriangle(ABC):
         float:
             "Area" of the TupleTriangle.
         """
+        if a.shape[0] == 2:
+            return np.linalg.det(np.array([np.hstack((x.copy(), [1])) for x in [a, b, c]])) / 2
         return np.linalg.det(np.array([a, b, c])) / 2
 
     @cached_property
@@ -203,7 +210,7 @@ class TupleTriangle(AbstractTriangle):
 class PolygonTriangle(Polygon, AbstractTriangle):
 
     def __init__(self, points: List[np.ndarray], make_copy: bool = True) -> None:
-        points.append(points[0])
+        # points.append(points[0])
         # https://stackoverflow.com/a/26927718
         Polygon.__init__(self, points, make_copy)
 
@@ -222,7 +229,7 @@ class PolygonTriangle(Polygon, AbstractTriangle):
         np.ndarray:
             Barycentric combination of a, b, c with given coordinates.
         """
-        if abs(1 - np.sum(bary_coords)) < sys.float_info.epsilon:
+        if abs(1 - np.sum(bary_coords)) > sys.float_info.epsilon:
             raise Exception("The barycentric coordinates don't sum up to 1!")
         return np.sum(bary_coords.reshape((3, 1)) * self._points, axis=0)
 
@@ -232,6 +239,8 @@ class PolygonTriangle(Polygon, AbstractTriangle):
         for all points of the TupleTriangle to the plane, so that cramer's rule can easily be applied to them
         in order to calculate the calc_area of the TupleTriangle corresponding to every 3 out of the 4 points.
         But this method does not overwrite the self._points.
+
+        TODO this is allowed since we use a parallel projection, which is a proper affine transformation.
 
         Parameters
         ----------
@@ -270,11 +279,23 @@ class PolygonTriangle(Polygon, AbstractTriangle):
             return self.squash_parallel_to_axis_plane(p)
         return [np.hstack((x.copy(), [1])) for x in [p, *self._points]]
 
-    # TODO: If 3D: Check if the 3D-Point lies on the 2D-Hyperplane defined by the bary coordinates
-    # TODO: If not, throw an exception
+    def check_if_point_is_on_hyperplane(self, p: np.ndarray) -> None:
+        """
+        https://math.stackexchange.com/a/684580
+        """
+        if p.shape[0] == 2:
+            # this is not a hyperplane issue, true
+            return
+        m = np.array([np.hstack((x.copy(), [1])) for x in [*self.points, p]])
+        det = np.linalg.det(m)
+        if abs(det) > 1e10:  # good enough as we can have badly conditioned matrices.
+            raise Exception("The given point p is not on the hyperplane of the triangle!")
+
     def get_bary_coords(self, p: np.ndarray) -> np.ndarray:
         """
         Calculates the barycentric coordinates of p with respect to the points defining the TupleTriangle.
+        TODO: Explizit dazuschreiben, dass wir bei rg(A) = 1 trotz Punkt auf der Hyperline verweigern weil degenerate.
+        TODO: write that p needs to have same dim.
 
         Parameters
         ----------
@@ -286,9 +307,11 @@ class PolygonTriangle(Polygon, AbstractTriangle):
         np.ndarray:
             Barycentric coordinates of p with respect to a, b, c.
         """
+        self.check_if_point_is_on_hyperplane(p)
+
         p_copy, a, b, c = self.check_points_for_area_calc(p)
 
-        abc_area = self.area
+        abc_area = self.calc_area(a, b, c)
         if abc_area == 0:
             raise Exception("The calc_area of the TupleTriangle defined by a, b, c has to be greater than 0!")
 
@@ -309,9 +332,64 @@ class Triangle:
 VoronoiRegions2D = Dict[Point2D, Deque[TriangleNode]]
 
 
+@dataclass(frozen=True)
+class MinMaxBox:
+    min_maxs: List[float]  # [x_min, x_max, y_min, y_max, ...]
+
+    @cached_property
+    def area(self) -> float:
+        return math.prod([d_max - d_min for d_min, d_max in zip(self[::2], self[1::2])])
+
+    @classmethod
+    def from_bezier_points(cls, m: np.ndarray) -> MinMaxBox:
+        """
+        Method creates minmax box for the corresponding bezier points
+        """
+        return cls(sum([[m[i, :].min(), m[i, :].max()] for i in range(m.shape[0])], []))
+
+    def __getitem__(self, item) -> Union[float, List[float]]:
+        return self.min_maxs.__getitem__(item)
+
+    def __and__(self, other: MinMaxBox) -> Optional[MinMaxBox]:
+        return self.intersect(other)
+
+    __rand__ = __and__
+
+    # For iterators
+    def __len__(self):
+        return len(self.min_maxs)
+
+    def dim(self):
+        return len(self) // 2
+
+    def __contains__(self, point: Tuple[float, ...]) -> bool:
+        return self.dim() == len(point) \
+            and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
+
+    def same_dimension(self, other: MinMaxBox):
+        return len(self) == len(other)
+
+    def intersect(self, other: MinMaxBox) -> Optional[MinMaxBox]:
+        if not self.same_dimension(other):
+            return None
+        res = np.zeros((len(self),))
+
+        for i in range(len(self) // 2):
+            dim_min_1, dim_max_1 = self[2 * i:(2 * i) + 2]
+            dim_min_2, dim_max_2 = other[2 * i:(2 * i) + 2]
+            if dim_min_1 <= dim_min_2 <= dim_max_1:
+                res[2 * i:(2 * i) + 2] = [dim_min_2, min(dim_max_1, dim_max_2)]
+            elif dim_min_2 <= dim_min_1 <= dim_max_2:
+                res[2 * i:(2 * i) + 2] = [dim_min_1, min(dim_max_1, dim_max_2)]
+            else:
+                return None
+        return MinMaxBox([*res])
+
+
+@lru_cache
 def bernstein_polynomial_rec(n: int, i: int, t: float = 1) -> float:
     """
-    Method using 5.8 to calculate a point with given bezier points
+    Method using 5.2 to calculate a bernstein polynomial recursively
 
     Parameters
     ----------
@@ -345,7 +423,7 @@ def bernstein_polynomial_rec(n: int, i: int, t: float = 1) -> float:
 
 def bernstein_polynomial(n: int, i: int, t: float = 1) -> float:
     """
-    Method using 5.1 to calculate a point with given bezier points
+    Method using 5.1 to calculate a bernstein polynomial
 
     Parameters
     ----------
