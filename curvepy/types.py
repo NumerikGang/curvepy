@@ -364,7 +364,7 @@ class MinMaxBox:
 
     def __contains__(self, point: Tuple[float, ...]) -> bool:
         return self.dim() == len(point) \
-               and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
+            and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
 
     def same_dimension(self, other: MinMaxBox):
         return len(self) == len(other)

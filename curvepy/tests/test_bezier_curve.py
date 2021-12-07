@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 import itertools
 import curvepy.tests.data.data_bezier_curve as data

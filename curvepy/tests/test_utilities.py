@@ -40,7 +40,7 @@ def test_ratio_fails_when_not_collinear(a, b, c):
     try:
         ratio(a, b, c)
         raise Exception("This method should fail as they are not collinear")
-    except ValueError as e:
+    except ValueError:
         pass
 
 
