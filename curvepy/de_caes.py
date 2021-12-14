@@ -1,7 +1,8 @@
 import concurrent.futures
-from typing import List, Tuple
-import numpy as np
 from multiprocessing import cpu_count
+from typing import List, Tuple
+
+import numpy as np
 
 
 def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1),

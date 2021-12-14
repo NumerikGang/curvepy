@@ -1,5 +1,6 @@
-from typing import Iterable
 from numbers import Number
+from typing import Iterable
+
 from curvepy.bezier_curve import *
 
 Testcases = Iterable

@@ -1,9 +1,10 @@
-from typing import Any, List, Callable, Tuple, Union, Iterable
-from numbers import Number
-import numpy as np
 import functools
-import sys
 import operator
+import sys
+from numbers import Number
+from typing import Any, Callable, Iterable, List, Tuple, Union
+
+import numpy as np
 
 
 def straight_line_point(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:

@@ -1,7 +1,8 @@
 import pytest
+
 import curvepy.tests.data.data_types as data
-from curvepy.types import Polygon, PolygonTriangle, bernstein_polynomial_rec
 from curvepy.bezier_curve import *
+from curvepy.types import Polygon, PolygonTriangle, bernstein_polynomial_rec
 
 
 @pytest.mark.parametrize('pts', data.POLYGON_2D)

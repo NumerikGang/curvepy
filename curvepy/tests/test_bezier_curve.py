@@ -1,5 +1,7 @@
-import pytest
 import itertools
+
+import pytest
+
 import curvepy.tests.data.data_bezier_curve as data
 from curvepy.bezier_curve import *
 

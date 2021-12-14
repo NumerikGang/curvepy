@@ -1,9 +1,12 @@
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
+
 from typing import List, Optional
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from curvepy.delaunay import DelaunayTriangulation2D
 from curvepy.types import Point2D, VoronoiRegions2D
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 class Voronoi:

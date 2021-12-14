@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from enum import Enum
-import numpy as np
-import sys
-import scipy.special as scs
 import math
-
+import sys
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, Dict, Deque, List, NamedTuple, Tuple, Union, Callable, Optional
-from functools import cached_property, partial, lru_cache
 from collections.abc import Sequence
+from dataclasses import dataclass
+from enum import Enum
+from functools import cached_property, lru_cache, partial
+from typing import (Any, Callable, Deque, Dict, List, NamedTuple, Optional,
+                    Tuple, Union)
+
+import numpy as np
+import scipy.special as scs
+
 from curvepy.utilities import create_straight_line_function
 
 
