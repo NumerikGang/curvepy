@@ -24,6 +24,7 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
     -------
     np.ndarray:
         array containing calculated points with given t
+        :param make_copy:
     """
     if make_copy:
         m = m.copy()
@@ -148,21 +149,3 @@ def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
         current = de_caes_one_step(current, t, make_copy=True)
 
     return left, right
-
-
-if __name__ == '__main__':
-    x = [1, 5, 10, 14]
-    y = [1, 6, 4, 2]
-
-    # x_1 = [0]
-    # y_1 = [1]
-    test = np.array([x, y], dtype=float)
-    ptmp = list(parallel_decaes_unblossomed(test, np.linspace(0, 1, 1000)))
-    print([[list(t[0]), list(t[1])] for t in ptmp])
-    test = np.array([x, y], dtype=float)
-    tmp = [de_caes(test, t, make_copy=True) for t in np.linspace(0, 1, 1000)]
-    assert len(ptmp) == len(tmp)
-    print('Länge OK')
-    for a, b in zip(tmp, ptmp):
-        assert all(a == b)
-    print('Alle Elemente gleich')
