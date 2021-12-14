@@ -69,7 +69,6 @@ class AbstractBezierCurve(ABC):
     def serial_execution(self, ts: np.ndarray):
         return np.frompyfunc(self.func, 1, 1)(ts)
 
-    # TODO FIx typing to nparray (and everywhere else)
     @cached_property
     def curve(self) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """
@@ -541,8 +540,8 @@ class BezierCurveApproximation(AbstractBezierCurve):
         ret = np.ravel(ret)
         n = len(ret)
         if self._dimension == 2:
-            assert (n / 2).is_integer()  # TODO debug
+            assert (n / 2).is_integer()
             return ret[:n // 2], ret[n // 2:]
         assert self._dimension == 3
-        assert (n / 3).is_integer()  # todo debug
+        assert (n / 3).is_integer()
         return ret[:n // 3], ret[n // 3:2 * n // 3], ret[2 * n // 3:]
