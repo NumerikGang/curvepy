@@ -1,6 +1,5 @@
 from curvepy.types import TupleTriangle
 
-
 # Jetbrains Formatter doesn't comply with PEP8, but those data lists are
 # not well formattable anyways.
 # Therefore we ignore the following:

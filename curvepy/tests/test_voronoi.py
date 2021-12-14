@@ -1,7 +1,7 @@
 import pytest
 
-from curvepy.delaunay import DelaunayTriangulation2D
 import curvepy.tests.data.data_voronoi as data
+from curvepy.delaunay import DelaunayTriangulation2D
 
 
 @pytest.mark.parametrize('seed, mean, expected', [*zip(data.SEEDS, data.MEANS, data.REGIONS)])

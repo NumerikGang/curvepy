@@ -1,8 +1,9 @@
+from typing import List, Set
+
 import pytest
 
-from typing import List, Set
-from curvepy.delaunay import DelaunayTriangulation2D, TupleTriangle, Point2D
 import curvepy.tests.data.data_delaunay as data
+from curvepy.delaunay import DelaunayTriangulation2D, Point2D, TupleTriangle
 
 
 @pytest.mark.parametrize('xs, expected', data.RANDOMLY_UNIFORMLY_DISTRIBUTED)

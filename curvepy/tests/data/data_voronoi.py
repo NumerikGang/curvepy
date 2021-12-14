@@ -1,6 +1,6 @@
-from curvepy.types import TriangleNode
 from collections import deque
 
+from curvepy.types import TriangleNode
 
 DIAMETER = 100
 

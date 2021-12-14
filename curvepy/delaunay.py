@@ -1,11 +1,14 @@
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
-import numpy as np
-from functools import cached_property
-from typing import List, NamedTuple, Dict, Deque, Optional
-import matplotlib.pyplot as plt
-from collections import deque
 
-from curvepy.types import TupleTriangle, Edge2D, Point2D, TriangleNode, VoronoiRegions2D
+from collections import deque
+from functools import cached_property
+from typing import Deque, Dict, List, NamedTuple, Optional
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from curvepy.types import (Edge2D, Point2D, TriangleNode, TupleTriangle,
+                           VoronoiRegions2D)
 
 
 class DelaunayTriangulation2D:

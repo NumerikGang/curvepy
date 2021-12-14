@@ -1,7 +1,8 @@
-import pytest
-from curvepy.de_caes import de_caes, parallel_decaes_unblossomed, subdivision
-import curvepy.tests.data.data_de_caes as data
 import numpy as np
+import pytest
+
+import curvepy.tests.data.data_de_caes as data
+from curvepy.de_caes import de_caes, parallel_decaes_unblossomed, subdivision
 
 
 @pytest.mark.parametrize('m, res, t', data.cases_de_caes)

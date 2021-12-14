@@ -1,8 +1,9 @@
+import numpy as np
+import pytest
+
+import curvepy.tests.data.data_utilities as data
 from curvepy.tests.utility import arrayize
 from curvepy.utilities import *
-import curvepy.tests.data.data_utilities as data
-import pytest
-import numpy as np
 
 
 @pytest.mark.parametrize('a,b', data.RANDOM_PAIRS)

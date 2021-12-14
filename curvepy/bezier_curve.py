@@ -1,19 +1,22 @@
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
-import numpy as np
-import sympy as sy
-import math
-import scipy.special as scs
-import matplotlib.pyplot as plt
-import itertools as itt
-from abc import ABC, abstractmethod
-from typing import List, Tuple, Callable, Union
-from functools import partial, cached_property
+
 import concurrent.futures
-from multiprocessing import cpu_count
+import itertools as itt
+import math
 import sys
+from abc import ABC, abstractmethod
+from functools import cached_property, partial
+from multiprocessing import cpu_count
+from typing import Callable, List, Tuple, Union
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.special as scs
+import sympy as sy
+
 from curvepy.de_caes import de_caes, subdivision
-from curvepy.utilities import prod, check_flat, intersect_lines
-from curvepy.types import bernstein_polynomial, MinMaxBox
+from curvepy.types import MinMaxBox, bernstein_polynomial
+from curvepy.utilities import check_flat, intersect_lines, prod
 
 
 class AbstractBezierCurve(ABC):
