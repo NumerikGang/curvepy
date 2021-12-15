@@ -361,21 +361,22 @@ class AbstractBezierCurve(ABC):
 
     def __str__(self):
         """
-        Returns string represenation as the mathematical bezier curve
+        Returns string representation as the mathematical bezier curve
 
         Returns
         -------
-        String: represenation as the mathematical bezier curve
+        String:
+            representation as the mathematical bezier curve
         """
         return f"b^{self._bezier_points.shape[1] - 1}(t)"
 
     def __repr__(self):
         """
-        Returns internal represenation based on __str__
+        Returns internal representation based on __str__
 
         Returns
         -------
-        String: internal represenation based on __str__
+        String: internal representation based on __str__
         """
         return f"<id {id(self)}, {self.__str__()}>"
 
