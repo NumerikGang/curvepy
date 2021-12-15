@@ -57,6 +57,10 @@ class AbstractBezierCurve(ABC):
         Array containing control points
     cnt_ts: int
         number of ts to create
+    use_parallel: bool
+        flag for parallel execution
+    interval: Tuple[int, int]
+        interval represents the range in which parameter values are accepted
 
     Attributes
     -------
@@ -68,6 +72,10 @@ class AbstractBezierCurve(ABC):
         numbers of equidistant ts to calculate
     func: Callable
         function computing the Bezier Curve for a single point
+    interval: Tuple[int, int]
+        interval represents the range in which parameter values are accepted
+    _use_parallel: bool
+        if computation should be executed parallel
     """
 
     def __init__(self, m: np.ndarray, cnt_ts: int = 1000, use_parallel: bool = False,
@@ -123,8 +131,8 @@ class AbstractBezierCurve(ABC):
     @cached_property
     def curve(self) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """
-        Method returning coordinates of all calculated points. The computation always uses the unit interval (0,1), since
-        we can perform an affine transformation on any interval to revert back to our unit interval.
+        Cached Property returning coordinates of all calculated points. The computation always uses the unit interval (0,1), since
+        we can perform an affine transformation on any interval to revert back to (0,1).
 
         Returns
         -------
@@ -142,7 +150,7 @@ class AbstractBezierCurve(ABC):
     @cached_property
     def min_max_box(self) -> MinMaxBox:
         """
-        Method creates minmax box for the corresponding curve
+        Cached Property creates minmax box for the corresponding curve
         """
         return MinMaxBox.from_bezier_points(self._bezier_points)
 
@@ -185,7 +193,7 @@ class AbstractBezierCurve(ABC):
     @staticmethod
     def intersect_with_x_axis(m: np.ndarray, tol: float = sys.float_info.epsilon) -> Tuple[List[float], List[float]]:
         """
-        Method checks if curve intersects with x-axis. Similar to collision check subdivision is used to achieve a
+        Staticmethod checks if curve intersects with x-axis. Similar to collision check subdivision is used to achieve a
         better tolerance.
 
         Parameters
@@ -316,7 +324,7 @@ class AbstractBezierCurve(ABC):
     def barycentric_combination_bezier(m: AbstractBezierCurve, c: AbstractBezierCurve, alpha: float = 0,
                                        beta: float = 1) -> AbstractBezierCurve:
         """
-        Method using 5.13 to calculate the barycentric combination of two given bezier curves. The given scalars must
+        Staticmethod using 5.13 to calculate the barycentric combination of two given bezier curves. The given scalars must
         add up to one.
 
         Parameters
@@ -445,7 +453,9 @@ class AbstractBezierCurve(ABC):
 
 class BezierCurveSymPy(AbstractBezierCurve):
     """
-    Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
+    Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm but with symbolic execution.
+    Which means the Algorithm is executed just once to generate a symbolic function depending on the parameter.
+    This function gets lambdified and points are calculated by substituting the parameter.
 
     Parameters
     ----------
@@ -477,7 +487,7 @@ class BezierCurveSymPy(AbstractBezierCurve):
 
 class BezierCurveDeCaes(AbstractBezierCurve):
     """
-    Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
+    Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm.
 
     Parameters
     ----------
@@ -501,6 +511,17 @@ class BezierCurveDeCaes(AbstractBezierCurve):
 
 
 class BezierCurveBernstein(AbstractBezierCurve):
+    """
+    Class for creating a 2-dimensional Bezier Curve by using the Bernstein polynomials.
+
+    Parameters
+    ----------
+    see AbstractBezierCurve
+
+    Attributes
+    -------
+    see AbstractBezierCurve
+    """
 
     def init_func(self) -> Callable[[float], np.ndarray]:
         """
@@ -546,6 +567,17 @@ class BezierCurveBernstein(AbstractBezierCurve):
 
 
 class BezierCurveHorner(AbstractBezierCurve):
+    """
+    Class for creating a 2-dimensional Bezier Curve by using a horner like scheme to calculate points on the curve.
+
+    Parameters
+    ----------
+    see AbstractBezierCurve
+
+    Attributes
+    -------
+    see AbstractBezierCurve
+    """
 
     def init_func(self) -> Callable[[float], np.ndarray]:
         """
@@ -584,6 +616,17 @@ class BezierCurveHorner(AbstractBezierCurve):
 
 
 class BezierCurveMonomial(AbstractBezierCurve):
+    """
+    Class for creating a 2-dimensional Bezier Curve by using the monomial form of Bezier curves
+
+    Parameters
+    ----------
+    see AbstractBezierCurve
+
+    Attributes
+    -------
+    see AbstractBezierCurve
+    """
 
     def init_func(self) -> Callable[[float], np.ndarray]:
         """
@@ -617,6 +660,17 @@ class BezierCurveMonomial(AbstractBezierCurve):
 
 
 class BezierCurveApproximation(AbstractBezierCurve):
+    """
+    Class for creating a 2-dimensional Bezier Curve by using Subdivision.
+
+    Parameters
+    ----------
+    see AbstractBezierCurve
+
+    Attributes
+    -------
+    see AbstractBezierCurve
+    """
     def init_func(self) -> Callable[[float], np.ndarray]:
         # dummy, just used for __call__ and __getitem__
         """
@@ -636,18 +690,83 @@ class BezierCurveApproximation(AbstractBezierCurve):
     @classmethod
     def from_round_number(cls, m: np.ndarray, approx_rounds: int = 5,
                           interval: Tuple[int, int] = (0, 1)) -> BezierCurveApproximation:
+        """
+        Class Method creates a BezierCurveApproximation from given control points.
+
+        Parameters
+        ----------
+        m: np.ndarray:
+            Bezier points
+
+        approx_rounds: int:
+            amount of subdivision rounds
+
+        interval: Tuple[int, int]:
+            the curve expects parameters in this interval. Default value is (0,1)
+
+
+        Returns
+        -------
+        BezierCurveApproximation:
+            constructed BezierCurveApproximation from given Bezier points
+        """
         return cls(m, cls.approx_rounds_to_cnt_ts(approx_rounds, m.shape[1]), False, interval)
 
     @staticmethod
-    def cnt_ts_to_approx_rounds(cnt_ts, cnt_bezier_points):
+    def cnt_ts_to_approx_rounds(cnt_ts, cnt_bezier_points) -> int:
+        """
+        In the normal case the Bezier classes calculate points based on the amount of given parameter values t. Since
+        subdivision works a bit differently as we get a fixed amount of points in each iteration. We want to approximate
+        how many rounds subdivision would need to compute the given number of points.
+
+        Parameters
+        ----------
+        cnt_ts: int:
+            amount of points
+
+        cnt_bezier_points: int:
+            amount of control points
+
+        Returns
+        -------
+        int:
+            amount of approximation rounds needed to achieve the given number of points
+        """
         return math.ceil(math.log(cnt_ts / cnt_bezier_points, 2))
 
     @staticmethod
-    def approx_rounds_to_cnt_ts(approx_rounds, cnt_bezier_points):
+    def approx_rounds_to_cnt_ts(approx_rounds, cnt_bezier_points) -> int:
+        """
+        This staticmethod functions as the inverse of cnt_ts_to_approx_rounds. If the amount of points is needed that approx_rounds
+        iterations of subdivision would compute, we can transform the number of iterations into the corresponding amount
+        of points.
+
+        Parameters
+        ----------
+        approx_rounds: int:
+            amount of subdivision rounds
+
+        cnt_bezier_points: int:
+            amount of control points
+
+        Returns
+        -------
+        int:
+            amount of points resulting from approx_rounds iteration of subdivision
+        """
         return 2 ** approx_rounds * cnt_bezier_points
 
     @cached_property
     def curve(self) -> Union[Tuple[List[float], List[float]], Tuple[List[float], List[float], List[float]]]:
+        """
+        Cached Property returning coordinates of all calculated points. In this routine approx_rounds iterations of
+        subdivision are performed. The method always subdivides t = 0.5.
+
+        Returns
+        -------
+            Union[Tuple[float, float], Tuple[float, float, float]]:
+            first list for x coords, second for y coords and third for z if existing
+        """
         approx_rounds = self.cnt_ts_to_approx_rounds(self._cnt_ts, self._bezier_points.shape[1])
         current = [self._bezier_points]
         for _ in range(approx_rounds):
