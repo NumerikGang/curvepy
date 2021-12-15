@@ -1,6 +1,24 @@
+"""
+This module provides a variety of options to calculate points on a curve defined by Bezier points:
+
+- You can run one step of de Castelljau
+
+- You can run r rounds of de Castelljau for the case you already have precomputed intermediate points or you want to
+compute intermediate points by yourself
+
+- You can run n rounds of de Castelljau which returns you the point on the curve
+
+- You can run de Castelljau blossomed which means that in every step of the computation a different parameter value is taken
+
+- You can run de Castelljau in parallel for multiple parameter values so that you can compute multiple points on the curve
+with just one function call
+
+- You can approximate the defined curve by using the subdivision routine
+
+"""
 import concurrent.futures
 from multiprocessing import cpu_count
-from typing import List, Tuple
+from typing import Iterator, List, Tuple
 
 import numpy as np
 
@@ -8,7 +26,7 @@ import numpy as np
 def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1),
                      make_copy: bool = True) -> np.ndarray:
     """
-    Method computing one round of de Casteljau
+    Method computing only one step of de Casteljau
 
     Parameters
     ----------
@@ -18,6 +36,9 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
     t: float:
         value for which point is calculated
 
+    make_copy: bool:
+        optional parameter if computation should not be in place
+
     interval: Tuple[int, int]:
         if interval != (0,1) we need to transform t
 
@@ -25,7 +46,6 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
     -------
     np.ndarray:
         array containing calculated points with given t
-        :param make_copy:
     """
     if make_copy:
         m = m.copy()
@@ -40,18 +60,19 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
 
 def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
-    Method computing r round of de Casteljau
+    Method computing r rounds of de Casteljau. So it is possible to start with already precalculated intermediate points or
+    to compute intermediate points by yourself.
 
     Parameters
     ----------
     m: np.ndarray:
-        array containing coefficients
+        Bezier points
 
     t: float:
         value for which point is calculated
 
     r: int:
-        how many rounds of de Casteljau algorithm should be performed
+        amount of rounds to be executed
 
     interval: Tuple[int, int]:
         if interval != (0,1) we need to transform t
@@ -59,7 +80,7 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
     Returns
     -------
     np.ndarray:
-        array containing calculated points with given t
+        calculated points with given t
     """
 
     for _ in range(r):
@@ -69,12 +90,12 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
 
 def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
-    Method computing de Casteljau
+    Method computing n Iterations of de Castelljau. N is defined by the amount of given points.
 
     Parameters
     ----------
     m: np.ndarray:
-        array containing coefficients
+        Bezier points
 
     t: float:
         value for which point is calculated
@@ -88,7 +109,7 @@ def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tup
     Returns
     -------
     np.ndarray:
-        array containing calculated points with given t
+        calculated points with given t
     """
 
     _, n = m.shape
@@ -98,15 +119,16 @@ def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tup
 def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
                     interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
-    Method computing de Casteljau with different values of t in each step
+    Method computing blossomed de Casteljau which means that in every step a new parameter t is taken from
+    the given List and only one iteration of de Castelljau is performed per t.
 
     Parameters
     ----------
     m: np.ndarray:
-        array containing coefficients
+        Bezier points
 
     ts: List[float]:
-        List containing all ts that are used in calculation
+        values used in calculation
 
     make_copy: bool:
         optional parameter if computation should not be in place
@@ -117,7 +139,7 @@ def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
     Returns
     -------
     np.ndarray:
-        array containing calculated points with given t
+        calculated point with respect to given values
     """
 
     if m.shape[1] < 2:
@@ -136,12 +158,51 @@ def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
     return c
 
 
-def parallel_decaes_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)):
+def parallel_decaes_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)) -> Iterator[np.ndarray]:
+    """
+    Method makes use of parallel execution to compute points on the curve represented by the bezier points. In contrast
+    to the blossom method for every t in the given list a complete n iteration de Castelljau ist performed and not just
+    one step. There are always 2 * cpu.count threads used to compute the points
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        Bezier points
+
+    ts: List[float]:
+        values for which points on the curve should be computed
+
+    interval: Tuple[int, int]:
+        if interval != (0,1) we need to transform t
+
+    Returns
+    -------
+    Iterator[np.ndarray]:
+        Every entry is the result of one de Castelljau run wih respect to a given t from the List ts
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
         return executor.map(lambda t: de_caes(m, t, make_copy=True, interval=interval), ts)
 
 
 def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Method uses subdivision to approximate curve defined by the given Bezier points at one value t. However the method
+    subdivides only once, which means that it runs n iterations of de Castelljau for given t and splits the result in
+    left and right.
+
+    Parameters
+    ----------
+    m: np.ndarray:
+        Bezier points
+
+    t: float:
+        value at which is subdivided
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]:
+        left and right part
+    """
     left, right = np.zeros(m.shape), np.zeros(m.shape)
     current = m
     for i in range(m.shape[1]):
