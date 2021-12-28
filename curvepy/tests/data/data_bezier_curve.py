@@ -1,3 +1,8 @@
+"""All precomputed values for each test used for the bezier_curve file.
+
+For further Information, just look where the variables are used.
+"""
+
 import random
 
 import numpy as np
