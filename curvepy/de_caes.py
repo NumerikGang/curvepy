@@ -8,10 +8,11 @@ compute intermediate points by yourself
 
 - You can run n rounds of de Castelljau which returns you the point on the curve
 
-- You can run de Castelljau blossomed which means that in every step of the computation a different parameter value is taken
+- You can run de Castelljau blossomed which means that in every step of the computation a different parameter value is
+taken
 
-- You can run de Castelljau in parallel for multiple parameter values so that you can compute multiple points on the curve
-with just one function call
+- You can run de Castelljau in parallel for multiple parameter values so that you can compute multiple points on the
+curve with just one function call
 
 - You can approximate the defined curve by using the subdivision routine
 
@@ -60,8 +61,8 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
 
 def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
-    Method computing r rounds of de Casteljau. So it is possible to start with already precalculated intermediate points or
-    to compute intermediate points by yourself.
+    Method computing r rounds of de Casteljau. So it is possible to start with already precalculated intermediate
+    points or to compute intermediate points by yourself.
 
     Parameters
     ----------

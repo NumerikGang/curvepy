@@ -18,11 +18,12 @@ points on the curve.
 - BezierCurveHorner: in this case a Horner like scheme is used to compute the points
 
 - BezierCurveMonomial: this curve makes use of the monomial form of Bezier curves. Therefore the Bezier points
-are used to get the coefficients and since this is executed symbolic at the end a function is created. Similar to BezierCurveSymPy
-a point is calculated by substituting the variable with the given value.
+are used to get the coefficients and since this is executed symbolic at the end a function is created.
+Similar to BezierCurveSymPy a point is calculated by substituting the variable with the given value.
 
-- BezierCurveApproximation: since it is a approximation it does not support all methods from AbstractBezierCurve. Subdivision
-is used multiple times to compute an approximation of the curve. This type does not support parallel execution.
+- BezierCurveApproximation: since it is a approximation it does not support all methods from AbstractBezierCurve.
+Subdivision is used multiple times to compute an approximation of the curve.
+This type does not support parallel execution.
 """
 
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
@@ -131,8 +132,9 @@ class AbstractBezierCurve(ABC):
     @cached_property
     def curve(self) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """
-        Cached Property returning coordinates of all calculated points. The computation always uses the unit interval (0,1), since
-        we can perform an affine transformation on any interval to revert back to (0,1).
+        Cached Property returning coordinates of all calculated points.
+        The computation always uses the unit interval (0,1), since we can perform an affine transformation
+        on any interval to revert back to (0,1).
 
         Returns
         -------
@@ -324,8 +326,8 @@ class AbstractBezierCurve(ABC):
     def barycentric_combination_bezier(m: AbstractBezierCurve, c: AbstractBezierCurve, alpha: float = 0,
                                        beta: float = 1) -> AbstractBezierCurve:
         """
-        Staticmethod using 5.13 to calculate the barycentric combination of two given bezier curves. The given scalars must
-        add up to one.
+        Staticmethod using 5.13 to calculate the barycentric combination of two given bezier curves.
+        The given scalars must add up to one.
 
         Parameters
         ----------
@@ -738,9 +740,9 @@ class BezierCurveApproximation(AbstractBezierCurve):
     @staticmethod
     def approx_rounds_to_cnt_ts(approx_rounds, cnt_bezier_points) -> int:
         """
-        This staticmethod functions as the inverse of cnt_ts_to_approx_rounds. If the amount of points is needed that approx_rounds
-        iterations of subdivision would compute, we can transform the number of iterations into the corresponding amount
-        of points.
+        This staticmethod functions as the inverse of cnt_ts_to_approx_rounds. If the amount of points is needed
+        that approx_rounds iterations of subdivision would compute, we can transform the number of iterations
+        into the corresponding amount of points.
 
         Parameters
         ----------
