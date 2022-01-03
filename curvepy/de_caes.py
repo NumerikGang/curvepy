@@ -92,7 +92,7 @@ def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tup
     """
 
     _, n = m.shape
-    return de_caes_n_steps(m.copy(), t, n, interval) if make_copy else de_caes_n_steps(m, t, n, interval)
+    return de_caes_n_steps(m.copy() if make_copy else m, t, n, interval)
 
 
 def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
