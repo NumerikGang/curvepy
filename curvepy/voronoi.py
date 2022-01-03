@@ -1,4 +1,4 @@
-"""This file has a implementation of Voronoi regions.
+"""This file has an implementation of Voronoi regions.
 
 Those regions are not directly computed. We use the property that Voronoi regions are just the dual graph of
 Delaunay triangulations.

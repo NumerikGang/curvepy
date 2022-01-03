@@ -1,3 +1,114 @@
+"""This file has an implementation of a Delaunay Triangulation Algorithm.
+
+This Algorithm is also used for generating voronoi regions as they are the dual graph of a delaunay triangulation.
+
+Here is an excerpt from the English wikipedia entry:
+In mathematics and computational geometry, a Delaunay triangulation (also known as a Delone triangulation) for a
+given set P of discrete points in a general position is a triangulation DT(P) such that no point in P is inside
+the circumcircle of any triangle in DT(P).
+
+Our algorithm is solely based on that definition.
+
+Here is a Sketch of the algorithm (and it's correctness proof):
+
+1. [The Initialisation]
+When starting a new DelaunayTriangulation, we don't want to handle some edge cases for the first few points.
+We always want a complete triangulation. Thus, we define 2 "supertriangles" in which we require all points to lie in.
+Since we know the accepted radius and center, we can create those 2 triangles as following:
+x────────────────────────────────┐
+xx                               │
+│ xx                             │
+│   xxx              T2          │
+│     xxxx                       │
+│        xxx                     │
+│          xxx                   │
+│            xxxx                │
+│               xxxx             │
+│                  xxx           │
+│       T1           xxxx        │
+│                       xxx      │
+│                         xxx    │
+│                           xxx  │
+│                             xxx│
+└────────────────────────────────┴
+Note that a triangle is defined by a complete graph of 3 points (i.e. they are all 3 connected with each other).
+Since we only get points, our algorithm creates all used triangles. Each triangle is defined counter clock wise (CCW),
+which makes traversing way easier.
+
+Also, we initialize our "neighbour structure". A neighbouring triangle is defined as sharing exactly 1 edge.
+(Obviously it can't be 2 edges. 0 edges are not neighbouring and 3 edges are the exact same triangle.)
+The neighbour structure is a dict (great choice since tuples are hashable and O(1)) with the triangles (3-tuples) as
+the keys and a 3-list of it's neighbours as it's values.
+(The length is always 3, mutability just makes everything much more smooth as we continually add points).
+Very important: Never forget that everything in here is counter clock wise (CCW)!!!! This makes traversing more fun.
+
+2. [Finding the bad triangles]
+When adding a point, we first check the following: When we add this point, which Triangles become invalid?
+A triangle is invalid or bad iff there is another point in its circumcircle. But we don't have to check every point!
+Since all points but the new one are unchanged, a triangle becomes bad iff the new point is in its circumcircle.
+
+Before going to step 3, let us think a bit further. A triangulation is defined such that EVERY point is contained in the
+triangulation and that every space inbetween lines is triangular. So we have to connect the point __somehow__.
+We also know by definition that we can't have any bad triangles in the Delaunay triangulation. We ALSO know that every
+set of points has a uniquely defined delaunay triangulation!
+
+This does not leave many options (which is great).
+So every correct iterative algorithm (i.e. adding one point at atime) has to remove every new bad triangle.
+Every correct algorithm also has to only have triangular spaces.
+W.l.o.g. let this be our delaunay triangulation (excluding supertriangles) after removing every bad triangle.
+          X
+        -------
+       --     -----
+     --           ----
+   ---               ----
+ ---                    ------
+ X                           --X
+ -                             -
+ -                             -
+ -                             -
+ -              X              -
+ -                             -
+ -                             -
+ X---                          -
+    --                       --X
+     ----                  ---
+        ----              --
+            X------------X
+One can trivially see that there is only one way to connect all points in such a way that we only have triangles.
+Every remaining point of a bad triangle has to be connected to the new point! Otherwise there will be a space with more
+than 3 edges.
+
+So we know that after adding a new point there is exactly one way to alter the edges such that the delaunay
+circumcircle condition is met. Inductively (by adding all points one by one) we can see that there is only one way we
+can create the edges such that the delaunay circumcircle condition is met. Additionally, we know that there has to be
+at least one way because a unique Delaunay Triangulation always exist.
+Since we have a lower bound of 1 and an upper bound of 1 we can see that the algorithm is correct iff it
+removes all bad triangles and connects the new point to each point of a removed triangle.
+
+A naive implementation should be trivial by now. Let's continue with the optimized algorithm.
+
+3. [The Boundary-Walk]
+The boundary walk is needed as an optimization. Let me first explain why it is needed.
+
+Let's say that after step 2 we have n distinct points which are part of a bad triangle. Now create new triangles, we
+need to know which 2 still have a connecting edge (i.e. are still neighbours). Naively, this alone would take O(n^2),
+which is too slow, especially since we set all the triangles ourselves.
+So instead, we just remember and update the neighbours every time we change the triangle structure. The Boundary-Walk
+uses the neighbour structure (read-only) in order to find all bad points which are still neighbours.
+
+Before we actually go into traversing, we also have to realize a few things:
+
+- Quoting the Wikipedia article:
+"Delaunay triangulations maximize the minimum angle of all the angles of the triangles in the triangulation;
+they tend to avoid sliver triangles."
+(Definition sliver triangle: "A triangle with one or two extremely acute angles, hence a long/thin shape, which has
+undesirable properties during some interpolation or rasterization processes.")
+Let's inductively assume that the algorithm is correct after (n-1) steps. Let's now add the n-th point.
+We can know see that all vertices of the subgraph of bad triangles have to be connected. If this would not be the case,
+i.e. we have a degenerated sliver triangle far away, it would have had another point
+
+
+"""
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
 
 from collections import deque
