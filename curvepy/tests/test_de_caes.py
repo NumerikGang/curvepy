@@ -1,12 +1,27 @@
+"""Here are all tests for the De Casteljau algorithm.
+
+See each test for more information.
+"""
 import numpy as np
 import pytest
 
 import curvepy.tests.data.data_de_caes as data
 from curvepy.de_caes import de_caes, parallel_decaes_unblossomed, subdivision
+from typing import List
 
 
 @pytest.mark.parametrize('m, res, t', data.cases_de_caes)
-def test_parametrized_for_de_caes(m, res, t):
+def test_parametrized_for_de_caes(m: List[List[int]], res: List[List[float]], t: float):
+    """Checks whether the De Casteljau algorithm works for a single value.
+
+    Parameters
+    ----------
+    m: List[List[int]]
+        The bezier points
+    res: List[List[float]]
+        The expected value for a single
+    t
+    """
     tmp = de_caes(np.array(m, dtype=float), t)
     assert res == [pytest.approx(list(tmp[0])), pytest.approx(list(tmp[1]))]
 
