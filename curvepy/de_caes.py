@@ -91,7 +91,7 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
 
 def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
-    Method computing n Iterations of de Castelljau. N is defined by the amount of given points.
+    Method computing n Iterations of de Castelljau, n is defined by the amount of given points.
 
     Parameters
     ----------
