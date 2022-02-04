@@ -5,8 +5,8 @@ from typing import List, Tuple
 import numpy as np
 
 
-def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1),
-                     make_copy: bool = True) -> np.ndarray:
+def de_casteljau_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = (0, 1),
+                          make_copy: bool = True) -> np.ndarray:
     """
     Method computing one round of de Casteljau
 
@@ -38,7 +38,7 @@ def de_caes_one_step(m: np.ndarray, t: float = 0.5, interval: Tuple[int, int] = 
     return m[:, :-1] if m.shape != (2, 1) else m
 
 
-def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
+def de_casteljau_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing r round of de Casteljau
 
@@ -63,11 +63,12 @@ def de_caes_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tuple[i
     """
 
     for _ in range(r):
-        m = de_caes_one_step(m, t, interval, make_copy=False)
+        m = de_casteljau_one_step(m, t, interval, make_copy=False)
     return m
 
 
-def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
+def de_casteljau(m: np.ndarray, t: float = 0.5, make_copy: bool = True,
+                 interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing de Casteljau
 
@@ -92,11 +93,11 @@ def de_caes(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tup
     """
 
     _, n = m.shape
-    return de_caes_n_steps(m.copy() if make_copy else m, t, n, interval)
+    return de_casteljau_n_steps(m.copy() if make_copy else m, t, n, interval)
 
 
-def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
-                    interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
+def de_casteljau_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
+                         interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing de Casteljau with different values of t in each step
 
@@ -131,14 +132,14 @@ def de_caes_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
 
     c = m.copy() if make_copy else m
     for t in ts:
-        c = de_caes_one_step(c, t, interval)
+        c = de_casteljau_one_step(c, t, interval)
 
     return c
 
 
-def parallel_decaes_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)):
+def parallel_de_casteljau_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)):
     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
-        return executor.map(lambda t: de_caes(m, t, make_copy=True, interval=interval), ts)
+        return executor.map(lambda t: de_casteljau(m, t, make_copy=True, interval=interval), ts)
 
 
 def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
@@ -147,6 +148,6 @@ def subdivision(m: np.ndarray, t: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
     for i in range(m.shape[1]):
         left[::, i] = current.copy()[::, 0]
         right[::, -i - 1] = current.copy()[::, -1]
-        current = de_caes_one_step(current, t, make_copy=True)
+        current = de_casteljau_one_step(current, t, make_copy=True)
 
     return left, right

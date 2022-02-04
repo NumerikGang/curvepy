@@ -9,7 +9,7 @@ from curvepy.bezier_curve import *
 @pytest.mark.parametrize('m,cnt_ts, use_parallel', data.BEZIER_TESTCASES_NORMAL_SIZE)
 def test_compare_all_bezier_curves(m, cnt_ts, use_parallel):
     a = BezierCurveSymPy(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
-    b = BezierCurveDeCaes(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    b = BezierCurveDeCasteljau(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
     c = BezierCurveBernstein(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
     d = BezierCurveHorner(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
     e = BezierCurveMonomial(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
@@ -19,7 +19,7 @@ def test_compare_all_bezier_curves(m, cnt_ts, use_parallel):
 
 @pytest.mark.parametrize('m,cnt_ts, use_parallel', data.BEZIER_TESTCASES_LARGE_SIZE)
 def test_compare_all_large_bezier_curves(m, cnt_ts, use_parallel):
-    a = BezierCurveDeCaes(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
+    a = BezierCurveDeCasteljau(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
     b = BezierCurveBernstein(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
     c = BezierCurveHorner(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
     d = BezierCurveMonomial(m, cnt_ts=cnt_ts, use_parallel=use_parallel)
@@ -54,16 +54,16 @@ def test_point_is_in_min_max_box(box, pts):
 @pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2", data.NOT_EVEN_BOXES_INTERSECT)
 def test_not_even_boxes_intersect(xs1, ys1, xs2, ys2, m1, m2):
     # The first 4 parameters are the boxes
-    b1 = BezierCurveDeCaes(np.array(m1))
-    b2 = BezierCurveDeCaes(np.array(m2))
+    b1 = BezierCurveDeCasteljau(np.array(m1))
+    b2 = BezierCurveDeCasteljau(np.array(m2))
     assert not AbstractBezierCurve.collision_check(b1, b2)
 
 
 @pytest.mark.parametrize("xs1,ys1,xs2,ys2,m1,m2,expected", data.CURVE_COLLISION)
 def test_curves_collision_checks_manually_verfied(xs1, ys1, xs2, ys2, m1, m2, expected):
     # The first 4 parameters are the boxes
-    b1 = BezierCurveDeCaes(np.array(m1))
-    b2 = BezierCurveDeCaes(np.array(m2))
+    b1 = BezierCurveDeCasteljau(np.array(m1))
+    b2 = BezierCurveDeCasteljau(np.array(m2))
     assert AbstractBezierCurve.collision_check(b1, b2, tol=0.0001) == expected
 
 
@@ -72,32 +72,32 @@ def test_curves_collision_checks_manually_verfied(xs1, ys1, xs2, ys2, m1, m2, ex
 @pytest.mark.parametrize('x, res', data.SINGLE_FORWARD_DIFFS)
 def test_single_forward_difference(x, res):
     assert np.all(
-        np.isclose(np.array(res), BezierCurveDeCaes(np.array([x, x])).single_forward_difference(i=0, r=len(x) - 1))
+        np.isclose(np.array(res), BezierCurveDeCasteljau(np.array([x, x])).single_forward_difference(i=0, r=len(x) - 1))
     )
 
 
 @pytest.mark.parametrize('pts, t, r, expected', data.DERIVATIVES)
 def test_derivative(pts, t, r, expected):
-    assert pytest.approx(BezierCurveDeCaes(pts).derivative_bezier_curve(t, r), expected)
+    assert pytest.approx(BezierCurveDeCasteljau(pts).derivative_bezier_curve(t, r), expected)
 
 
 @pytest.mark.parametrize('m, n, alpha', data.BARYCENTRIC_COMBINATIONS)
 def test_barycentric_combinations(m, n, alpha):
     n = np.array(n)
     m = np.array(m)
-    a = BezierCurveDeCaes(m)
-    b = BezierCurveDeCaes(n)
+    a = BezierCurveDeCasteljau(m)
+    b = BezierCurveDeCasteljau(n)
     ab = AbstractBezierCurve.barycentric_combination_bezier(a, b, alpha, 1 - alpha)
     curve = [*ab.curve]
     pre_weighted = m * alpha + n * (1 - alpha)
-    expected = [*BezierCurveDeCaes(pre_weighted).curve]
+    expected = [*BezierCurveDeCasteljau(pre_weighted).curve]
     assert np.array_equal(curve, expected)
 
 
 @pytest.mark.parametrize('interval, xs', zip(data.RANDOM_INTERVALS, data.BEZIER_TESTCASES_NORMAL_SIZE))
 def test_check_intervals(interval, xs):
     m, cnt_ts, use_parallel = xs
-    a = BezierCurveDeCaes(m, cnt_ts, use_parallel, interval=tuple(interval))
+    a = BezierCurveDeCasteljau(m, cnt_ts, use_parallel, interval=tuple(interval))
     res_x, res_y = map(np.array, zip(*[a(t) for t in np.linspace(*interval, cnt_ts)]))
     a_curve = a.curve
     assert len(a_curve[0]) == len(res_x) and len(a_curve[1]) == len(res_y)
