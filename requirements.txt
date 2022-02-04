@@ -3,4 +3,4 @@ matplotlib
 scipy
 sympy
 hypothesis
-pytest
+pytest==6.*
