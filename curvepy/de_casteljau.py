@@ -67,7 +67,8 @@ def de_casteljau_n_steps(m: np.ndarray, t: float = 0.5, r: int = 1, interval: Tu
     return m
 
 
-def de_casteljau(m: np.ndarray, t: float = 0.5, make_copy: bool = True, interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
+def de_casteljau(m: np.ndarray, t: float = 0.5, make_copy: bool = True,
+                 interval: Tuple[int, int] = (0, 1)) -> np.ndarray:
     """
     Method computing de Casteljau
 
