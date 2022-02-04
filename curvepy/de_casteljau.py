@@ -160,7 +160,8 @@ def de_casteljau_blossom(m: np.ndarray, ts: List[float], make_copy: bool = True,
     return c
 
 
-def parallel_de_casteljau_unblossomed(m: np.ndarray, ts, interval: Tuple[int, int] = (0, 1)):
+def parallel_de_casteljau_unblossomed(m: np.ndarray, ts: List[float], interval: Tuple[int, int] = (0, 1)) -> Iterator[
+    np.ndarray]:
     """
     Method makes use of parallel execution to compute points on the curve represented by the bezier points. In contrast
     to the blossom method for every t in the given list a complete n iteration de Castelljau ist performed and not just
