@@ -1,19 +1,19 @@
 import numpy as np
 import pytest
 
-import curvepy.tests.data.data_de_caes as data
-from curvepy.de_caes import de_caes, parallel_decaes_unblossomed, subdivision
+import curvepy.tests.data.data_de_casteljau as data
+from curvepy.de_casteljau import de_casteljau, parallel_de_casteljau_unblossomed, subdivision
 
 
-@pytest.mark.parametrize('m, res, t', data.cases_de_caes)
-def test_parametrized_for_de_caes(m, res, t):
-    tmp = de_caes(np.array(m, dtype=float), t)
+@pytest.mark.parametrize('m, res, t', data.cases_de_casteljau)
+def test_parametrized_for_de_casteljau(m, res, t):
+    tmp = de_casteljau(np.array(m, dtype=float), t)
     assert res == [pytest.approx(list(tmp[0])), pytest.approx(list(tmp[1]))]
 
 
 @pytest.mark.parametrize('m, res, ts', data.cases_parallel)
-def test_parametrized_for_de_caes_parallel(m, res, ts):
-    tmp = list(parallel_decaes_unblossomed(np.array(m, dtype=float), ts))
+def test_parametrized_for_de_casteljau_parallel(m, res, ts):
+    tmp = list(parallel_de_casteljau_unblossomed(np.array(m, dtype=float), ts))
     tmp = [[pytest.approx(list(t[0]), rel=1e-5), pytest.approx(list(t[1]), rel=1e-5)] for t in tmp]
     assert res == tmp
 

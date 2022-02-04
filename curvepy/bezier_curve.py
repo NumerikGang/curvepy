@@ -14,7 +14,7 @@ import numpy as np
 import scipy.special as scs
 import sympy as sy
 
-from curvepy.de_caes import de_caes, subdivision
+from curvepy.de_casteljau import de_casteljau, subdivision
 from curvepy.types import MinMaxBox, bernstein_polynomial
 from curvepy.utilities import check_flat, intersect_lines, prod
 
@@ -122,7 +122,7 @@ class AbstractBezierCurve(ABC):
         b2s = subdivision(b2._bezier_points, 0.5)
 
         return any(
-            AbstractBezierCurve.collision_check(BezierCurveDeCaes(left), BezierCurveDeCaes(right), tol)
+            AbstractBezierCurve.collision_check(BezierCurveDeCasteljau(left), BezierCurveDeCasteljau(right), tol)
             for left, right in itt.product(b1s, b2s)
         )
 
@@ -377,7 +377,7 @@ class BezierCurveSymPy(AbstractBezierCurve):
         return sy.lambdify(t, m[:, 0])
 
 
-class BezierCurveDeCaes(AbstractBezierCurve):
+class BezierCurveDeCasteljau(AbstractBezierCurve):
     """
     Class for creating a 2-dimensional Bezier Curve by using the De Casteljau Algorithm
 
@@ -399,7 +399,7 @@ class BezierCurveDeCaes(AbstractBezierCurve):
         Callable:
             function representing the Bezier Curve
         """
-        return partial(de_caes, self._bezier_points)
+        return partial(de_casteljau, self._bezier_points)
 
 
 class BezierCurveBernstein(AbstractBezierCurve):
@@ -511,7 +511,7 @@ class BezierCurveMonomial(AbstractBezierCurve):
 class BezierCurveApproximation(AbstractBezierCurve):
     def init_func(self) -> Callable[[float], np.ndarray]:
         # dummy, just used for __call__ and __getitem__
-        return partial(de_caes, self._bezier_points)
+        return partial(de_casteljau, self._bezier_points)
 
     serial_execution = None
     parallel_execution = None
