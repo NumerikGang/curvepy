@@ -11,6 +11,7 @@ from curvepy.utilities import *
 from typing import TypeVar, List, Tuple
 T = TypeVar('T')
 
+
 @pytest.mark.parametrize('a,b', data.RANDOM_PAIRS)
 def test_straight_line_function_equivalent_to_value(a: int, b: int):
     """Checks whether the creation and evaluation of the straight line function is associative.

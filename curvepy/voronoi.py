@@ -1,7 +1,7 @@
 """This file has an implementation of Voronoi regions.
 
 Those regions are not directly computed. We use the property that Voronoi regions are just the dual graph of
-Delaunay triangulations.
+Delaunay triangulations. See `delaunay.py` or the accompanying paper for a more detailed explanation.
 
 """
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
