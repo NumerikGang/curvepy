@@ -21,7 +21,7 @@ def test_create_straight_line_functions_for_polygon_2d(pts: List[List[float]]):
     Parameters
     ----------
     pts: List[List[float]]
-        The (2d) points from which to create the polygon from
+        The (2d) points from which to create the polygon from.
     """
     pts = [np.array([x, y]) for x, y in zip(pts[0], pts[1])]
     p = Polygon(pts)
@@ -62,7 +62,7 @@ def test_bary_plane_point_2d(pts: List[List[float]], weights: List[float], exp: 
     pts: List[List[float]]
         A set of points to create the Polygon from.
     weights: List[float]
-        The weight of each point in the barycentric combination
+        The weight of each point in the barycentric combination.
     exp: List[float]
         The new point created by the barycentric combination of the old ones.
     """
@@ -84,7 +84,7 @@ def test_bary_plane_point_3d(pts: List[List[float]], weights: List[float], exp: 
     pts: List[List[float]]
         A set of points to create the Polygon from.
     weights: List[float]
-        The weight of each point in the barycentric combination
+        The weight of each point in the barycentric combination.
     exp: List[float]
         The new point created by the barycentric combination of the old ones.
     """
@@ -103,16 +103,16 @@ def test_get_bary_coords_2d(pts: List[List[float]], weights: List[float], exp: L
     Thus it's inverse gets the weights used for the affine-combination.
 
     Let f be the barycentric combination function and xs be the weights.
-    We check that f^(-1)(f(xs)) == xs (think: bijectivity)
+    We check that f^(-1)(f(xs)) == xs (think: bijectivity).
 
     Parameters
     ----------
     pts: List[List[float]]
         A set of points to create the Polygon from.
     weights: List[float]
-        The weight of each point in the barycentric combination
+        The weight of each point in the barycentric combination.
     exp: List[float]
-        The new point created by the barycentric combination of the old ones. (not needed here)
+        The new point created by the barycentric combination of the old ones (not needed here).
     """
     pts = [np.array([x, y]) for x, y in zip(pts[0], pts[1])]
     p = PolygonTriangle(pts)
@@ -128,16 +128,16 @@ def test_get_bary_coords_3d(pts: List[List[float]], weights: List[float], exp: L
     Thus it's inverse gets the weights used for the affine-combination.
 
     Let f be the barycentric combination function and xs be the weights.
-    We check that f^(-1)(f(xs)) == xs (think: bijectivity)
+    We check that f^(-1)(f(xs)) == xs (think: bijectivity).
 
     Parameters
     ----------
     pts: List[List[float]]
         A set of points to create the Polygon from.
     weights: List[float]
-        The weight of each point in the barycentric combination
+        The weight of each point in the barycentric combination.
     exp: List[float]
-        The new point created by the barycentric combination of the old ones. (not needed here)
+        The new point created by the barycentric combination of the old ones (not needed here).
     """
     pts = [np.array([x, y, z]) for x, y, z in zip(pts[0], pts[1], pts[2])]
     p = PolygonTriangle(pts)
@@ -155,11 +155,11 @@ def test_bernstein_polynomial(n: int, i: int, t: float, exp: float):
     Parameters
     ----------
     n: int
-        The degree of the bernstein polynomial
+        The degree of the bernstein polynomial.
     i: int
-        Defines which polynomial of degree n we want (just look at the formula dude)
+        Defines which polynomial of degree n we want.
     t: float
-        On which point we evaulate the bernstein polynomial (unit-interval)
+        On which point we evaulate the bernstein polynomial (unit-interval).
     exp: float
         The precomputed value corresponding to t of the i-th of n-th degree.
     """

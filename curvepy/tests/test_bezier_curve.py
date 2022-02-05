@@ -133,17 +133,17 @@ def test_not_even_boxes_intersect(xs1: List[float], ys1: List[float], xs2: List[
     Parameters
     ----------
     xs1: List[float]
-        The lower left point of the minmax containing all points m1
+        The lower left point of the minmax containing all points m1.
     ys1: List[float]
-        The lower left point of the minmax containing all points m2
+        The lower left point of the minmax containing all points m2.
     xs2: List[float]
-        The upper right point of the minmax containing all points m1
+        The upper right point of the minmax containing all points m1.
     ys2: List[float]
-        The upper right point of the minmax containing all points m2
+        The upper right point of the minmax containing all points m2.
     m1: List[List[float]]
-        The points for the first bezier curve, enclosed by xs1/xs2
+        The points for the first bezier curve, enclosed by xs1/xs2.
     m2: List[List[float]]
-        The points for the second bezier curve, enclosed by ys1/ys2
+        The points for the second bezier curve, enclosed by ys1/ys2.
     """
     # The first 4 parameters are the boxes
     b1 = BezierCurveDeCaes(np.array(m1))
@@ -159,24 +159,24 @@ def test_curves_collision_checks_manually_verfied(xs1: List[float], ys1: List[fl
 
         MinMaxBoxes are boxes defined in the form of [x_min, x_max, y_min, y_max, ...].
         Thus, in this method we check the non-intersection of two axis parallel boxes.
-        Remember, bezier curves are convex w.r.t. their MinMaxBox
+        Remember, bezier curves are convex w.r.t. their MinMaxBox.
 
         Parameters
         ----------
         xs1: List[float]
-            The lower left point of the minmax containing all points m1
+            The lower left point of the minmax containing all points m1.
         ys1: List[float]
-            The lower left point of the minmax containing all points m2
+            The lower left point of the minmax containing all points m2.
         xs2: List[float]
-            The upper right point of the minmax containing all points m1
+            The upper right point of the minmax containing all points m1.
         ys2: List[float]
-            The upper right point of the minmax containing all points m2
+            The upper right point of the minmax containing all points m2.
         m1: List[List[float]]
-            The points for the first bezier curve, enclosed by xs1/xs2
+            The points for the first bezier curve, enclosed by xs1/xs2.
         m2: List[List[float]]
-            The points for the second bezier curve, enclosed by ys1/ys2
+            The points for the second bezier curve, enclosed by ys1/ys2.
         expected: bool
-            Whether they intersect
+            Whether they intersect.
         """
     # The first 4 parameters are the boxes
     b1 = BezierCurveDeCaes(np.array(m1))
@@ -197,9 +197,9 @@ def test_single_forward_difference(x: List[float], res: Tuple[int, int]):
     Parameters
     ----------
     x: List[float]
-        The values for generating the bezier curve of 2D-points (x[i],x[i])
+        The values for generating the bezier curve of 2D-points (x[i],x[i]).
     res: Tuple[int, int]
-        The expected value for the first forward difference starting at i=0 (i.e. the first point)
+        The expected value for the first forward difference starting at i=0 (i.e. the first point).
     """
     assert np.all(
         np.isclose(np.array(res), BezierCurveDeCaes(np.array([x, x])).single_forward_difference(i=0, r=len(x) - 1))
@@ -215,13 +215,13 @@ def test_derivative(pts: np.ndarray, t: float, r: int, expected: np.ndarray):
     Parameters
     ----------
     pts: np.ndarray
-        2d array of shape (2,n) for creating the BezierCurve
+        2d array of shape (2,n) for creating the BezierCurve.
     t: float
-        On which point we want to evaluate the derivative
+        On which point we want to evaluate the derivative.
     r: int
-        Which derivative to evaluate (for example: r=1 => first derivative)
+        Which derivative to evaluate (for example: r=1 => first derivative).
     expected: np.ndarray
-        The expected value of the r-th derivative, evaluated at point t
+        The expected value of the r-th derivative, evaluated at point t.
     """
     assert pytest.approx(BezierCurveDeCaes(pts).derivative_bezier_curve(t, r), expected)
 
@@ -241,14 +241,14 @@ def test_barycentric_combinations(m: List[List[float]], n: List[List[float]], al
     Parameters
     ----------
     m: List[List[float]]
-        The points for the first bezier curve
+        The points for the first bezier curve.
     n: List[List[float]]
-        The points for the second bezier curve
+        The points for the second bezier curve.
     alpha: float
         The weight percentage of the first bezier curve.
         0 <= alpha <= 1
         Since we have 2 bezier curves, and it has to be an affine combination we know that the second bezier curve is
-        weighted (1 - alpha)
+        weighted (1 - alpha).
     """
     assert 0 <= alpha <= 1
     n = np.array(n)
@@ -282,7 +282,7 @@ def test_check_intervals(interval: List[int], xs: Tuple[np.ndarray, int, bool]):
     Parameters
     ----------
     interval: List[int]
-        The valid interval to evaluate the bezier curve in (usually the unit interval)
+        The valid interval to evaluate the bezier curve in (usually the unit interval).
     xs: Tuple[np.ndarray, int, float]
         A 3-tuple of all parameters required to build the bezier curve.
         First parameters is a numpy array of the points which define the bezier curve.
@@ -302,15 +302,15 @@ def test_check_intervals(interval: List[int], xs: Tuple[np.ndarray, int, bool]):
 def test_approx_rounds_to_cnt_ts_to_approx_rounds_equals_id(approx_rounds: int, cnt_bezier_points: int):
     """Checks whether the exact and approximate bezier curves evaluate the approximately same number of points.
 
-    Actually, this is just a unidirectional identity (g(f(x)) == x but f(g(x)) != x).
-    (To be precise: f(g(x)) == x iff x is an exact power of 2)
+    Actually, this is just a unidirectional identity (g(f(x)) == x but f(g(x)) != x)
+    (To be precise: f(g(x)) == x iff x is an exact power of 2).
 
     We approximate bezier curves by subdividing bezier curves with the De Casteljau algorithm.
 
     Parameters
     ----------
     approx_rounds: int
-        The number of subdivisions we do
+        The number of subdivisions we do.
     cnt_bezier_points: int
         The number of bezier points our (hypothetical) bezier curve has.
     """
@@ -326,7 +326,7 @@ def test_intersect_with_x_axis(m: Tuple[List[List[float]], bool], exp: List[List
     Parameters
     ----------
     m: Tuple[List[List[float]], bool]
-        A tuple of the bezier points and whether they intersect with the x-axis (unused)
+        A tuple of the bezier points and whether they intersect with the x-axis (unused).
     exp: List[List[float]]
         A precomputed list of intersecting x values and y values (obviously, the y values are just 0...).
     """

@@ -19,9 +19,9 @@ def test_straight_line_function_equivalent_to_value(a: int, b: int):
     Parameters
     ----------
     a: int
-        First point defining the line
+        First point defining the line.
     b: int
-        Second point defining the line
+        Second point defining the line.
     """
     a, b = np.array(a), np.array(b)
     assert straight_line_point(a, b, 0.5) == create_straight_line_function(a, b)(0.5)
@@ -139,7 +139,7 @@ def test_ratio_is_0_when_a_is_b():
 
 
 def test_ratio_is_nan_when_b_is_c():
-    """Checks whether the ratio is nan when ratio(a,b,b). (dividing by zero)"""
+    """Checks whether the ratio is nan when ratio(a,b,b) (dividing by zero)."""
     a = np.array([4, 3])
     b = np.array([8, 5])
     c = b
@@ -147,7 +147,7 @@ def test_ratio_is_nan_when_b_is_c():
 
 
 def test_ratio_is_nan_when_all_points_are_the_same():
-    """Checks whether the ratio is nan when ratio(a,a,a). (dividing by zero)"""
+    """Checks whether the ratio is nan when ratio(a,a,a) (dividing by zero)."""
     a = np.array([4, 3])
     b = a
     c = a
@@ -179,7 +179,7 @@ def test_flatten_list_of_lists(xs: List[List[T]], expected: List[T]):
     Parameters
     ----------
     xs: List[List[T]]
-        Some nested list
+        Some nested list.
     expected: List[T]
         One dimension less nested list.
     """
@@ -210,10 +210,10 @@ def test_horner(m: List[List[float]], t: float, expected: Tuple[float, float]):
     Parameters
     ----------
     m: List[List[float]]
-        Bezier Points
+        Bezier Points.
     t: float
         Where to evaluate it.
     expected: Tuple[float, float]
-        The expected result of the horner-based De Casteljau Algorithm
+        The expected result of the horner-based De Casteljau Algorithm.
     """
     assert horner(np.array(m), t) == expected

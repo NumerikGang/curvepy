@@ -17,11 +17,11 @@ def test_parametrized_for_de_caes(m: List[List[int]], res: List[List[float]], t:
     Parameters
     ----------
     m: List[List[int]]
-        The bezier points
+        The bezier points.
     res: List[List[float]]
-        The expected value for a complete execution of the De Casteljau Algorithm
+        The expected value for a complete execution of the De Casteljau Algorithm.
     t: float
-        On which point in the unit interval to evaluate to
+        On which point in the unit interval to evaluate to.
     """
     assert 0 <= t <= 1
     tmp = de_caes(np.array(m, dtype=float), t)
@@ -53,7 +53,7 @@ def test_parametrized_for_subdivision(m: List[List[float]], res: Tuple[List[List
     Parameters
     ----------
     m: List[List[float]]
-        The bezier points
+        The bezier points.
     res: Tuple[List[List[float]], List[List[float]]]
         The 2 new bezier point sets for each side of the subdivision.
     """

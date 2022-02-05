@@ -19,9 +19,9 @@ def test_random_uniform_distribution(xs: List[Point2D], expected: Set[TupleTrian
     Parameters
     ----------
     xs: List[Point2D]
-        The points to build the triangulation from
+        The points to build the triangulation from.
     expected: Set[TupleTriangle]
-        The expected triangulation
+        The expected triangulation.
     """
     d = DelaunayTriangulation2D(radius=10)
     for pt in xs:

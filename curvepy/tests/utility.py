@@ -15,11 +15,11 @@ def arrayize(xss: Testcases[Points[Point]]) -> Testcases[List[np.ndarray]]:
     Parameters
     ----------
     xss: Testcases[Points[Point]]
-        The testcases to convert
+        The testcases to convert.
 
     Returns
     -------
     Testcases[List[np.ndarray]]
-        The testcases in numpy-form
+        The testcases in numpy-form.
     """
     return [[np.array(x) for x in xs] for xs in xss]

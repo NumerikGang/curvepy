@@ -17,7 +17,7 @@ def test_random_uniform_distribution(seed: List[Tuple[float, float]], mean: Tupl
     seed: List[Tuple[float, float]]
         The uniformly distributed random values.
     mean: Tuple[float, float]
-        The mean of all random values (needed for centering the delaunay triangulation)
+        The mean of all random values (needed for centering the delaunay triangulation).
     expected: Dict[Tuple[float, float], Deque[TriangleNode]]
         The expected voronoi regions of each point.
     """
