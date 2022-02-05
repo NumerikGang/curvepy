@@ -49,12 +49,24 @@ class Voronoi:
 
     @property
     def points(self) -> List[Point2D]:
-        """Property to get the points of the voronoi class."""
+        """Property to get the points of the voronoi class.
+
+        Returns
+        -------
+        List[Point2D]
+            The list of all points defining the voronoi tiles.
+        """
         return self.d.points
 
     @property
     def regions(self) -> VoronoiRegions2D:
-        """Property to get the regions of the voronoi class."""
+        """Property to get the regions of the voronoi class.
+
+        Returns
+        -------
+        VoronoiRegions2D
+            The internal datastructure representing the regions.
+        """
         return self.d.voronoi()
 
     def plot(self, with_delaunay: bool = True):
