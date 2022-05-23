@@ -1,6 +1,6 @@
-numpy==1.22.2
+numpy
 matplotlib
-scipy==1.7.3
+scipy
 sympy==1.9
 hypothesis
 pytest==6.*
