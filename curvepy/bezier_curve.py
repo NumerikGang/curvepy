@@ -24,6 +24,8 @@ Similar to BezierCurveSymPy a point is calculated by substituting the variable w
 - BezierCurveApproximation: since it is a approximation it does not support all methods from AbstractBezierCurve.
 Subdivision is used multiple times to compute an approximation of the curve.
 This implementation does not support parallel execution.
+
+If you don't know which one to choose, just import BezierCurve (which is an alias to BezierCurveDeCasteljau)
 """
 
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
