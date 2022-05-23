@@ -661,8 +661,14 @@ class BezierCurveMonomial(AbstractBezierCurve):
         res = 0
         for i in range(n):
             res += scs.binom(n - 1, i) * diff[:, i] * t ** i
+        print(res[0])
+        print(type(res[0]))
+        print(res.shape)
+        print(res[1])
+        print(type(res[1]))
+        print(f"{diff=}")
 
-        return sy.lambdify(t, res)
+        return sy.lambdify(t, res[0])
 
 
 class BezierCurveApproximation(AbstractBezierCurve):
