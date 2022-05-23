@@ -20,9 +20,8 @@ stages:
   - test
   - deploy
 
-# libgeos-dev needed for Shapely TODO propbably remove sometime
 before_script:
-  - apt update && apt upgrade -y && apt install -y libgeos-dev
+  - apt update && apt upgrade -y
   - python -m venv venv && source venv/bin/activate && python --version
   - pip install --upgrade pip && pip install -r requirements.txt
   - pip install pdoc3 pytest flake8 flake8-bugbear pep8-naming flake8-builtins flake8-comprehensions
