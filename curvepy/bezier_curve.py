@@ -1,6 +1,6 @@
 """
-This module puts the methods defined in curvepy.de_casteljau to use by creating different classes of Bezier curves. All these
-classes use different methods to calculate points on the curve defined by their Bezier points:
+This module puts the methods defined in curvepy.de_casteljau to use by creating different classes of Bezier curves. All
+these classes use different methods to calculate points on the curve defined by their Bezier points:
 
 - AbstractBezierCurve: the base class provides most of the functionality. Many operations supported by the Bezier curve
 classes do not need the actual points on the curve instead they run with the bezier points. Therefore the subclasses
