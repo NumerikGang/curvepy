@@ -677,6 +677,7 @@ class BezierCurveApproximation(AbstractBezierCurve):
     -------
     see AbstractBezierCurve
     """
+
     def init_func(self) -> Callable[[float], np.ndarray]:
         # dummy, just used for __call__ and __getitem__
         """
@@ -795,3 +796,7 @@ class BezierCurveApproximation(AbstractBezierCurve):
         assert self._dimension == 3
         assert (n / 3).is_integer()
         return ret[:n // 3], ret[n // 3:2 * n // 3], ret[2 * n // 3:]
+
+
+# Default BezierCurve
+BezierCurve = BezierCurveDeCasteljau
