@@ -1,5 +1,5 @@
 """
-This module puts the methods defined in curvepy.de_caes to use by creating different classes of Bezier curves. All these
+This module puts the methods defined in curvepy.de_casteljau to use by creating different classes of Bezier curves. All these
 classes use different methods to calculate points on the curve defined by their Bezier points:
 
 - AbstractBezierCurve: the base class provides most of the functionality. Many operations supported by the Bezier curve
@@ -10,7 +10,7 @@ just provide the actual method to compute points on the curve.
 so at after the computation a function is returned representing the curve. If a point is calculated it just evaluates
 the function.
 
-- BezierCurveDeCaes: this classes uses the standard de Castelljau algorithm to compute points on the curve.
+- BezierCurveDeCasteljau: this classes uses the standard de Castelljau algorithm to compute points on the curve.
 
 - BezierCurveBernstein: instead of the de Castelljau algorithm this curve uses the Bernstein polynomials to calculate
 points on the curve.
@@ -497,7 +497,7 @@ class BezierCurveDeCasteljau(AbstractBezierCurve):
         Returns
         -------
         Callable[[float], np.ndarray]
-            de Castelljau routine from curvepy.de_caes
+            de Castelljau routine from curvepy.de_casteljau
         """
         return partial(de_casteljau, self._bezier_points)
 
@@ -681,12 +681,12 @@ class BezierCurveApproximation(AbstractBezierCurve):
         # dummy, just used for __call__ and __getitem__
         """
         In this case it is only a dummy func, so it can be used in __call__ and __getitem__. The standard Castelljau
-        method from curvepy.de_caes is used.
+        method from curvepy.de_casteljau is used.
 
         Returns
         -------
         Callable[[float], np.ndarray]
-            de Castelljau routine from curvepy.de_caes
+            de Castelljau routine from curvepy.de_casteljau
         """
         return partial(de_casteljau, self._bezier_points)
 
