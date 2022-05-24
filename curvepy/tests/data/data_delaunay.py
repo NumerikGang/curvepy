@@ -1,3 +1,8 @@
+"""All precomputed values for each test used for the delaunay file.
+
+For further Information, just look where the variables are used.
+"""
+
 from curvepy.types import TupleTriangle
 
 # Jetbrains Formatter doesn't comply with PEP8, but those data lists are

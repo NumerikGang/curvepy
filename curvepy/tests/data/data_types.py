@@ -1,3 +1,8 @@
+"""All precomputed values for each test used for the types file.
+
+For further Information, just look where the variables are used.
+"""
+
 POLYGON_2D = [
     [[4.223971678105557, -14.234739195321689, -19.90180285504775, 8.264530666779361, 3.670959721506518,
       15.551572064631376, 20.25623919262891, 6.2785575745478095],

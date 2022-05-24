@@ -1,3 +1,9 @@
+"""This file has an implementation of Voronoi regions.
+
+Those regions are not directly computed. We use the property that Voronoi regions are just the dual graph of
+Delaunay triangulations. See `delaunay.py` or the accompanying paper for a more detailed explanation.
+
+"""
 from __future__ import annotations  # Needed until Py3.10, see PEP 563
 
 from typing import List, Optional
@@ -10,11 +16,31 @@ from curvepy.types import Point2D, VoronoiRegions2D
 
 
 class Voronoi:
+    """A wrapper around Delaunay triangulations to get Voronoi regions.
+
+    Attributes
+    ----------
+
+    d: DelaunayTriangulation2D
+        The Delaunay Triangulation used for generating the Voronoi Regions as it's dual graph.
+    """
     def __init__(self, d: Optional[DelaunayTriangulation2D] = None):
         self.d = DelaunayTriangulation2D() if d is None else d
 
     @classmethod
     def from_points(cls, seeds: np.ndarray) -> Voronoi:
+        """Class method to create the Voronoi Regions directly from an numpy array of points.
+
+        Parameters
+        ----------
+        seeds: np.ndarray
+            The points from which a voronoi region should be created.
+
+        Returns
+        -------
+        Voronoi
+            A voronoi region of the given points.
+        """
         center = np.mean(seeds, axis=0)
         d = DelaunayTriangulation2D(tuple(center))
         for s in seeds:
@@ -23,14 +49,35 @@ class Voronoi:
 
     @property
     def points(self) -> List[Point2D]:
+        """Property to get the points of the voronoi class.
+
+        Returns
+        -------
+        List[Point2D]
+            The list of all points defining the voronoi tiles.
+        """
         return self.d.points
 
     @property
     def regions(self) -> VoronoiRegions2D:
+        """Property to get the regions of the voronoi class.
+
+        Returns
+        -------
+        VoronoiRegions2D
+            The internal datastructure representing the regions.
+        """
         return self.d.voronoi()
 
-    def plot(self, with_delauny: bool = True):
-        fig, axis = self.d.plot() if with_delauny else plt.subplots()
+    def plot(self, with_delaunay: bool = True):
+        """Returns pyplot of the voronoi regions, optionally with it's underlying delaunay triangulation.
+
+        Parameters
+        ----------
+        with_delaunay: bool
+            Whether the underlying delaunay triangulation (it's dual graph) should be plotted as well.
+        """
+        fig, axis = self.d.plot() if with_delaunay else plt.subplots()
         axis.axis([-self.d.radius / 2 - 1, self.d.radius / 2 + 1, -self.d.radius / 2 - 1, self.d.radius / 2 + 1])
         regions = self.d.voronoi()
         for p in regions:

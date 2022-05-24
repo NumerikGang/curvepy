@@ -1,3 +1,8 @@
+"""All precomputed values for each test used for the utilities file.
+
+For further Information, just look where the variables are used.
+"""
+
 RANDOM_PAIRS = [(1, 3), (-2, -2), (-4, 1), (-3, -8), (2, 4), (-5, -7), (-2, -2), (-8, -6), (4, 8), (5, 1), (-2, -5),
                 (3, 1), (-2, 5), (-4, 7), (5, 4), (5, -9), (-4, 7), (4, -7), (9, 9), (-4, 5), (4, -9), (-7, 1),
                 (-9, -10), (-10, 2), (4, -6), (9, -10), (-9, -5), (2, -7), (6, -4), (-8, -1), (7, 2), (-6, 1), (2, 9),
