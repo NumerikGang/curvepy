@@ -3,7 +3,7 @@
 For further Information, just look where the variables are used.
 """
 
-cases_de_caes = [
+cases_de_casteljau = [
 
     ([[0, 0, 8, 4], [0, 2, 2, 0]], [[0.0], [0.0]], 0.0)
     , ([[0, 0, 8, 4], [0, 2, 2, 0]], [[0.2688614540466392], [0.5925925925925926]], 0.1111111111111111)
