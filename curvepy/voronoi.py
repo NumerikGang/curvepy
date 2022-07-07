@@ -126,7 +126,6 @@ if __name__ == "__main__":
         (16, 4),
         (21.9265516185543, 5.3004748969929),
         (19.154935836198, 7.460704845006),
-        (19.154935836198, 11.7404056854091),
         (20.3369484492617, 15.0011301352401),
         (20.948334283605, 19.2808309756433),
         (26.369288681449, 17.6097096951049),
@@ -135,11 +134,46 @@ if __name__ == "__main__":
         (31.3826525230642, 10.354597794231),
         (26.8991564045466, 6.5232465656796)
     ]
+    new_point = (19.154935836198, 11.7404056854091)
     D = DelaunayTriangulation2D(radius=50)
     for x in xs:
         D.add_point(x)
     V = Voronoi.from_points(xs)
+    # FIRST PLOT: The n-1 point triangulation
     fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
-    # fig, ax = V.plot(with_delaunay=True, color=False, with_pts=True, with_circumcircle=True)
     fig.show()
+    # SECOND PLOT: Delaunay Triangulation + the new point in another colour
+    fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
+    ax.scatter([new_point[0]], [new_point[1]], c="red")
+    fig.show()
+    # THIRD PLOT: Circumcircles
+    fig, ax = D.plot(color="black", with_circumcircle=True, linestyle="solid")
+    ax.scatter([new_point[0]], [new_point[1]], c="red")
+    fig.show()
+    # FOURTH PLOT: Invalid Circumcircles
+    fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
+    ax.scatter([new_point[0]], [new_point[1]], c="red")
+    for tri in D.triangles:
+        if new_point in tri.circumcircle:
+            center, radius = tri.circumcircle.center, tri.circumcircle.radius
+            circ = plt.Circle(center, radius, fill=False, color="red")
+            ax.add_patch(circ)
+    fig.show()
+    # FIFTH PLOT: Hole (just photoshop)
+    # SIXTH PLOT: RECONNECTED HOLE
+    D.add_point(new_point)
+    fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
+    fig.show()
+    # SIXTH PLOT: RECONNECTED HOLE WITH CIRCUMCIRCLES
+    fig, ax = D.plot(color="black", with_circumcircle=True, linestyle="solid")
+    fig.show()
+    # SEVENTH PLOT: JUST THE NEW TRIANGLES
+    fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
+    for tri in D.triangles:
+        if new_point in tri._points:
+            center, radius = tri.circumcircle.center, tri.circumcircle.radius
+            circ = plt.Circle(center, radius, fill=False, color="blue")
+            ax.add_patch(circ)
+    fig.show()
+
     plt.show()
