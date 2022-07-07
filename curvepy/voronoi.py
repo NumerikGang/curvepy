@@ -77,7 +77,7 @@ class Voronoi:
         with_delaunay: bool
             Whether the underlying delaunay triangulation (it's dual graph) should be plotted as well.
         """
-        fig, axis = self.d.plot() if with_delaunay else plt.subplots()
+        fig, axis = self.d.plot(color="blue" if colour else "black") if with_delaunay else plt.subplots()
         axis.axis([-self.d.radius / 2 - 1, self.d.radius / 2 + 1, -self.d.radius / 2 - 1, self.d.radius / 2 + 1])
         regions = self.d.voronoi()
         for p in regions:
@@ -107,6 +107,6 @@ if __name__ == "__main__":
         D.add_point(x)
     V = Voronoi.from_points(xs)
     #fig, ax = D.plot()
-    fig, ax = V.plot(with_delaunay=False, colour=False, with_pts=True)
+    fig, ax = V.plot(with_delaunay=True, colour=False, with_pts=True)
     fig.show()
     plt.show()
