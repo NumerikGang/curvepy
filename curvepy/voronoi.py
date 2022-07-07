@@ -84,13 +84,13 @@ class Voronoi:
             polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
             if colour:
                 axis.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
-            axis.plot(*zip(*polygon), color="red")
+            axis.plot(*zip(*polygon), color="red" if colour else "black")
         if not with_pts:
             return fig, axis
         pts = self.d.points
         xs = [pt[0] for pt in pts]
         ys = [pt[1] for pt in pts]
-        axis.scatter(xs, ys)
+        axis.scatter(xs, ys, c="blue" if colour else "black")
 
         return fig, axis
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     for x in xs:
         D.add_point(x)
     V = Voronoi.from_points(xs)
-    fig, ax = D.plot()
+    #fig, ax = D.plot()
     fig, ax = V.plot(with_delaunay=False, colour=False, with_pts=True)
     fig.show()
     plt.show()
