@@ -104,7 +104,6 @@ class Voronoi:
 
 if __name__ == "__main__":
     import random as rd
-    import matplotlib.pyplot as plt
 
     random_pt = lambda: rd.random() * 20 - 10
     """
