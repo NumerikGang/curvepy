@@ -69,7 +69,7 @@ class Voronoi:
         """
         return self.d.voronoi()
 
-    def plot(self, with_delaunay: bool = True, colour: bool = True):
+    def plot(self, with_delaunay: bool = True, colour: bool = True, with_pts: bool = True):
         """Returns pyplot of the voronoi regions, optionally with it's underlying delaunay triangulation.
 
         Parameters
@@ -85,6 +85,13 @@ class Voronoi:
             if colour:
                 axis.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
             axis.plot(*zip(*polygon), color="red")
+        if not with_pts:
+            return fig, axis
+        pts = self.d.points
+        xs = [pt[0] for pt in pts]
+        ys = [pt[1] for pt in pts]
+        axis.scatter(xs, ys)
+
         return fig, axis
 
 if __name__ == "__main__":
@@ -100,6 +107,6 @@ if __name__ == "__main__":
         D.add_point(x)
     V = Voronoi.from_points(xs)
     fig, ax = D.plot()
-    fig, ax = V.plot(with_delaunay=True, colour=False)
+    fig, ax = V.plot(with_delaunay=False, colour=False, with_pts=True)
     fig.show()
     plt.show()
