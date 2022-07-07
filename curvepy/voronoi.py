@@ -24,6 +24,7 @@ class Voronoi:
     d: DelaunayTriangulation2D
         The Delaunay Triangulation used for generating the Voronoi Regions as it's dual graph.
     """
+
     def __init__(self, d: Optional[DelaunayTriangulation2D] = None):
         self.d = DelaunayTriangulation2D() if d is None else d
 
@@ -69,7 +70,8 @@ class Voronoi:
         """
         return self.d.voronoi()
 
-    def plot(self, with_delaunay: bool = True, color: bool = True, with_pts: bool = True, with_circumcircle: bool = False):
+    def plot(self, with_delaunay: bool = True, color: bool = True, with_pts: bool = True,
+             with_circumcircle: bool = False):
         """Returns pyplot of the voronoi regions, optionally with it's underlying delaunay triangulation.
 
         Parameters
@@ -81,7 +83,8 @@ class Voronoi:
         with_pts: bool
             Whether the generating points should be plotted as well.
         """
-        fig, axis = self.d.plot(color="blue" if color else "black", with_circumcircle=with_circumcircle) if with_delaunay else plt.subplots()
+        fig, axis = self.d.plot(color="blue" if color else "black",
+                                with_circumcircle=with_circumcircle) if with_delaunay else plt.subplots()
         axis.axis([-self.d.radius / 2 - 1, self.d.radius / 2 + 1, -self.d.radius / 2 - 1, self.d.radius / 2 + 1])
         regions = self.d.voronoi()
         for p in regions:
@@ -98,10 +101,12 @@ class Voronoi:
 
         return fig, axis
 
+
 if __name__ == "__main__":
     import random as rd
     import matplotlib.pyplot as plt
-    random_pt = lambda : rd.random() * 20 - 10
+
+    random_pt = lambda: rd.random() * 20 - 10
     """
     xs = [(7.121774796988888, -8.699824650605311), (-9.464407819976927, -5.393171652924897),
           (-4.829293057199426, -3.514450505274964), (-0.6033847917949586, 5.538101790932117),
@@ -135,6 +140,6 @@ if __name__ == "__main__":
         D.add_point(x)
     V = Voronoi.from_points(xs)
     fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
-    #fig, ax = V.plot(with_delaunay=True, color=False, with_pts=True, with_circumcircle=True)
+    # fig, ax = V.plot(with_delaunay=True, color=False, with_pts=True, with_circumcircle=True)
     fig.show()
     plt.show()

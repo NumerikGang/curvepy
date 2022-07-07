@@ -58,6 +58,7 @@ class DelaunayTriangulation2D:
 
     See the top of the file for a more detailed description.
     """
+
     class _BoundaryNode(NamedTuple):
         """Helper class.
         Those Nodes aren't actually saved, they are just used to make the traversal more readable and manageable.
@@ -461,7 +462,8 @@ class DelaunayTriangulation2D:
                 return t
         return None
 
-    def plot(self, linestyle: str = 'dashed', color: str = 'blue', with_circumcircle: bool = False) -> Tuple[plt.Figure, plt.Axes]:
+    def plot(self, linestyle: str = 'dashed', color: str = 'blue', with_circumcircle: bool = False) -> Tuple[
+        plt.Figure, plt.Axes]:
         """A helper method to plot the Delaunay Triangulation of our current internal state.
 
         Parameters
