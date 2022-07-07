@@ -141,14 +141,59 @@ if __name__ == "__main__":
     V = Voronoi.from_points(xs)
     # FIRST PLOT: The n-1 point triangulation
     fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
+    # Zoom at right spot
+    ax.set_xlim(7, 32)
+    ax.set_ylim(4, 19.5)
+    # remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # remove frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    # increase plot size
+    fig.set_size_inches(10, 6)
+    # tighten up
+    fig.tight_layout()
     fig.show()
     # SECOND PLOT: Delaunay Triangulation + the new point in another colour
     fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
     ax.scatter([new_point[0]], [new_point[1]], c="red")
+    # Zoom at right spot
+    ax.set_xlim(7, 32)
+    ax.set_ylim(4, 19.5)
+    # remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # remove frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    # increase plot size
+    fig.set_size_inches(10, 6)
+    # tighten up
+    fig.tight_layout()
     fig.show()
     # THIRD PLOT: Circumcircles
     fig, ax = D.plot(color="black", with_circumcircle=True, linestyle="solid")
     ax.scatter([new_point[0]], [new_point[1]], c="red")
+    # Zoom at right spot
+    ax.set_xlim(7, 32)
+    ax.set_ylim(4, 19.5)
+    # remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # remove frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    # increase plot size
+    fig.set_size_inches(10, 6)
+    # tighten up
+    fig.tight_layout()
     fig.show()
     # FOURTH PLOT: Invalid Circumcircles
     fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
@@ -158,14 +203,60 @@ if __name__ == "__main__":
             center, radius = tri.circumcircle.center, tri.circumcircle.radius
             circ = plt.Circle(center, radius, fill=False, color="red")
             ax.add_patch(circ)
+
+    # Zoom at right spot
+    ax.set_xlim(7, 32)
+    ax.set_ylim(4, 19.5)
+    # remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # remove frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    # increase plot size
+    fig.set_size_inches(10, 6)
+    # tighten up
+    fig.tight_layout()
     fig.show()
     # FIFTH PLOT: Hole (just photoshop)
     # SIXTH PLOT: RECONNECTED HOLE
     D.add_point(new_point)
     fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
+    # Zoom at right spot
+    ax.set_xlim(7, 32)
+    ax.set_ylim(4, 19.5)
+    # remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # remove frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    # increase plot size
+    fig.set_size_inches(10, 6)
+    # tighten up
+    fig.tight_layout()
     fig.show()
     # SIXTH PLOT: RECONNECTED HOLE WITH CIRCUMCIRCLES
     fig, ax = D.plot(color="black", with_circumcircle=True, linestyle="solid")
+    # Zoom at right spot
+    ax.set_xlim(7, 32)
+    ax.set_ylim(4, 19.5)
+    # remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # remove frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    # increase plot size
+    fig.set_size_inches(10, 6)
+    # tighten up
+    fig.tight_layout()
     fig.show()
     # SEVENTH PLOT: JUST THE NEW TRIANGLES
     fig, ax = D.plot(color="black", with_circumcircle=False, linestyle="solid")
@@ -174,6 +265,21 @@ if __name__ == "__main__":
             center, radius = tri.circumcircle.center, tri.circumcircle.radius
             circ = plt.Circle(center, radius, fill=False, color="blue")
             ax.add_patch(circ)
+    # Zoom at right spot
+    ax.set_xlim(7, 32)
+    ax.set_ylim(4, 19.5)
+    # remove ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # remove frame
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    # increase plot size
+    fig.set_size_inches(10, 6)
+    # tighten up
+    fig.tight_layout()
     fig.show()
 
     plt.show()
