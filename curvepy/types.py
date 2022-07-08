@@ -645,8 +645,7 @@ class MinMaxBox:
         -------
         Whether a point is contained in the MinMaxBox
         """
-        return self.dim() == len(point) \
-               and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
+        return self.dim() == len(point) and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
 
     def same_dimension(self, other: MinMaxBox) -> bool:
         """
