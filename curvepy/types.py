@@ -58,6 +58,7 @@ class Circle:
     radius: float
         The radius
     """
+
     def __init__(self, center: Point2D, radius: float):
         self._center = np.array(center)
         self.radius = radius
@@ -233,6 +234,7 @@ class AbstractTriangle(ABC):
     ----------
     _points: The 3 points representing a triangle.
     """
+
     @abstractmethod
     def __init__(self):
         # In order to not have unresolved references to _points
@@ -357,6 +359,7 @@ class TupleTriangle(AbstractTriangle):
     _points: Tuple[Point2D, Point2D, Point2D]
         tuple containing copy of points that create the polygon
     """
+
     def __init__(self, a: Point2D, b: Point2D, c: Point2D):
         self._points: Tuple[Point2D, Point2D, Point2D] = (a, b, c)
 
@@ -399,6 +402,7 @@ class PolygonTriangle(Polygon, AbstractTriangle):
     make_copy: bool
         whether the points should be deep copied
     """
+
     def __init__(self, points: List[np.ndarray], make_copy: bool = True) -> None:
         # https://stackoverflow.com/a/26927718
         Polygon.__init__(self, points, make_copy)
@@ -511,6 +515,7 @@ class Triangle:
     """
     Helper "Factory" that decides which Triangle to instanciate
     """
+
     def __call__(self, a, b, c):
         """
         Helper method that decides which Triangle to instanciate.
