@@ -110,15 +110,12 @@ a + x(b + x(c+x*(d)))
 
 def horner(m: np.ndarray, t: float = 0.5) -> Tuple[Union[float, Any], ...]:
     """
-    TODO show which problem this is
-    TODO besserer Name sowie auch BezierCurveHorner mit horner-bez
-    TODO First coeff == Highest Degree
-    Method using horner's method to calculate point with given t
+    Method using horner schema of the De Casteljau algorithm to calculate a single point.
 
     Parameters
     ----------
     m: np.ndarray:
-        array containing coefficients
+        array containing coefficients. Note that the first coefficient is the highest degree.
 
     t: float:
         value for which point is calculated
@@ -233,8 +230,32 @@ def intersect_lines(p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarr
 
 
 def flatten_list_of_lists(xss: List[List[Any]]) -> List[Any]:
+    """
+    Reduces one list dimension by using using it's `__add__`.
+
+    Parameters
+    ----------
+    xss: List[List[Any]]
+        Any list that needs a reduced version.
+
+    Returns
+    -------
+    The same list, flattened by one dimension
+    """
     return sum(xss, [])
 
 
 def prod(xs: Iterable[Number]):
+    """
+    The multiplical product of a bunch of numbers.
+
+    Parameters
+    ----------
+    xs: Iterable[Number]
+        The numbers to multiply
+
+    Returns
+    -------
+    The product, 1 if empty.
+    """
     return functools.reduce(operator.mul, xs, 1)
