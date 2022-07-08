@@ -5,7 +5,6 @@ import sys
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
-from enum import Enum
 from functools import cached_property, lru_cache, partial
 from typing import (Any, Callable, Deque, Dict, List, NamedTuple, Optional,
                     Tuple, Union)
@@ -14,13 +13,6 @@ import numpy as np
 import scipy.special as scs
 
 from curvepy.utilities import create_straight_line_function
-
-
-class CurveTypes(Enum):
-    bezier_curve = 0
-    bezier_curve_threaded = 1
-    bezier_curve_blossoms = 2
-
 
 Point2D = Tuple[float, float]
 Edge2D = Tuple[Point2D, Point2D]
@@ -366,7 +358,7 @@ class MinMaxBox:
 
     def __contains__(self, point: Tuple[float, ...]) -> bool:
         return self.dim() == len(point) \
-            and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
+               and all(self[2 * i] <= point[i] <= self[(2 * i) + 1] for i in range(len(point)))
 
     def same_dimension(self, other: MinMaxBox):
         return len(self) == len(other)
