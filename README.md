@@ -12,7 +12,7 @@ The Delaunay triangulations are an adapted version of the Green-Sibson (1977) al
 
 ## Documentation
 
-More documentation can be found [here](https://numerikgang.pages.gwdg.de/curvepy/) and in the accompaning paper, contained in this repo.
+More documentation can be found [here](https://numerikgang.pages.gwdg.de/) and in the accompaning paper, contained in this repo.
 
 ## License
 
