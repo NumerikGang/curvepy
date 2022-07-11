@@ -1,4 +1,4 @@
-# curvepy
+# curvepy [(PAPER HERE)](./paper/curvepy.pdf)
 
 This library contains various Bézier curve algorithms, as well as an educational implementation of Delaunay triangulations and Voronoi regions.
 
