@@ -24,11 +24,12 @@ class Voronoi:
     d: DelaunayTriangulation2D
         The Delaunay Triangulation used for generating the Voronoi Regions as it's dual graph.
     """
+
     def __init__(self, d: Optional[DelaunayTriangulation2D] = None):
         self.d = DelaunayTriangulation2D() if d is None else d
 
     @classmethod
-    def from_points(cls, seeds: np.ndarray) -> Voronoi:
+    def from_points(cls, seeds: List[Point2D]) -> Voronoi:
         """Class method to create the Voronoi Regions directly from an numpy array of points.
 
         Parameters
@@ -41,7 +42,7 @@ class Voronoi:
         Voronoi
             A voronoi region of the given points.
         """
-        center = np.mean(seeds, axis=0)
+        center = np.mean(np.array(seeds), axis=0)
         d = DelaunayTriangulation2D(tuple(center))
         for s in seeds:
             d.add_point(s)
@@ -69,19 +70,33 @@ class Voronoi:
         """
         return self.d.voronoi()
 
-    def plot(self, with_delaunay: bool = True):
+    def plot(self, with_delaunay: bool = True, color: bool = True, with_pts: bool = True,
+             with_circumcircle: bool = False):
         """Returns pyplot of the voronoi regions, optionally with it's underlying delaunay triangulation.
 
         Parameters
         ----------
         with_delaunay: bool
             Whether the underlying delaunay triangulation (it's dual graph) should be plotted as well.
+        color: bool
+            Whether to use color or only black and white.
+        with_pts: bool
+            Whether the generating points should be plotted as well.
         """
-        fig, axis = self.d.plot() if with_delaunay else plt.subplots()
+        fig, axis = self.d.plot(color="blue" if color else "black",
+                                with_circumcircle=with_circumcircle) if with_delaunay else plt.subplots()
         axis.axis([-self.d.radius / 2 - 1, self.d.radius / 2 + 1, -self.d.radius / 2 - 1, self.d.radius / 2 + 1])
         regions = self.d.voronoi()
         for p in regions:
             polygon = [t.ccc for t in regions[p]]  # Build polygon for each region
-            axis.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
-            axis.plot(*zip(*polygon), color="red")
+            if color:
+                axis.fill(*zip(*polygon), alpha=0.2)  # Plot filled polygon
+            axis.plot(*zip(*polygon), color="red" if color else "black")
+        if not with_pts:
+            return fig, axis
+        pts = self.d.points
+        xs = [pt[0] for pt in pts]
+        ys = [pt[1] for pt in pts]
+        axis.scatter(xs, ys, c="blue" if color else "black")
+
         return fig, axis

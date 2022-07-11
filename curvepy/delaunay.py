@@ -58,6 +58,7 @@ class DelaunayTriangulation2D:
 
     See the top of the file for a more detailed description.
     """
+
     class _BoundaryNode(NamedTuple):
         """Helper class.
         Those Nodes aren't actually saved, they are just used to make the traversal more readable and manageable.
@@ -461,7 +462,8 @@ class DelaunayTriangulation2D:
                 return t
         return None
 
-    def plot(self, linestyle: str = 'dashed', color: str = 'blue') -> Tuple[plt.Figure, plt.Axes]:
+    def plot(self, linestyle: str = 'dashed', color: str = 'blue', with_circumcircle: bool = False) -> Tuple[
+        plt.Figure, plt.Axes]:
         """A helper method to plot the Delaunay Triangulation of our current internal state.
 
         Parameters
@@ -470,6 +472,8 @@ class DelaunayTriangulation2D:
             The linestyle argument of pyplot's plot function
         color: str
             The colour argument of pyplot's plot function
+        with_circumcircle: bool
+            Whether the triangle circumcircles should be plotted as well.
 
         Returns
         -------
@@ -480,4 +484,10 @@ class DelaunayTriangulation2D:
         axis.axis([-self.radius / 2 - 1, self.radius / 2 + 1, -self.radius / 2 - 1, self.radius / 2 + 1])
         for (a, b) in self.lines:
             axis.plot([a[0], b[0]], [a[1], b[1]], linestyle=linestyle, color=color)
+        if not with_circumcircle:
+            return fig, axis
+        for tri in self.triangles:
+            center, radius = tri.circumcircle.center, tri.circumcircle.radius
+            circ = plt.Circle(center, radius, fill=False, color=color)
+            axis.add_patch(circ)
         return fig, axis
