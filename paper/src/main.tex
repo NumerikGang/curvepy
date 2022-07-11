@@ -1,0 +1,56 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{curvepy: Bézier Curves, Delaunay Triangulations and Voronoi Diagrams}
+%\title{What cagd authors don't want you to know (Number 3.3.5 will suprise you)}
+\author{NumerikGang\\Lars Quentin, Maximilian Winkler, Timo Specht}
+\date{\today}
+
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=nyt
+]{biblatex}
+\addbibresource{paper.bib}
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\usepackage{graphicx} % for figures
+\usepackage{float} % for "H" figure placement
+\usepackage{dirtytalk} % quotes
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{cleveref}
+\usepackage{setspace} % for \onehalfspacing and \singlespacing macros
+\onehalfspacing 
+\usepackage{etoolbox}
+\AtBeginEnvironment{quote}{\par\singlespacing\small}
+\usepackage{caption}
+\usepackage{subcaption}
+\renewcommand\thesubfigure{\roman{subfigure}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{rem}{Remark} [section] 
+\newtheorem{lem}{Lemma}
+\newtheorem{example}{Example}[section]
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\input{Introduction}
+\newpage
+\input{Bezier}
+\newpage
+\input{delaunay}
+
+
+
+\newpage
+\printbibliography
+\end{document}

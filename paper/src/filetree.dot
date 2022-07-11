@@ -1,0 +1,62 @@
+digraph filetree {
+  comment="created for dot engine"
+  
+  comment="define some sane defaults, not too big"
+  node [fontsize=10, shape=box, height=.25]
+  edge [fontsize=10]
+  
+  comment="we go from left to right"
+  rankdir=LR;
+
+  comment="optimize for A4, as small as possible"
+  size="8.3,11.7!"
+  ratio="compress"
+  
+  comment="make distance smaller, node=between same level, rank=between levels"
+  nodesep=0.1
+  ranksep=0.5
+  
+  comment="dont make it too spliny, otherwise we have weird overlaps"
+  splines=polyline
+  
+  comment="to fix collisions we have to create different ids"
+  "__init__.py" [label="__init__.py", comment="main init"]
+  "tests/__init__.py" [label="__init__.py", comment="tests init"]
+  "tests/data/__init__.py" [label="__init__.py", comment="data init"]
+  
+  comment="root directory"
+  "root" -> "curvepy"
+  "root" -> "LICENSE"
+  "root" -> "README.md"
+  "root" -> "requirements.txt"
+  
+  comment="main library directory"
+  "curvepy" -> "bezier_curve.py"
+  "curvepy" -> "de_casteljau.py"
+  "curvepy" -> "delaunay.py"
+  "curvepy" -> "__init__.py"
+  "curvepy" -> "tests"
+  "curvepy" -> "types.py"
+  "curvepy" -> "utilities.py"
+  "curvepy" -> "voronoi.py"
+  
+  comment="tests directory"
+  "tests" -> "data"
+  "tests" -> "tests/__init__.py"
+  "tests" -> "test_bezier_curve.py"
+  "tests" -> "test_de_casteljau.py"
+  "tests" -> "test_delaunay.py"
+  "tests" -> "test_types.py"
+  "tests" -> "test_utilities.py"
+  "tests" -> "test_voronoi.py"
+  "tests" -> "utility.py"
+  
+  comment="data directory"
+  "data" -> "data_bezier_curve.py"
+  "data" -> "data_de_casteljau.py"
+  "data" -> "data_delaunay.py"
+  "data" -> "data_types.py"
+  "data" -> "data_utilities.py"
+  "data" -> "data_voronoi.py"
+  "data" -> "tests/data/__init__.py"
+}

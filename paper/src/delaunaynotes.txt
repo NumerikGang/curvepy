@@ -1,0 +1,182 @@
+Damit ihr nicht die Paper durchcrunchen müsst, hier meine lokalen Notes:
+
+# Fortune
+- Definition Voronoi-Diagramme über "näher als der Rest"
+- Definition Delaunay-Triangulation über "circumcircles"
+- Uniqueness über dual von Voronoi Diagramm angemerkt.
+- Wo man überall Voronoi Diagramme drifft
+  - Crystallographie
+  - Metallurgists für librium properties of alloys
+  - Thiessen polygon
+  - computational geometry: "which site is closest to point q"
+- Welche Algos
+  - Shamos and Hoey für divide-and-conquer in O(nlogn) für 2D
+  - Greeen and Sibson für 2D in O(n^(3/2))
+    - Generalisiert für nd von Bowyer Watson
+  - Brown sagt dass vertex hull von d+1 für d dimension
+- Verschiedene Generalisierungen:
+  - "Constrained" Delaunay triangulations allow some edges to be specified before the triangulation is constructed.
+- Theorem 2.1 besagt dass sie Dual sind
+- Theorem 2.3 besagt dass mit der convex hull hyperplane
+- Theorem 2.4 klingt wie das dual theorem
+- Theorem 3.1 beweist die Optimality. Hier lohnt sich ein Quote:
+> Good finite element meshes avoid long, skinny triangles as much as possible. A classic result of Lawson(45) is
+> that two-dimensional Delaunay triangulations optimize one formalization of this criterion.
+>
+> Lemma 3.1 Over all proper triangulations of a set of sites $S \subset R^2$ in general position, the Delaunay
+> triangulation maximizes the minimum angle of any triangle
+- Auch bieten sie folgende Generalisierung:
+> Essentially the same argument as lemma 3.1 shows that any such completion of the Delaunay Triangulation maximizes
+> the minimum angle over all triangulations.
+  - Beachte, dass beide nur für 2D gelten.
+- Sie sagen auch dass die Verbesserung in O(n^(1/d)) für das Finden der site eines Punktes nicht belegt ist:
+> Bowyer suggests that a walk starting from a site near the centroid of the Delaunay triangulation should visit about
+> O(n^(1/d)) cells, although no rigorous analysis is known.
+
+# Rebay
+- Definition von Voronoi Regions als Convex Polygons mit nearest point
+- Die "union" is die Dirichlet Tessellation
+- "By connecting only those points whose Voronoi regions have a common edge, a triangulation known as Delaunay
+  Triangulation is obtained"
+- Dual Property:
+> It should be noted that Delaunay triangulations and Dirichlet tessellations can be considered the geometrical dual
+> of each other, in the sense that...
+- Beschreibung wie Bowyer Watson funktioniert:
+> The method is based on the so-called circumcircle property which gurantees that no point of a Delaunay triangulation
+> can lie within the circle circumscribed to any triangle. The Bowyer-Watson algorithm is essentially a "reconnection"
+> method, since it computes how an existing Delaunay triangulation is to be modified because of the insertion of a
+> new point.
+- Toll explizit wie der Schritt funktioniert (und warum es klappt):
+> The algorithm removes from the existing grid all the triangles which violate the circumcircle property because of
+> the insertion of the new point. It can be shown that (1) all these triangles are always continguous, thus forming a
+> connected cavity surrounding the newly inserted point, and that (2) by joining the vertices of this cavity with a new
+> point, a Delaunay triangulation is always obtained.
+  - Hierbei zitiert das Paper folgende Paper:
+    - [2]: Bowyers Orginalpaper von 1981
+    - [9]: Watsons Orginalpaper von 1981
+  - Wir sollten das auch so explizit aufschreiben!
+- Sie beschreiben warum "site finden wo der neue Punkt drin ist" O(lg n) ist, was total quatsch ist weil es nie genauer
+  definiert wurde was eine "multidimensional search" ist.(s. Stackoverflow). Der Quatsch kommt von der Conjecture von
+  Green Sibson... Das ist noch ein stärkerer Claim als der schon komische O(n^(1/d)). Zudem behauptet dass Zitat dass
+  es immer zu O(n^2) degeneraten kann. Weird dass sie dann kein Omega statt O nutzen.:
+> The algorithm efficiently depends on how quickly the search for the triangles to be deleted at each point insertion
+> is performed and this is made much easier by the knowledge of the neighbouring triangles to each triangle. In fact,
+> since all the triangles to be deleted are always contiguous, a tree search among neighbouring triangles can be used
+> to find all the other triangles to be deleted after the first one. In the typical case, the number of triangles to
+> be deleted at each point insertion does not depend on th number of all existing triangles. As a consequence, if the
+> information pertaining to the neighbouring triangles is available and an O(log N) multidimensional search for the
+> first triangle is employed, the algorithm can compute the Delaunay triangulation of a set of N points in O(N log N)
+> operations. In special cases, however, the number of triangles to be deleted at each insertion point can be very large.
+> In the worst possible situation, when all existing triangles have to be deleted at each point insertion, the
+> operation count of the Bowyer-Watson algorithm degrades to O(N^2).
+  - Ich behaupte dass der letzte Teil nie passieren kann. Absoluter BS. Dann wäre die a priori Triangulation nicht
+    Delaunay!
+
+
+# Green Sibson
+- Sehr formelle Definition eines Voronoi Diagrams (was auch eine Dirichlet-Zerlegung ist)
+> Let $P_1,P_2, \dots, P_N$ be finitely many points in the plane, no two of which coincide. The tile of $P_n$ is the
+> set $T_n$ defined by
+> \[ T_n = \{ x : d(x, P_N) < d(x, P_M) \forall m \neq n \} \]
+> where $d$ is the euclidian distance.
+> Every point of the plane with a unique nearest neighbour among $P_1, \dots, P_N$ will lie in the tile of that
+> nearest neighbour. Some points, however, will have two or more nearest neighbours, and our definition excludes these
+> from the membership of any tile. Each tile $T_n$ is the intersection of the open half-planes bounded by the
+> perpendicular bisectors of the lines joining $P_n$ with each of the other $P_m$. Thus the tiles are convex and may
+> possibly (at the periphery of the structure) extend to infinity. Of course not all bisectors play an effective role
+> in delimiting the tile (only those associated with 'nearby' points, intuitively); those that are effective each
+> provide a straight line segment which also forms part of the boundary of a neighbouring tile. These boundary segments
+> are the only parts of the plane not within any tile, and comprise precisely those points with two or more nearest
+> neighbours amoung $P_1,\dots,P_N$.
+- Toller Nachbarbegriff:
+> Tiles which have a boundary segment are said to be contiguous, as are their generating points.
+- Von da aus auch ein toller Delaunay Begriff:
+> In general tiles meet in threes at vertices so the lines joining contiguous generating points define triangles; these
+> triangles can easily be shown to fit together into a triangulation of the convex hull of the generating points; the
+> perpenticular bisectors of the edges of this triangulation give the boundaries of the tiles, and the circumcentres
+> of the triangles are the verties of the tiles. The triangulation is called the DELAUNAY TRIANGULATION.
+- Mit bezug auf das Window (i.e. das Supertriangle):
+> Our formal definition of the tessellation corresponding to points $P_1, \dots, P_N$ and window $E$ is that the tile
+> $T_n^*$ of the point $P_n$ is given by
+> \[ T_n^* = \{ x \in E : d(x, P_n) < d(x, P_m) \forall m \neq n, P_m \in E \} \]
+> if $P_n \in E$, and is otherwise undefined.
+- Auch eine gute Begründung warum wir ein Supertriangle nehmen:
+> If difficulties over disconnected tiles are to be avoided, it is desirable to restrict attention to convex windows
+> and to ensure easy specification and manipulation to make them polygonal. In fact many applications call for a square
+> or rectangular window.
+- Übersicht wo Voronois auftreten
+  - Siehe 1.3 discussion..
+- Im Recursive step wird erklärt wie der CCW walk klappt:
+> What makes the two dimensional case special is that the contiguities associated with an object can be recorded in
+> cyclic order (by convention, anticlockwise). For points this cyclic order has no natural starting point; we have a ring
+> rather than a list and we break this ring arbitrarily.
+> ..
+> Cyclic order is more than an administrative convenience; it is the basis on which the possibility of economical
+> computation rests.
+- Auch hier gut formuliert was benutzt wird; auch der continuity claim:
+> The information for recursion consists of the defails of the window, the coordinates of the previously accepted
+> points and the contiguities that these objects determine. The coordinates of the new point, which are saved after use,
+> are used to update the contiguities on the inclusion of the new point. It is easy to visualize the effect on the new
+> point: it acquires its tile by winning territory from the tiles of nearby points, in fact of precisely those
+> points with which it subsequently proves to be contiguous.
+- Wie das Einfügen funktioniert (+ sketch der Datenstruktur):
+> The contiguity list for the new point is then built up in reverse (that is, clockwise) order and subsequently
+> standardised. We begin by finding where the perpendicular bisector of the line joining the new point to its
+> nearest neighbour meets the edge of the nearest neighbour's tile, clockwise round the new point.
+> [...]
+> successive objects are added to the contiguity list in this way until the list is completed by the additon of nearest
+> neighbour. Whilst this is being done old contiguity lists are being modified: the new point is inserted in each and
+> any of the contiguities strictly between the entry and exit points of the perpendicular bisector are deleted, the
+> anticlockwise-cyclic arrangement of the lists making both this and the determination of the exit very easy.
+- Gute Beschreibung warum es nicht O(n) viele Nachbarn gibt, somit das entfernen und hinzufügen O(1) ist
+> We have observed that in the majority of applications, every vertex has degree three. If this holds, use the Euler-
+> Poincare formula faces-edges+verties = 2 [...] gives an exact expression for the total numbers of contiguities which
+> have to be recorded, namely
+> 4 x (effective constraints) + 6 x (accepted points) - 6
+> counting each twice, once from each side. Thus not only does the average number of contiguities per point approach
+> six in large configurations, irrespectively of the positions of the points provided only that there are no degeneracies
+> but also the number of contiguities added by the introduction of a new point is exactly six.
+- Unser Problem wo wir optimieren könnten:
+> It is therefore particularly important to have an efficient method of finding the nearest neighbour; a naive search
+> would lead to an O(N) term per point, and thus an O(N^2) term in the total workload and that is not good enough.
+- Auch hier wieder das behinderte was nirgends belegt ist:
+> If nothing systematic is known about the positions of the points, it is sensible to start from a reasonably central
+> point and one would expect that for each point this would result in an O(N^(1/2)) term, total O(N^(3/2))
+  - Auch wenn das nicht belegt ist, wäre das auf jeden Fall ein improvement zu unserer naiven Suche und das sollten
+    wir auch im Paper festhalten.
+
+# Bowyer
+- Claim dass der Walk O(n^(1/d)) für Dimension d dauert...
+
+# Meine Frage auf CompSci Stackexchange:
+- https://cs.stackexchange.com/questions/148452/bowyer-watson-delaunay-triangulation-neighbour-walk-in-on1-d
+
+# Woher der ganz weirde O(lg n) claim für den nearest neighbour kommt und wie man theoretisch es shconmal verbessern könnte
+- 3 verschiedene Ideen
+- https://stackoverflow.com/a/59582271/9958281
+
+# Aurenhammer
+- saubere formelle Definition von Voronois, analog von der zu Green Sibson somit schreib ich das hier nicht auf.
+- Tolle Applications, sehr viel, kann man referenzieren.
+- Delaunay selbst hat die empty circle method erfunden und es darüber definiert!!!!! !!!
+> The structure was introduced by Voronoi [1908] for sites that form a lattice and was extended by Delaunay [1934]
+> to irregularly placed sites by means of the empty-circle method: Consider all triangles formel by the sites such that
+> the circumcircle of each triangle is empty of other sites. The set of edges of these riangles gives the Delaunay
+> triangulation of the sites.
+- Auch beschreibt es hier das dual:
+> The planar Voronoi diagram and the Delaunay triangulaton are duals in a graphtheoretical sense. Voronoi vertices
+> correspond to Delaunaay triangles, Voronoi regions correspond to sites, and the edge of both types correspond by
+> definition.
+- Die Min/Max Winkelbedingung (und dass nur Delaunay Triangularisierungen es haben, d.h. unique):
+> It was first observed by Sibson [1977] that this triangulation is locally equiangular. This property holds when,
+> for any two triangles whose union is a convex quadliteral, the replacement of their common edge by the alternative
+> diagonal does not increase the minimum of the six interior angles concerned. Actually, the Delaunay triangulation is
+> the only one with this property that particularly shows its uniqueness.
+- Related:
+> For sites being in general position (the Delaunay triangulation may contain more-sided faces if four sites are
+> cocircular), Edelsbrunner [1987] showed that local equiangularity is quivalent to global equiangularity.
+- Gute Motivation:
+> Triangulations without "extreme" angles are desirable in finite element and interpolation methods.
+- Der Dumme Claim, hier noch dreister:
+> The first task requires O(i) in the worst case, BUT A SIMPLE HEURISTIC WILL ARCHIVE O(sqrt(i)) EXPECTED TIME.
+- Plane Sweep Construction kann als Beispiel für $O(n log n)$ time und O(n) space bounds als Beispiel genutzt werden.

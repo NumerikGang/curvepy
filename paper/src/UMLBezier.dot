@@ -1,0 +1,30 @@
+digraph filetree {
+  comment="created for dot engine"
+  
+  comment="define some sane defaults, not too big"
+  node [fontsize=10, shape=box, height=.25]
+  edge [fontsize=10]
+  
+  comment="we go from top to bottom"
+  rankdir=TB;
+
+  comment="optimize for A4, as small as possible"
+  size="8.3,11.7!"
+  ratio="compress"
+  
+  comment="make distance smaller, node=between same level, rank=between levels"
+  nodesep=0.1
+  ranksep=0.5
+  
+  comment="dont make it too spliny, otherwise we have weird overlaps"
+  splines=polyline
+  
+  
+  comment="AbstractBezierCurve"
+  "AbstractBezierCurve" -> "BezierCurveSymPy"
+  "AbstractBezierCurve" -> "BezierCurveDeCasteljau"
+  "AbstractBezierCurve" -> "BezierCurveBernstein"
+  "AbstractBezierCurve" -> "BezierCurveHorner"
+  "AbstractBezierCurve" -> "BezierCurveMonomial"
+  "AbstractBezierCurve" -> "BezierCurveApproximation"
+}
