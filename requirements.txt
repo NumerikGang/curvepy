@@ -2,5 +2,4 @@ numpy
 matplotlib
 scipy
 sympy==1.9
-hypothesis
 pytest==6.*
