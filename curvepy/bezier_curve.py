@@ -244,13 +244,12 @@ class AbstractBezierCurve(ABC):
         """
         fig = plt.figure()
         if self._dimension == 2:
-            ax = fig.add_subplot(1,1,1)
+            ax = fig.add_subplot(1, 1, 1)
             ax.plot(*self.curve, 'o')
         else:
-            ax = fig.add_subplot(1,1,1, projection="3d")
+            ax = fig.add_subplot(1, 1, 1, projection="3d")
             ax.scatter3D(*self.curve)
         return fig, ax
-
 
     def single_forward_difference(self, i: int = 0, r: int = 0) -> np.ndarray:
         """
