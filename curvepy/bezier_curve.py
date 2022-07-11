@@ -233,15 +233,24 @@ class AbstractBezierCurve(ABC):
 
         return res
 
-    def plot(self) -> None:
+    def plot(self) -> Tuple:
         """
         Method plotting the curve by adding it to the current pyplot figure
+
+        Returns
+        -------
+        Tuple:
+            The figure and axis of the subplot
         """
+        fig = plt.figure()
         if self._dimension == 2:
-            plt.plot(*self.curve, 'o')
+            ax = fig.add_subplot(1,1,1)
+            ax.plot(*self.curve, 'o')
         else:
-            ax = plt.axes(projection='3d')
+            ax = fig.add_subplot(1,1,1, projection="3d")
             ax.scatter3D(*self.curve)
+        return fig, ax
+
 
     def single_forward_difference(self, i: int = 0, r: int = 0) -> np.ndarray:
         """
