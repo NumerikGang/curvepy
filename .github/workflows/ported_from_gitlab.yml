@@ -1,0 +1,55 @@
+name: Python CI
+
+# See the `.gitlab-ci.yml` for further reasoning,
+# especially on the linter exceptions...
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python --version
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pdoc3 pytest flake8 flake8-bugbear pep8-naming flake8-builtins flake8-comprehensions
+
+      - name: Static Analysis
+        run: |
+          flake8 --version
+          flake8 --count --statistics --max-line-length=120 --ignore=E731,E125,F405,F403 --exclude=curvepy/tests/data curvepy
+
+      - name: Run Unit Tests
+        run: |
+          python -m pytest -s -v curvepy/tests
+
+      - name: Deploy Pages
+        run: |
+          pdoc3 --html --config latex_math=True --force --output-dir public curvepy
+          mv public/curvepy/* public/
+          rm -d public/
+
+        artifacts:
+          paths:
+            - public
+
