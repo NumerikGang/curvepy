@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Quentin"
+  given-names: "Lars"
+- family-names: "Winkler"
+  given-names: "Maximilian"
+- family-names: "Specht"
+  given-names: "Timo"
+title: "curvepy: Bézier Curves, Delaunay Triangulations and Voronoi Diagrams"
+version: 1.0.0
+date-released: 2022-07-11
+url: "https://github.com/NumerikGang/curvepy"
