@@ -5,11 +5,9 @@ name: Python CI
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
   pull_request:
-    branches:
-      - master
+    branches: [ master ]
 
 jobs:
   build:
@@ -41,14 +39,3 @@ jobs:
       - name: Run Unit Tests
         run: |
           python -m pytest -s -v curvepy/tests
-
-      - name: Deploy Pages
-        run: |
-          pdoc3 --html --config latex_math=True --force --output-dir public curvepy
-          mv public/curvepy/* public/
-          rm -d public/
-
-        artifacts:
-          paths:
-            - public
-
